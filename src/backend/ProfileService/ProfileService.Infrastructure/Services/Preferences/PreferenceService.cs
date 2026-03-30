@@ -1,0 +1,108 @@
+using ProfileService.Application.DTOs.Preferences;
+using ProfileService.Domain.Entities;
+using ProfileService.Domain.Exceptions;
+using ProfileService.Domain.Interfaces.Repositories;
+using ProfileService.Domain.Interfaces.Services;
+using StackExchange.Redis;
+
+namespace ProfileService.Infrastructure.Services.Preferences;
+
+public class PreferenceService : IPreferenceService
+{
+    private readonly IUserPreferencesRepository _prefsRepo;
+    private readonly ITeamMemberRepository _memberRepo;
+    private readonly IConnectionMultiplexer _redis;
+
+    public PreferenceService(
+        IUserPreferencesRepository prefsRepo,
+        ITeamMemberRepository memberRepo,
+        IConnectionMultiplexer redis)
+    {
+        _prefsRepo = prefsRepo;
+        _memberRepo = memberRepo;
+        _redis = redis;
+    }
+
+    public async Task<object> GetAsync(Guid memberId, CancellationToken ct = default)
+    {
+        var prefs = await _prefsRepo.GetByMemberIdAsync(memberId, ct);
+        if (prefs is null)
+        {
+            return new UserPreferencesResponse
+            {
+                Theme = "System",
+                Language = "en",
+                KeyboardShortcutsEnabled = true,
+                DateFormat = "ISO",
+                TimeFormat = "H24"
+            };
+        }
+
+        return MapToResponse(prefs);
+    }
+
+    public async Task<object> UpdateAsync(Guid memberId, object request, CancellationToken ct = default)
+    {
+        var req = (UserPreferencesRequest)request;
+        var prefs = await _prefsRepo.GetByMemberIdAsync(memberId, ct);
+
+        if (prefs is null)
+        {
+            var member = await _memberRepo.GetByIdAsync(memberId, ct)
+                ?? throw new MemberNotFoundException($"Member {memberId} not found");
+
+            prefs = new UserPreferences
+            {
+                TeamMemberId = memberId,
+                OrganizationId = member.OrganizationId
+            };
+            ApplyUpdates(prefs, req);
+            await _prefsRepo.AddAsync(prefs, ct);
+        }
+        else
+        {
+            ApplyUpdates(prefs, req);
+            prefs.DateUpdated = DateTime.UtcNow;
+            await _prefsRepo.UpdateAsync(prefs, ct);
+        }
+
+        // Invalidate cache
+        var db = _redis.GetDatabase();
+        await db.KeyDeleteAsync($"user_prefs:{memberId}");
+        await db.KeyDeleteAsync($"resolved_prefs:{memberId}");
+
+        return MapToResponse(prefs);
+    }
+
+    private static void ApplyUpdates(UserPreferences prefs, UserPreferencesRequest req)
+    {
+        if (req.Theme is not null) prefs.Theme = req.Theme;
+        if (req.Language is not null) prefs.Language = req.Language;
+        if (req.TimezoneOverride is not null) prefs.TimezoneOverride = req.TimezoneOverride;
+        if (req.DefaultBoardView is not null) prefs.DefaultBoardView = req.DefaultBoardView;
+        if (req.DefaultBoardFilters is not null)
+            prefs.DefaultBoardFilters = System.Text.Json.JsonSerializer.Serialize(req.DefaultBoardFilters);
+        if (req.DashboardLayout is not null)
+            prefs.DashboardLayout = System.Text.Json.JsonSerializer.Serialize(req.DashboardLayout);
+        if (req.EmailDigestFrequency is not null) prefs.EmailDigestFrequency = req.EmailDigestFrequency;
+        if (req.KeyboardShortcutsEnabled.HasValue) prefs.KeyboardShortcutsEnabled = req.KeyboardShortcutsEnabled.Value;
+        if (req.DateFormat is not null) prefs.DateFormat = req.DateFormat;
+        if (req.TimeFormat is not null) prefs.TimeFormat = req.TimeFormat;
+    }
+
+    private static UserPreferencesResponse MapToResponse(UserPreferences p) => new()
+    {
+        Theme = p.Theme,
+        Language = p.Language,
+        TimezoneOverride = p.TimezoneOverride,
+        DefaultBoardView = p.DefaultBoardView,
+        DefaultBoardFilters = p.DefaultBoardFilters is not null
+            ? System.Text.Json.JsonSerializer.Deserialize<object>(p.DefaultBoardFilters) : null,
+        DashboardLayout = p.DashboardLayout is not null
+            ? System.Text.Json.JsonSerializer.Deserialize<object>(p.DashboardLayout) : null,
+        EmailDigestFrequency = p.EmailDigestFrequency,
+        KeyboardShortcutsEnabled = p.KeyboardShortcutsEnabled,
+        DateFormat = p.DateFormat,
+        TimeFormat = p.TimeFormat
+    };
+}

@@ -1,0 +1,36 @@
+using Microsoft.EntityFrameworkCore;
+using WorkService.Domain.Entities;
+using WorkService.Domain.Interfaces.Repositories;
+using WorkService.Infrastructure.Data;
+using Task = System.Threading.Tasks.Task;
+
+namespace WorkService.Infrastructure.Repositories.SavedFilters;
+
+public class SavedFilterRepository : ISavedFilterRepository
+{
+    private readonly WorkDbContext _db;
+
+    public SavedFilterRepository(WorkDbContext db) => _db = db;
+
+    public async Task<SavedFilter?> GetByIdAsync(Guid filterId, CancellationToken ct = default)
+        => await _db.SavedFilters.FirstOrDefaultAsync(f => f.SavedFilterId == filterId, ct);
+
+    public async Task<SavedFilter> AddAsync(SavedFilter filter, CancellationToken ct = default)
+    {
+        _db.SavedFilters.Add(filter);
+        await _db.SaveChangesAsync(ct);
+        return filter;
+    }
+
+    public async Task RemoveAsync(SavedFilter filter, CancellationToken ct = default)
+    {
+        _db.SavedFilters.Remove(filter);
+        await _db.SaveChangesAsync(ct);
+    }
+
+    public async Task<IEnumerable<SavedFilter>> ListByMemberAsync(Guid organizationId, Guid memberId, CancellationToken ct = default)
+        => await _db.SavedFilters
+            .Where(f => f.OrganizationId == organizationId && f.TeamMemberId == memberId)
+            .OrderByDescending(f => f.DateCreated)
+            .ToListAsync(ct);
+}

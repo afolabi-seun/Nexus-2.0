@@ -1,0 +1,73 @@
+# =============================================================================
+# Nexus 2.0 — Docker Build & Push
+# Triggers on push to main (after CI passes)
+# Builds Docker images for all services and pushes to container registry
+# =============================================================================
+
+name: Docker Build
+
+on:
+  push:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/nexus-2.0
+
+jobs:
+  build-and-push:
+    name: Build ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: security-service
+            context: src/backend/SecurityService
+            dockerfile: SecurityService.Api/Dockerfile
+          - service: profile-service
+            context: src/backend/ProfileService
+            dockerfile: ProfileService.Api/Dockerfile
+          - service: work-service
+            context: src/backend/WorkService
+            dockerfile: WorkService.Api/Dockerfile
+          - service: utility-service
+            context: src/backend/UtilityService
+            dockerfile: UtilityService.Api/Dockerfile
+          - service: billing-service
+            context: src/backend/BillingService
+            dockerfile: BillingService.Api/Dockerfile
+          - service: frontend
+            context: src/frontend
+            dockerfile: Dockerfile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.service }}
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.context }}/${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

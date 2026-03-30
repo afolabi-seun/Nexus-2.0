@@ -1,0 +1,1 @@
+Task {{TaskTitle}} on {{StoryKey}}: {{OldStatus}} → {{NewStatus}}

@@ -1,0 +1,1 @@
+Story Assigned: {{StoryKey}} — {{StoryTitle}} (by {{AssignerName}})

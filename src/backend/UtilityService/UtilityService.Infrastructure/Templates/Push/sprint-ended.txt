@@ -1,0 +1,1 @@
+Sprint Ended: {{SprintName}} (Velocity: {{Velocity}}, Completion: {{CompletionRate}})

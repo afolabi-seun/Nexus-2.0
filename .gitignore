@@ -1,0 +1,37 @@
+# =============================================================================
+# Nexus 2.0 — Git Ignore
+# =============================================================================
+
+# --- Environment files (contain secrets) ---
+.env
+*.env
+!*.env.example
+!config/development/*.env
+# Staging and production env files should NOT be committed
+config/staging/*.env
+config/production/*.env
+
+# --- .NET ---
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.dll
+*.pdb
+
+# --- Node / Frontend ---
+node_modules/
+dist/
+.vite/
+
+# --- IDE ---
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# --- OS ---
+Thumbs.db

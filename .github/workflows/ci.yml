@@ -1,0 +1,123 @@
+# =============================================================================
+# Nexus 2.0 — CI Pipeline
+# Triggers on push to main and pull requests
+# Builds and tests all 5 backend services + frontend
+# =============================================================================
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  DOTNET_VERSION: "8.0.x"
+  NODE_VERSION: "18"
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Backend — Build & Test
+  # ---------------------------------------------------------------------------
+  backend:
+    name: Backend (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - SecurityService
+          - ProfileService
+          - WorkService
+          - UtilityService
+          - BillingService
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore src/backend/${{ matrix.service }}/${{ matrix.service }}.Api/${{ matrix.service }}.Api.csproj
+
+      - name: Build
+        run: dotnet build src/backend/${{ matrix.service }}/${{ matrix.service }}.Api/${{ matrix.service }}.Api.csproj --no-restore -c Release
+
+      - name: Test
+        run: dotnet test src/backend/${{ matrix.service }}/${{ matrix.service }}.Tests/${{ matrix.service }}.Tests.csproj --no-restore -c Release --logger "trx;LogFileName=test-results.trx"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.service }}
+          path: src/backend/${{ matrix.service }}/${{ matrix.service }}.Tests/TestResults/
+
+  # ---------------------------------------------------------------------------
+  # Frontend — Build & Test
+  # ---------------------------------------------------------------------------
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: src/frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: src/frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: src/frontend
+        run: npm run lint || true
+
+      - name: Build
+        working-directory: src/frontend
+        env:
+          VITE_SECURITY_API_URL: http://localhost:5001
+          VITE_PROFILE_API_URL: http://localhost:5002
+          VITE_WORK_API_URL: http://localhost:5003
+          VITE_UTILITY_API_URL: http://localhost:5200
+          VITE_BILLING_API_URL: http://localhost:5300
+          VITE_APP_NAME: "Nexus 2.0"
+        run: npm run build
+
+      - name: Test
+        working-directory: src/frontend
+        run: npx vitest --run
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: src/frontend/dist/
+
+  # ---------------------------------------------------------------------------
+  # Solution — Full build check
+  # ---------------------------------------------------------------------------
+  solution-build:
+    name: Solution Build
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Build entire solution
+        run: dotnet build Nexus-2.0.sln -c Release

@@ -1,0 +1,2046 @@
+{
+    "info": {
+        "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        "name": "Nexus 2.0 API",
+        "description": "Comprehensive API collection for the Nexus 2.0 Enterprise Agile Platform covering all 5 microservices: SecurityService, ProfileService, WorkService, UtilityService, and BillingService.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "SecurityService",
+            "description": "Authentication, authorization, and security microservice (port 5001)",
+            "item": [
+                {
+                    "name": "Auth",
+                    "description": "Authentication endpoints: login, logout, token refresh, OTP",
+                    "item": [
+                        {
+                            "name": "Login",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "if (pm.response.code === 200) {",
+                                            "    var json = pm.response.json();",
+                                            "    pm.environment.set(\"access_token\", json.data.accessToken);",
+                                            "    pm.environment.set(\"refresh_token\", json.data.refreshToken);",
+                                            "}"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"Admin@123\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{security_url}}/api/v1/auth/login",
+                                    "host": [
+                                        "{{security_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "auth",
+                                        "login"
+                                    ]
+                                },
+                                "description": "Authenticate a user with email and password. Returns JWT access token, refresh token, and expiry. The test script automatically extracts tokens into environment variables."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Refresh Token",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "if (pm.response.code === 200) {",
+                                            "    var json = pm.response.json();",
+                                            "    pm.environment.set(\"access_token\", json.data.accessToken);",
+                                            "    pm.environment.set(\"refresh_token\", json.data.refreshToken);",
+                                            "}"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"refreshToken\": \"{{refresh_token}}\",\n    \"deviceId\": \"postman-device-01\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{security_url}}/api/v1/auth/refresh",
+                                    "host": [
+                                        "{{security_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "auth",
+                                        "refresh"
+                                    ]
+                                },
+                                "description": "Rotate the refresh token and obtain a new access token. Uses refresh token rotation — the old refresh token is invalidated."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Logout",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{security_url}}/api/v1/auth/logout",
+                                    "host": [
+                                        "{{security_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "auth",
+                                        "logout"
+                                    ]
+                                },
+                                "description": "Logout the current session. Blacklists the current JWT and removes the session from Redis."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Request OTP",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"identity\": \"user@example.com\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{security_url}}/api/v1/auth/otp/request",
+                                    "host": [
+                                        "{{security_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "auth",
+                                        "otp",
+                                        "request"
+                                    ]
+                                },
+                                "description": "Request a 6-digit OTP for the given identity (email). OTP is valid for 5 minutes with max 3 verification attempts."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Verify OTP",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"identity\": \"user@example.com\",\n    \"code\": \"123456\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{security_url}}/api/v1/auth/otp/verify",
+                                    "host": [
+                                        "{{security_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "auth",
+                                        "otp",
+                                        "verify"
+                                    ]
+                                },
+                                "description": "Verify a 6-digit OTP code for the given identity."
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Password",
+                    "description": "Password management: change, reset request, reset confirm",
+                    "item": [
+                        {
+                            "name": "Forced Password Change",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"newPassword\": \"NewPass@123\",\n    \"confirmPassword\": \"NewPass@123\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{security_url}}/api/v1/password/forced-change",
+                                    "host": [
+                                        "{{security_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "password",
+                                        "forced-change"
+                                    ]
+                                },
+                                "description": "Change the current user's password. Required for first-time users. Password must meet complexity requirements: 8+ chars, uppercase, lowercase, digit, special character."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Password Reset Request",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"email\": \"user@example.com\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{security_url}}/api/v1/password/reset/request",
+                                    "host": [
+                                        "{{security_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "password",
+                                        "reset",
+                                        "request"
+                                    ]
+                                },
+                                "description": "Request a password reset OTP for the given email address. The OTP is sent to the user's email."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Password Reset Confirm",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"email\": \"user@example.com\",\n    \"otpCode\": \"123456\",\n    \"newPassword\": \"NewPass@123\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{security_url}}/api/v1/password/reset/confirm",
+                                    "host": [
+                                        "{{security_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "password",
+                                        "reset",
+                                        "confirm"
+                                    ]
+                                },
+                                "description": "Confirm a password reset using the OTP code and set a new password. Password must meet complexity requirements."
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Sessions",
+                    "description": "Session management: list, revoke single, revoke all",
+                    "item": [
+                        {
+                            "name": "List Sessions",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{security_url}}/api/v1/sessions?page=1&pageSize=20",
+                                    "host": [
+                                        "{{security_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "sessions"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "1"
+                                        },
+                                        {
+                                            "key": "pageSize",
+                                            "value": "20"
+                                        }
+                                    ]
+                                },
+                                "description": "List all active sessions for the current user. Returns device ID, IP address, and creation timestamp for each session."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Revoke Session",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{security_url}}/api/v1/sessions/{{session_id}}",
+                                    "host": [
+                                        "{{security_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "sessions",
+                                        "{{session_id}}"
+                                    ]
+                                },
+                                "description": "Revoke a specific session by session ID. The session's JWT is blacklisted."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Revoke All Sessions",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{security_url}}/api/v1/sessions/all",
+                                    "host": [
+                                        "{{security_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "sessions",
+                                        "all"
+                                    ]
+                                },
+                                "description": "Revoke all sessions except the current one. Useful for security incidents or when a user suspects unauthorized access."
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Service Tokens",
+                    "description": "Service-to-service JWT token issuance",
+                    "item": [
+                        {
+                            "name": "Issue Service Token",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"serviceId\": \"profile-service\",\n    \"serviceName\": \"ProfileService\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{security_url}}/api/v1/service-tokens/issue",
+                                    "host": [
+                                        "{{security_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "service-tokens",
+                                        "issue"
+                                    ]
+                                },
+                                "description": "Issue a service-to-service JWT token. Used by other microservices to authenticate inter-service calls. Requires service auth."
+                            },
+                            "response": []
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "ProfileService",
+            "description": "Identity, organization, and profile management microservice (port 5002)",
+            "item": [
+                {
+                    "name": "Organizations",
+                    "description": "Organization CRUD and settings management",
+                    "item": [
+                        {
+                            "name": "Get Organization",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{profile_url}}/api/v1/organizations/{{org_id}}",
+                                    "host": [
+                                        "{{profile_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "organizations",
+                                        "{{org_id}}"
+                                    ]
+                                },
+                                "description": "Get organization details by ID. Returns organization name, settings, story ID prefix, and status."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Update Organization Settings",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"sprintDuration\": 14,\n    \"storyPointScale\": \"Fibonacci\",\n    \"defaultBoardView\": \"Kanban\",\n    \"autoAssignmentStrategy\": \"RoundRobin\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{profile_url}}/api/v1/organizations/{{org_id}}/settings",
+                                    "host": [
+                                        "{{profile_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "organizations",
+                                        "{{org_id}}",
+                                        "settings"
+                                    ]
+                                },
+                                "description": "Update organization settings including sprint duration, story point scale, default board view, and auto-assignment strategy. Requires OrgAdmin role."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Create Organization (Admin)",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Acme Corp\",\n    \"storyIdPrefix\": \"ACME\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{profile_url}}/api/v1/organizations",
+                                    "host": [
+                                        "{{profile_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "organizations"
+                                    ]
+                                },
+                                "description": "Create a new organization. Seeds 5 default departments (ENG, QA, DEVOPS, PROD, DESIGN). Requires PlatformAdmin or OrgAdmin role."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Provision Organization Admin",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"email\": \"admin@acme.com\",\n    \"firstName\": \"Jane\",\n    \"lastName\": \"Admin\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{profile_url}}/api/v1/organizations/{{org_id}}/provision-admin",
+                                    "host": [
+                                        "{{profile_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "organizations",
+                                        "{{org_id}}",
+                                        "provision-admin"
+                                    ]
+                                },
+                                "description": "Provision an OrgAdmin for an organization. Creates the team member, assigns OrgAdmin role, generates credentials via SecurityService. Requires PlatformAdmin role."
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Team Members",
+                    "description": "Team member profile management",
+                    "item": [
+                        {
+                            "name": "List Team Members",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{profile_url}}/api/v1/team-members?page=1&pageSize=20",
+                                    "host": [
+                                        "{{profile_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "team-members"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "1"
+                                        },
+                                        {
+                                            "key": "pageSize",
+                                            "value": "20"
+                                        }
+                                    ]
+                                },
+                                "description": "List team members in the current organization. Supports filtering by departmentId, role, status, and availability."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Get Team Member",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{profile_url}}/api/v1/team-members/{{member_id}}",
+                                    "host": [
+                                        "{{profile_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "team-members",
+                                        "{{member_id}}"
+                                    ]
+                                },
+                                "description": "Get detailed team member profile including departments, roles, professional ID, and availability status."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Update Team Member",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"phoneNumber\": \"+1234567890\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{profile_url}}/api/v1/team-members/{{member_id}}",
+                                    "host": [
+                                        "{{profile_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "team-members",
+                                        "{{member_id}}"
+                                    ]
+                                },
+                                "description": "Update a team member's profile information."
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Departments",
+                    "description": "Department management",
+                    "item": [
+                        {
+                            "name": "List Departments",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{profile_url}}/api/v1/departments?page=1&pageSize=20",
+                                    "host": [
+                                        "{{profile_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "departments"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "1"
+                                        },
+                                        {
+                                            "key": "pageSize",
+                                            "value": "20"
+                                        }
+                                    ]
+                                },
+                                "description": "List all departments in the current organization."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Create Department",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Engineering\",\n    \"code\": \"ENG\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{profile_url}}/api/v1/departments",
+                                    "host": [
+                                        "{{profile_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "departments"
+                                    ]
+                                },
+                                "description": "Create a new department in the current organization. Department code must be unique within the organization."
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Invites",
+                    "description": "Invitation system for onboarding new team members",
+                    "item": [
+                        {
+                            "name": "List Invites",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{profile_url}}/api/v1/invites?page=1&pageSize=20",
+                                    "host": [
+                                        "{{profile_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "invites"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "1"
+                                        },
+                                        {
+                                            "key": "pageSize",
+                                            "value": "20"
+                                        }
+                                    ]
+                                },
+                                "description": "List pending invitations for the current organization. OrgAdmins see all invites; DeptLeads see invites for their department."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Create Invite",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"email\": \"new@example.com\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"departmentId\": \"{{dept_id}}\",\n    \"roleId\": \"Member\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{profile_url}}/api/v1/invites",
+                                    "host": [
+                                        "{{profile_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "invites"
+                                    ]
+                                },
+                                "description": "Create a new invitation. Generates a cryptographic token with 48-hour expiry. The invitee receives an email with the invite link."
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Devices",
+                    "description": "Device management (max 5 per user)",
+                    "item": [
+                        {
+                            "name": "List Devices",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{profile_url}}/api/v1/devices",
+                                    "host": [
+                                        "{{profile_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "devices"
+                                    ]
+                                },
+                                "description": "List all registered devices for the current user. Maximum 5 devices per user."
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Preferences",
+                    "description": "User preferences management",
+                    "item": [
+                        {
+                            "name": "Get Preferences",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{profile_url}}/api/v1/preferences",
+                                    "host": [
+                                        "{{profile_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "preferences"
+                                    ]
+                                },
+                                "description": "Get the current user's preferences (theme, date format, time format, digest frequency, etc.)."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Update Preferences",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"theme\": \"Dark\",\n    \"dateFormat\": \"YYYY-MM-DD\",\n    \"timeFormat\": \"24h\",\n    \"digestFrequency\": \"Daily\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{profile_url}}/api/v1/preferences",
+                                    "host": [
+                                        "{{profile_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "preferences"
+                                    ]
+                                },
+                                "description": "Update the current user's preferences."
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Notification Settings",
+                    "description": "Per-user notification channel settings",
+                    "item": [
+                        {
+                            "name": "Get Notification Settings",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{profile_url}}/api/v1/notification-settings",
+                                    "host": [
+                                        "{{profile_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "notification-settings"
+                                    ]
+                                },
+                                "description": "Get notification settings for the current user across all notification types and channels (Email, Push, InApp)."
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Navigation",
+                    "description": "Navigation menu data",
+                    "item": [
+                        {
+                            "name": "Get Navigation",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{profile_url}}/api/v1/navigation",
+                                    "host": [
+                                        "{{profile_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "navigation"
+                                    ]
+                                },
+                                "description": "Get the navigation menu structure for the current user based on their role and permissions."
+                            },
+                            "response": []
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "WorkService",
+            "description": "Agile workflow management microservice (port 5003)",
+            "item": [
+                {
+                    "name": "Projects",
+                    "description": "Project CRUD and status management",
+                    "item": [
+                        {
+                            "name": "List Projects",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{work_url}}/api/v1/projects?page=1&pageSize=20",
+                                    "host": [
+                                        "{{work_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "projects"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "1"
+                                        },
+                                        {
+                                            "key": "pageSize",
+                                            "value": "20"
+                                        }
+                                    ]
+                                },
+                                "description": "List all projects in the current organization. Supports filtering by status and pagination."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Create Project",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Mobile App\",\n    \"projectKey\": \"MOB\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{work_url}}/api/v1/projects",
+                                    "host": [
+                                        "{{work_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "projects"
+                                    ]
+                                },
+                                "description": "Create a new project with a unique project key (2-10 uppercase alphanumeric). The project key is used as a prefix for story IDs (e.g., MOB-1, MOB-2). Requires DeptLead role."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Get Project",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{work_url}}/api/v1/projects/{{project_id}}",
+                                    "host": [
+                                        "{{work_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "projects",
+                                        "{{project_id}}"
+                                    ]
+                                },
+                                "description": "Get project details by ID including story count, sprint count, and project settings."
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Stories",
+                    "description": "Story CRUD, status transitions, and assignment",
+                    "item": [
+                        {
+                            "name": "List Stories",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{work_url}}/api/v1/stories?page=1&pageSize=20",
+                                    "host": [
+                                        "{{work_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "stories"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "1"
+                                        },
+                                        {
+                                            "key": "pageSize",
+                                            "value": "20"
+                                        }
+                                    ]
+                                },
+                                "description": "List stories in the current organization. Supports filtering by projectId, status, priority, departmentId, assigneeId, sprintId, labels, dateFrom, and dateTo."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Create Story",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"projectId\": \"{{project_id}}\",\n    \"title\": \"User login flow\",\n    \"description\": \"Implement the user login flow with email and password\",\n    \"priority\": \"High\",\n    \"storyPoints\": 5\n}"
+                                },
+                                "url": {
+                                    "raw": "{{work_url}}/api/v1/stories",
+                                    "host": [
+                                        "{{work_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "stories"
+                                    ]
+                                },
+                                "description": "Create a new story in a project. Automatically generates a professional story ID (e.g., MOB-42) using an atomic per-project sequence. Story starts in Backlog status."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Get Story",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{work_url}}/api/v1/stories/{{story_id}}",
+                                    "host": [
+                                        "{{work_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "stories",
+                                        "{{story_id}}"
+                                    ]
+                                },
+                                "description": "Get story details by ID including tasks, labels, links, assignee, and activity log."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Update Story Status",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"status\": \"InProgress\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{work_url}}/api/v1/stories/{{story_id}}/status",
+                                    "host": [
+                                        "{{work_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "stories",
+                                        "{{story_id}}",
+                                        "status"
+                                    ]
+                                },
+                                "description": "Transition a story's status. Valid transitions follow the workflow state machine: Backlog → Ready → InProgress → InReview → QA → Done → Closed."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Create Task for Story",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"storyId\": \"{{story_id}}\",\n    \"title\": \"Implement login API\",\n    \"taskType\": \"Development\",\n    \"priority\": \"High\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{work_url}}/api/v1/stories/{{story_id}}/tasks",
+                                    "host": [
+                                        "{{work_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "stories",
+                                        "{{story_id}}",
+                                        "tasks"
+                                    ]
+                                },
+                                "description": "Create a new task under a story. Task type determines department auto-routing (Development → ENG, Testing → QA, etc.). Task starts in ToDo status."
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Sprints",
+                    "description": "Sprint lifecycle management",
+                    "item": [
+                        {
+                            "name": "List Sprints",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{work_url}}/api/v1/sprints?page=1&pageSize=20",
+                                    "host": [
+                                        "{{work_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "sprints"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "1"
+                                        },
+                                        {
+                                            "key": "pageSize",
+                                            "value": "20"
+                                        }
+                                    ]
+                                },
+                                "description": "List sprints in the current organization. Supports filtering by status and projectId."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Create Sprint",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Sprint 1\",\n    \"goal\": \"Complete user authentication module\",\n    \"startDate\": \"2026-04-01\",\n    \"endDate\": \"2026-04-14\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{work_url}}/api/v1/projects/{{project_id}}/sprints",
+                                    "host": [
+                                        "{{work_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "projects",
+                                        "{{project_id}}",
+                                        "sprints"
+                                    ]
+                                },
+                                "description": "Create a new sprint for a project. Sprint starts in Planning status. Only one active sprint per project is allowed. Requires DeptLead role."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Start Sprint",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{work_url}}/api/v1/sprints/{{sprint_id}}/start",
+                                    "host": [
+                                        "{{work_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "sprints",
+                                        "{{sprint_id}}",
+                                        "start"
+                                    ]
+                                },
+                                "description": "Start a sprint (transition from Planning to Active). Only one active sprint per project is allowed. Requires DeptLead role."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Complete Sprint",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{work_url}}/api/v1/sprints/{{sprint_id}}/complete",
+                                    "host": [
+                                        "{{work_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "sprints",
+                                        "{{sprint_id}}",
+                                        "complete"
+                                    ]
+                                },
+                                "description": "Complete a sprint. Calculates velocity (sum of Done/Closed story points), moves incomplete stories back to Backlog. Requires DeptLead role."
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Boards",
+                    "description": "Board view data aggregation",
+                    "item": [
+                        {
+                            "name": "Kanban Board",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{work_url}}/api/v1/boards/kanban",
+                                    "host": [
+                                        "{{work_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "boards",
+                                        "kanban"
+                                    ]
+                                },
+                                "description": "Get the Kanban board view with stories grouped by status columns. Supports optional projectId, sprintId, departmentId, assigneeId, priority, and labels filters."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Sprint Board",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{work_url}}/api/v1/boards/sprint",
+                                    "host": [
+                                        "{{work_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "boards",
+                                        "sprint"
+                                    ]
+                                },
+                                "description": "Get the Sprint board view showing the active sprint's stories and progress. Supports optional projectId filter."
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Comments",
+                    "description": "Threaded comments with @mention support",
+                    "item": [
+                        {
+                            "name": "Create Comment",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"entityType\": \"Story\",\n    \"entityId\": \"{{story_id}}\",\n    \"content\": \"Looks good, @John Doe please review\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{work_url}}/api/v1/comments",
+                                    "host": [
+                                        "{{work_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "comments"
+                                    ]
+                                },
+                                "description": "Create a comment on a story or task. Supports @mentions which trigger notifications to mentioned users."
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Search",
+                    "description": "Full-text search across stories and tasks",
+                    "item": [
+                        {
+                            "name": "Search",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{work_url}}/api/v1/search?query=login&page=1&pageSize=20",
+                                    "host": [
+                                        "{{work_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "search"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "query",
+                                            "value": "login"
+                                        },
+                                        {
+                                            "key": "page",
+                                            "value": "1"
+                                        },
+                                        {
+                                            "key": "pageSize",
+                                            "value": "20"
+                                        }
+                                    ]
+                                },
+                                "description": "Full-text search across stories and tasks using PostgreSQL tsvector/tsquery with weighted search. Minimum 2 characters required."
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Reports",
+                    "description": "Sprint metrics and velocity reports",
+                    "item": [
+                        {
+                            "name": "Velocity Report",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{work_url}}/api/v1/reports/velocity?count=10",
+                                    "host": [
+                                        "{{work_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "reports",
+                                        "velocity"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "count",
+                                            "value": "10"
+                                        }
+                                    ]
+                                },
+                                "description": "Get velocity chart data for the last N completed sprints. Shows story points completed per sprint."
+                            },
+                            "response": []
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "UtilityService",
+            "description": "Cross-cutting operational microservice (port 5200)",
+            "item": [
+                {
+                    "name": "Audit Logs",
+                    "description": "Immutable audit log queries",
+                    "item": [
+                        {
+                            "name": "List Audit Logs",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{utility_url}}/api/v1/audit-logs?page=1&pageSize=20",
+                                    "host": [
+                                        "{{utility_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "audit-logs"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "1"
+                                        },
+                                        {
+                                            "key": "pageSize",
+                                            "value": "20"
+                                        }
+                                    ]
+                                },
+                                "description": "Query audit logs for the current organization. Supports filtering by serviceName, action, entityType, userId, dateFrom, and dateTo. Audit logs are immutable — no update or delete."
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Notification Logs",
+                    "description": "Notification history",
+                    "item": [
+                        {
+                            "name": "List Notification Logs",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{utility_url}}/api/v1/notification-logs?page=1&pageSize=20",
+                                    "host": [
+                                        "{{utility_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "notification-logs"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "1"
+                                        },
+                                        {
+                                            "key": "pageSize",
+                                            "value": "20"
+                                        }
+                                    ]
+                                },
+                                "description": "Get notification history for the current user. Supports filtering by notificationType, channel, status, dateFrom, and dateTo."
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Reference Data",
+                    "description": "Platform reference data (department types, priorities, task types, workflow states)",
+                    "item": [
+                        {
+                            "name": "Get All Reference Data",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{utility_url}}/api/v1/reference/department-types",
+                                    "host": [
+                                        "{{utility_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "reference",
+                                        "department-types"
+                                    ]
+                                },
+                                "description": "Get all department types. No authentication required. Cached in Redis with 24-hour TTL."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Get Priority Levels",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{utility_url}}/api/v1/reference/priority-levels",
+                                    "host": [
+                                        "{{utility_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "reference",
+                                        "priority-levels"
+                                    ]
+                                },
+                                "description": "Get all priority levels. No authentication required."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Get Task Types",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{utility_url}}/api/v1/reference/task-types",
+                                    "host": [
+                                        "{{utility_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "reference",
+                                        "task-types"
+                                    ]
+                                },
+                                "description": "Get all task type references. No authentication required."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Get Workflow States",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{utility_url}}/api/v1/reference/workflow-states",
+                                    "host": [
+                                        "{{utility_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "reference",
+                                        "workflow-states"
+                                    ]
+                                },
+                                "description": "Get all workflow states for stories and tasks. No authentication required."
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Error Codes",
+                    "description": "Centralized error code registry",
+                    "item": [
+                        {
+                            "name": "List Error Codes",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{utility_url}}/api/v1/error-codes",
+                                    "host": [
+                                        "{{utility_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "error-codes"
+                                    ]
+                                },
+                                "description": "List all registered error codes in the platform. Cached in Redis with 24-hour TTL."
+                            },
+                            "response": []
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "BillingService",
+            "description": "Subscription management, plan tiers, feature gating, and usage tracking (port 5300)",
+            "item": [
+                {
+                    "name": "Plans",
+                    "description": "Plan tier listing",
+                    "item": [
+                        {
+                            "name": "List Plans",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{billing_url}}/api/v1/plans",
+                                    "host": [
+                                        "{{billing_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "plans"
+                                    ]
+                                },
+                                "description": "List all active subscription plans (Free, Starter, Professional, Enterprise) with pricing, feature limits, and tier levels."
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Subscriptions",
+                    "description": "Subscription lifecycle management",
+                    "item": [
+                        {
+                            "name": "Get Current Subscription",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{billing_url}}/api/v1/subscriptions/current",
+                                    "host": [
+                                        "{{billing_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "subscriptions",
+                                        "current"
+                                    ]
+                                },
+                                "description": "Get the current organization's subscription details including plan info, usage metrics, and billing period. Requires OrgAdmin role."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Create Subscription",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"planId\": \"{{plan_id}}\",\n    \"paymentMethodToken\": null\n}"
+                                },
+                                "url": {
+                                    "raw": "{{billing_url}}/api/v1/subscriptions",
+                                    "host": [
+                                        "{{billing_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "subscriptions"
+                                    ]
+                                },
+                                "description": "Create a new subscription for the organization. Paid plans start with a 14-day trial. Free plan activates immediately. One subscription per organization. Requires OrgAdmin role."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Upgrade Subscription",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"newPlanId\": \"{{pro_plan_id}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{billing_url}}/api/v1/subscriptions/upgrade",
+                                    "host": [
+                                        "{{billing_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "subscriptions",
+                                        "upgrade"
+                                    ]
+                                },
+                                "description": "Upgrade to a higher-tier plan. Prorated charges apply immediately. If upgrading during trial, trial ends and paid billing starts. Requires OrgAdmin role."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Downgrade Subscription",
+                            "request": {
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"newPlanId\": \"{{starter_plan_id}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{billing_url}}/api/v1/subscriptions/downgrade",
+                                    "host": [
+                                        "{{billing_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "subscriptions",
+                                        "downgrade"
+                                    ]
+                                },
+                                "description": "Schedule a downgrade to a lower-tier plan at the end of the current billing period. Blocked if current usage exceeds target plan limits. Requires OrgAdmin role."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Cancel Subscription",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{billing_url}}/api/v1/subscriptions/cancel",
+                                    "host": [
+                                        "{{billing_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "subscriptions",
+                                        "cancel"
+                                    ]
+                                },
+                                "description": "Cancel the current subscription. Effective at the end of the current billing period. Free plan cancellation is immediate. Requires OrgAdmin role."
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Usage",
+                    "description": "Organization usage tracking",
+                    "item": [
+                        {
+                            "name": "Get Usage",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{billing_url}}/api/v1/usage",
+                                    "host": [
+                                        "{{billing_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "usage"
+                                    ]
+                                },
+                                "description": "Get the current organization's usage metrics (active_members, stories_created, storage_bytes) with current values, limits, and percentage utilization. Requires OrgAdmin role."
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Feature Gates",
+                    "description": "Cross-service feature access checks",
+                    "item": [
+                        {
+                            "name": "Check Feature Gate",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{access_token}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{billing_url}}/api/v1/feature-gates/max_team_members?organizationId={{org_id}}",
+                                    "host": [
+                                        "{{billing_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "feature-gates",
+                                        "max_team_members"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "organizationId",
+                                            "value": "{{org_id}}"
+                                        }
+                                    ]
+                                },
+                                "description": "Check if a feature is allowed for the given organization based on their plan limits. Returns allowed status, current usage, and limit. Used for service-to-service feature gating."
+                            },
+                            "response": []
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
