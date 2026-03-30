@@ -148,8 +148,7 @@ jobs:
               --base main \
               --head dev \
               --title "Auto-merge: dev → main (CI passed)" \
-              --body "Automated PR created by CI after all build and test checks passed on dev branch." \
-              --label "auto-merge"
+              --body "Automated PR created by CI after all build and test checks passed on dev branch."
             
             # Get the new PR number
             EXISTING_PR=$(gh pr list --base main --head dev --state open --json number --jq '.[0].number')
