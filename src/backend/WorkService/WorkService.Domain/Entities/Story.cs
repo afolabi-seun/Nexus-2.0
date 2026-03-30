@@ -22,7 +22,7 @@ public class Story : IOrganizationEntity
     public DateTime? DueDate { get; set; }
     public DateTime? CompletedDate { get; set; }
     public string FlgStatus { get; set; } = "A";
-    public string? SearchVector { get; set; }
+    public NpgsqlTypes.NpgsqlTsVector? SearchVector { get; set; }
     public DateTime DateCreated { get; set; } = DateTime.UtcNow;
     public DateTime DateUpdated { get; set; } = DateTime.UtcNow;
 }

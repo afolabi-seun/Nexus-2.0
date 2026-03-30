@@ -7,6 +7,7 @@ namespace ProfileService.Infrastructure.Data;
 public class ProfileDbContext : DbContext
 {
     private readonly Guid? _organizationId;
+    private Guid OrganizationIdValue => _organizationId ?? Guid.Empty;
 
     public ProfileDbContext(DbContextOptions<ProfileDbContext> options, IHttpContextAccessor? httpContextAccessor = null)
         : base(options)
@@ -86,7 +87,7 @@ public class ProfileDbContext : DbContext
                 .WithMany(o => o.Departments)
                 .HasForeignKey(e => e.OrganizationId);
 
-            entity.HasQueryFilter(e => !_organizationId.HasValue || e.OrganizationId == _organizationId.Value);
+            entity.HasQueryFilter(e => _organizationId == null || e.OrganizationId == OrganizationIdValue);
         });
     }
 
@@ -118,7 +119,7 @@ public class ProfileDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.PrimaryDepartmentId);
 
-            entity.HasQueryFilter(e => !_organizationId.HasValue || e.OrganizationId == _organizationId.Value);
+            entity.HasQueryFilter(e => _organizationId == null || e.OrganizationId == OrganizationIdValue);
         });
     }
 
@@ -142,7 +143,7 @@ public class ProfileDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.RoleId);
 
-            entity.HasQueryFilter(e => !_organizationId.HasValue || e.OrganizationId == _organizationId.Value);
+            entity.HasQueryFilter(e => _organizationId == null || e.OrganizationId == OrganizationIdValue);
         });
     }
 
@@ -187,7 +188,7 @@ public class ProfileDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.InvitedByMemberId);
 
-            entity.HasQueryFilter(e => !_organizationId.HasValue || e.OrganizationId == _organizationId.Value);
+            entity.HasQueryFilter(e => _organizationId == null || e.OrganizationId == OrganizationIdValue);
         });
     }
 
@@ -206,7 +207,7 @@ public class ProfileDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.TeamMemberId);
 
-            entity.HasQueryFilter(e => !_organizationId.HasValue || e.OrganizationId == _organizationId.Value);
+            entity.HasQueryFilter(e => _organizationId == null || e.OrganizationId == OrganizationIdValue);
         });
     }
 
@@ -226,7 +227,7 @@ public class ProfileDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.TeamMemberId);
 
-            entity.HasQueryFilter(e => !_organizationId.HasValue || e.OrganizationId == _organizationId.Value);
+            entity.HasQueryFilter(e => _organizationId == null || e.OrganizationId == OrganizationIdValue);
         });
     }
 
@@ -263,7 +264,7 @@ public class ProfileDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.TeamMemberId);
 
-            entity.HasQueryFilter(e => !_organizationId.HasValue || e.OrganizationId == _organizationId.Value);
+            entity.HasQueryFilter(e => _organizationId == null || e.OrganizationId == OrganizationIdValue);
         });
     }
 
