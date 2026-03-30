@@ -3,6 +3,8 @@
 # Usage: docker compose -f docker/docker-compose.yml up --build
 # =============================================================================
 
+name: nexus
+
 services:
   # ---------------------------------------------------------------------------
   # Infrastructure

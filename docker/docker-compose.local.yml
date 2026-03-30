@@ -4,6 +4,8 @@
 # Usage: docker compose -f docker/docker-compose.local.yml up --build
 # =============================================================================
 
+name: nexus
+
 services:
   seq:
     image: datalust/seq:latest
