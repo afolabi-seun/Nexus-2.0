@@ -4,6 +4,8 @@
 # Usage: docker compose -f docker/docker-compose.server.yml up --build
 # =============================================================================
 
+name: nexus
+
 services:
   redis:
     image: redis:7-alpine
