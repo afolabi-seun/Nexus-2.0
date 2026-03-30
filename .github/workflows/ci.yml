@@ -43,13 +43,13 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore
-        run: dotnet restore src/backend/${{ matrix.service }}/${{ matrix.service }}.Api/${{ matrix.service }}.Api.csproj
+        run: dotnet restore src/backend/${{ matrix.service }}/${{ matrix.service }}.Api/${{ matrix.service }}.Api.csproj && dotnet restore src/backend/${{ matrix.service }}/${{ matrix.service }}.Tests/${{ matrix.service }}.Tests.csproj
 
       - name: Build
         run: dotnet build src/backend/${{ matrix.service }}/${{ matrix.service }}.Api/${{ matrix.service }}.Api.csproj --no-restore -c Release
 
       - name: Test
-        run: dotnet test src/backend/${{ matrix.service }}/${{ matrix.service }}.Tests/${{ matrix.service }}.Tests.csproj --no-restore -c Release --logger "trx;LogFileName=test-results.trx"
+        run: dotnet test src/backend/${{ matrix.service }}/${{ matrix.service }}.Tests/${{ matrix.service }}.Tests.csproj -c Release --logger "trx;LogFileName=test-results.trx"
 
       - name: Upload test results
         if: always()
