@@ -18,9 +18,19 @@ Spin up the entire platform with one command.
 
 ## Quick Start
 
+### Full stack (fresh machine / CI)
 ```bash
-# From the project root:
 docker compose -f docker/docker-compose.yml up --build
+```
+
+### Local dev (PostgreSQL + Redis already installed)
+```bash
+docker compose -f docker/docker-compose.local.yml up --build
+```
+
+### Server (PostgreSQL installed, Redis in Docker)
+```bash
+docker compose -f docker/docker-compose.server.yml up --build
 ```
 
 Then open:
