@@ -7,6 +7,7 @@ namespace BillingService.Infrastructure.Data;
 public class BillingDbContext : DbContext
 {
     private readonly Guid? _organizationId;
+    private Guid OrganizationIdValue => _organizationId ?? Guid.Empty;
 
     public BillingDbContext(DbContextOptions<BillingDbContext> options, IHttpContextAccessor? httpContextAccessor = null)
         : base(options)
@@ -53,7 +54,7 @@ public class BillingDbContext : DbContext
                 .HasForeignKey(e => e.ScheduledPlanId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasQueryFilter(e => !_organizationId.HasValue || e.OrganizationId == _organizationId.Value);
+            entity.HasQueryFilter(e => _organizationId == null || e.OrganizationId == OrganizationIdValue);
         });
     }
 
@@ -81,7 +82,7 @@ public class BillingDbContext : DbContext
 
             entity.HasIndex(e => new { e.OrganizationId, e.MetricName, e.PeriodStart });
 
-            entity.HasQueryFilter(e => !_organizationId.HasValue || e.OrganizationId == _organizationId.Value);
+            entity.HasQueryFilter(e => _organizationId == null || e.OrganizationId == OrganizationIdValue);
         });
     }
 
