@@ -4,8 +4,6 @@
 # Usage: docker compose -f docker/docker-compose.local.yml up --build
 # =============================================================================
 
-version: "3.8"
-
 services:
   seq:
     image: datalust/seq:latest
