@@ -143,6 +143,72 @@ States: `Backlog` → `Ready` → `InProgress` → `Review` → `Done` (with `Bl
 | PUT | `/comments/{id}` | Bearer | Update comment |
 | DELETE | `/comments/{id}` | Bearer | Delete comment |
 
+## Project Structure
+
+```
+WorkService/
+├── WorkService.Domain/
+│   ├── Entities/
+│   ├── Enums/
+│   ├── Exceptions/
+│   ├── Helpers/
+│   ├── Interfaces/
+│   │   ├── Repositories/
+│   │   └── Services/
+│   └── Common/
+├── WorkService.Application/
+│   ├── DTOs/
+│   ├── Contracts/
+│   └── Validators/
+├── WorkService.Infrastructure/
+│   ├── Configuration/
+│   ├── Data/
+│   ├── Repositories/
+│   │   ├── Projects/
+│   │   ├── Stories/
+│   │   ├── StorySequences/
+│   │   ├── Tasks/
+│   │   ├── Sprints/
+│   │   ├── SprintStories/
+│   │   ├── Comments/
+│   │   ├── Labels/
+│   │   ├── StoryLabels/
+│   │   ├── StoryLinks/
+│   │   ├── ActivityLogs/
+│   │   └── SavedFilters/
+│   └── Services/
+│       ├── Projects/
+│       ├── Stories/
+│       ├── Tasks/
+│       ├── Sprints/
+│       ├── Boards/
+│       ├── Comments/
+│       ├── Labels/
+│       ├── Search/
+│       ├── Reports/
+│       ├── Workflows/
+│       ├── ActivityLog/
+│       ├── Outbox/
+│       ├── ErrorCodeResolver/
+│       └── ServiceClients/
+├── WorkService.Api/
+│   ├── Controllers/
+│   ├── Middleware/
+│   ├── Attributes/
+│   └── Extensions/
+└── WorkService.Tests/
+```
+
+## Architecture Conventions
+
+- **Clean Architecture** — 4 layers: Domain → Application → Infrastructure → Api. Dependencies flow inward only.
+- **Entity-named subfolders** — Repositories and Services are organized into subfolders named after the entity they manage (e.g., `Repositories/Projects/ProjectRepository.cs`). Namespaces match folder paths.
+- **ApiResponse envelope** — All API responses wrapped in `ApiResponse<T>` with `ResponseCode`, `Success`, `Data`, `ErrorCode`, and `CorrelationId`.
+- **DomainException pattern** — Business rule violations throw typed exceptions (e.g., `ProjectNotFoundException`) with error codes, HTTP status codes, and correlation IDs. Caught by `GlobalExceptionHandlerMiddleware`.
+- **Middleware pipeline** — CORS → CorrelationId → GlobalExceptionHandler → Serilog → RateLimiter → Routing → Auth → JwtClaims → TokenBlacklist → RoleAuthorization → OrganizationScope → Controllers.
+- **Polly resilience** — Inter-service HTTP calls use retry (3x exponential), circuit breaker (5 failures / 30s), and timeout (10s).
+- **Redis outbox** — Audit events published via `LPUSH outbox:{service}` for async processing by UtilityService.
+
 ## How to Run
 
 ```bash

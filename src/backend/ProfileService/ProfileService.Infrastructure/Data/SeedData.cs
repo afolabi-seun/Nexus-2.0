@@ -57,7 +57,6 @@ public static class SeedData
     {
         if (await context.NavigationItems.AnyAsync()) return;
 
-        // Permission levels: Viewer=25, Member=50, DeptLead=75, OrgAdmin=100
         var boardsParent = new NavigationItem { Label = "Boards", Path = "/boards", Icon = "Columns3", SortOrder = 4, MinPermissionLevel = 25 };
 
         var items = new[]
@@ -73,12 +72,12 @@ public static class SeedData
             new NavigationItem { Label = "Search", Path = "/search", Icon = "Search", SortOrder = 9, MinPermissionLevel = 25 },
             new NavigationItem { Label = "Settings", Path = "/settings", Icon = "Settings", SortOrder = 10, MinPermissionLevel = 100 },
             new NavigationItem { Label = "Invites", Path = "/invites", Icon = "Mail", SortOrder = 11, MinPermissionLevel = 75 },
+            new NavigationItem { Label = "Billing", Path = "/billing", Icon = "CreditCard", SortOrder = 12, MinPermissionLevel = 100 },
         };
 
         await context.NavigationItems.AddRangeAsync(items);
         await context.SaveChangesAsync();
 
-        // Add board children
         var boardChildren = new[]
         {
             new NavigationItem { Label = "Kanban", Path = "/boards/kanban", Icon = "Kanban", SortOrder = 1, ParentId = boardsParent.NavigationItemId, MinPermissionLevel = 25 },
@@ -89,5 +88,40 @@ public static class SeedData
 
         await context.NavigationItems.AddRangeAsync(boardChildren);
         await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Seeds a default PlatformAdmin account for system bootstrap.
+    /// Username: admin, Password: Admin@123 (BCrypt hashed), IsFirstTimeUser: true.
+    /// The admin will be forced to change password on first login.
+    /// </summary>
+    public static async Task SeedPlatformAdminAsync(ProfileDbContext context)
+    {
+        if (await context.PlatformAdmins.AnyAsync()) return;
+
+        var admin = new PlatformAdmin
+        {
+            Username = "admin",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
+            Email = "admin@nexus-platform.local",
+            FirstName = "Platform",
+            LastName = "Admin",
+            IsFirstTimeUser = true,
+            FlgStatus = "A",
+        };
+
+        await context.PlatformAdmins.AddAsync(admin);
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Runs all seed methods in the correct order.
+    /// </summary>
+    public static async Task SeedAllAsync(ProfileDbContext context)
+    {
+        await SeedRolesAsync(context);
+        await SeedNotificationTypesAsync(context);
+        await SeedNavigationItemsAsync(context);
+        await SeedPlatformAdminAsync(context);
     }
 }

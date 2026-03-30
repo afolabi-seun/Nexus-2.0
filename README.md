@@ -4,7 +4,7 @@ A multi-tenant agile project management platform built with .NET 8 microservices
 
 ## Architecture
 
-5 backend microservices + 1 React SPA frontend, each with its own PostgreSQL database. Services communicate via REST with service-to-service JWT authentication. Redis is used for caching, sessions, rate limiting, and feature gate enforcement.
+5 backend microservices + 1 React SPA frontend, each with its own PostgreSQL database. Services communicate via REST with service-to-service JWT authentication. Redis is used for caching, sessions, rate limiting, and feature gate enforcement. Serilog aggregates structured logs to Seq.
 
 | Service | Port | Database | Description |
 |---------|------|----------|-------------|
@@ -17,31 +17,73 @@ A multi-tenant agile project management platform built with .NET 8 microservices
 
 ## Tech Stack
 
-- **Backend:** .NET 8, ASP.NET Core, Entity Framework Core, PostgreSQL, Redis
-- **Frontend:** React 18, TypeScript, Vite, Tailwind CSS v3, Zustand, React Router v6
-- **Testing:** xUnit, Moq (401 backend tests), Vitest, fast-check (93 frontend tests)
-- **Infrastructure:** Polly (resilience), Serilog + Seq (logging), Stripe SDK (payments)
+- **Backend:** .NET 8, ASP.NET Core, Entity Framework Core, PostgreSQL, Redis, FluentValidation
+- **Frontend:** React 18, TypeScript, Vite, Tailwind CSS v3, Zustand, React Router v6, Recharts, dnd-kit
+- **Testing:** xUnit, Moq, FsCheck (401 backend tests) · Vitest, fast-check (93 frontend tests)
+- **Infrastructure:** Polly (resilience), Serilog + Seq (logging), Stripe SDK (payments), Docker Compose
+- **CI/CD:** GitHub Actions (build, test, Docker image push)
+
+## Architecture Conventions
+
+Each backend service follows Clean Architecture with 4 layers:
+
+```
+{Service}/
+├── {Service}.Domain/              # Entities, interfaces, exceptions (no external deps)
+├── {Service}.Application/         # DTOs, validators (FluentValidation)
+├── {Service}.Infrastructure/      # EF Core, Redis, HTTP clients, background services
+│   ├── Repositories/
+│   │   └── {Entity}/              # Entity-named subfolders (e.g., Organizations/)
+│   └── Services/
+│       └── {Feature}/             # Feature-named subfolders (e.g., Auth/, Stripe/)
+├── {Service}.Api/                 # Controllers, middleware, Program.cs
+└── {Service}.Tests/               # xUnit + Moq + FsCheck
+```
+
+Key patterns shared across all services:
+- **Entity-named subfolders** — Repositories and Services organized by entity/feature. Namespaces match folder paths.
+- **ApiResponse envelope** — All responses wrapped in `ApiResponse<T>` with `ResponseCode`, `Success`, `Data`, `ErrorCode`, `CorrelationId`.
+- **DomainException pattern** — Typed exceptions with error codes and HTTP status codes, caught by `GlobalExceptionHandlerMiddleware`.
+- **Middleware pipeline** — CORS → CorrelationId → GlobalExceptionHandler → Serilog → RateLimiter → Routing → Auth → JwtClaims → TokenBlacklist → RoleAuthorization → OrganizationScope → Controllers.
+- **Polly resilience** — Inter-service calls use retry (3x exponential), circuit breaker (5/30s), timeout (10s).
+- **Redis outbox** — Audit events published via `LPUSH outbox:{service}` for async processing by UtilityService.
+- **Swagger + JWT** — All services expose `/swagger` with Bearer token auth support and XML doc comments.
 
 ## Prerequisites
 
-- .NET 8 SDK
+- .NET 8 SDK (8.0.403+)
 - Node.js 18+
-- PostgreSQL (with databases: `nexus_security`, `nexus_profile`, `nexus_work`, `nexus_utility`, `nexus_billing`)
-- Redis
+- PostgreSQL 16+
+- Redis 7+
+- Docker (optional, for Docker Compose)
 - EF Core tools: `dotnet tool install --global dotnet-ef`
 
 ## Quick Start
 
-### 1. Set up environment files
+### Option A: Docker Compose (recommended)
+
+Spin up the entire platform with one command:
 
 ```bash
-# Copy development env files to each service
+docker compose -f docker/docker-compose.yml up --build
+```
+
+This starts all 5 backend services, the frontend, PostgreSQL (with all 5 databases), Redis, and Seq.
+
+- Frontend: http://localhost:5173
+- Swagger: http://localhost:5001/swagger (Security), :5002 (Profile), :5003 (Work), :5200 (Utility), :5300 (Billing)
+- Seq Logs: http://localhost:5341
+
+See [docker/README.md](docker/README.md) for details.
+### Option B: Run locally
+
+#### 1. Set up environment files
+
+```bash
 ./config/setup-env.sh development
 ```
 
-Or manually copy from `config/development/` — see [config/README.md](config/README.md).
-
-### 2. Create databases
+#### 2. Create databases
 
 ```bash
 createdb nexus_security
@@ -51,18 +93,7 @@ createdb nexus_utility
 createdb nexus_billing
 ```
 
-### 3. Run migrations
-
-Each service auto-applies pending migrations on startup. To run manually:
-
-```bash
-cd src/backend/SecurityService/SecurityService.Api
-dotnet ef database update --project ../SecurityService.Infrastructure --context SecurityDbContext
-```
-
-See [migrations guide](src/backend/migrations-guide.md) for all services.
-
-### 4. Start backend services
+#### 3. Start backend services
 
 ```bash
 # In separate terminals:
@@ -73,7 +104,9 @@ dotnet run --project src/backend/UtilityService/UtilityService.Api
 dotnet run --project src/backend/BillingService/BillingService.Api
 ```
 
-### 5. Start frontend
+Each service auto-applies database migrations on startup.
+
+#### 4. Start frontend
 
 ```bash
 cd src/frontend
@@ -89,40 +122,78 @@ Open http://localhost:5173
 Nexus-2.0/
 ├── src/
 │   ├── backend/
-│   │   ├── SecurityService/     # Auth & security (port 5001)
-│   │   ├── ProfileService/      # Org & member management (port 5002)
-│   │   ├── WorkService/         # Projects, stories, sprints (port 5003)
-│   │   ├── UtilityService/      # Audit, notifications, reference data (port 5200)
-│   │   ├── BillingService/      # Subscriptions & billing (port 5300)
-│   │   └── migrations-guide.md
-│   └── frontend/                # React SPA (port 5173)
-├── config/                      # Environment configs (dev/staging/prod)
-├── postman/                     # API collection + environments
-├── docs/                        # Platform specification & requirements
-└── Nexus-2.0.sln               # .NET solution file
+│   │   ├── SecurityService/         # Auth, JWT, sessions, RBAC (port 5001)
+│   │   ├── ProfileService/          # Orgs, departments, members (port 5002)
+│   │   ├── WorkService/             # Projects, stories, sprints (port 5003)
+│   │   ├── UtilityService/          # Audit, notifications, ref data (port 5200)
+│   │   ├── BillingService/          # Subscriptions, billing (port 5300)
+│   │   └── migrations-guide.md      # EF Core migration commands
+│   └── frontend/                    # React 18 SPA (port 5173)
+│       └── src/features/            # Feature-based module organization
+├── .kiro/specs/                     # Spec-driven development artifacts
+│   ├── security-service/            # Requirements, design, tasks per feature
+│   ├── profile-service/
+│   ├── work-service/
+│   ├── utility-service/
+│   ├── billing-service/
+│   ├── frontend-app/
+│   └── billing-frontend/
+├── config/                          # Environment configs
+│   ├── development/                 # Local dev (localhost, relaxed limits)
+│   ├── staging/                     # Staging (internal hosts, test keys)
+│   └── production/                  # Production (SSL, strict limits, live keys)
+├── docker/                          # Docker Compose + init scripts
+├── postman/                         # API collection + environment files
+├── docs/                            # Platform specs and requirements
+├── .github/workflows/               # CI/CD pipelines
+│   ├── ci.yml                       # Build + test on push/PR
+│   └── docker.yml                   # Docker image build + push
+└── Nexus-2.0.sln                    # .NET solution (25 projects)
 ```
-
-Each backend service follows a 4-layer architecture: `Domain` → `Application` → `Infrastructure` → `Api`.
-
-## Resources
-
-- [Environment Configuration](config/README.md)
-- [Postman Collection](postman/README.md)
-- [Database Migrations Guide](src/backend/migrations-guide.md)
-- [Platform Specification](docs/platform-specification.md)
-- [Backend Requirements](docs/nexus-2.0-backend-requirements.md)
-- [Backend Specification](docs/nexus-2.0-backend-specification.md)
-
 ## Tests
 
-- **Backend:** 401 tests across 5 services (xUnit + Moq)
-- **Frontend:** 93 tests across 14 test files (Vitest + fast-check)
+494 tests total, all passing:
+
+| Service | Tests | Framework |
+|---------|-------|-----------|
+| SecurityService | 54 | xUnit + Moq |
+| ProfileService | 58 | xUnit + Moq |
+| WorkService | 130 | xUnit + Moq |
+| UtilityService | 80 | xUnit + Moq |
+| BillingService | 79 | xUnit + Moq + FsCheck |
+| Frontend | 93 | Vitest + fast-check |
 
 ```bash
 # Run all backend tests
 dotnet test Nexus-2.0.sln
 
 # Run frontend tests
-cd src/frontend
-npx vitest --run
+cd src/frontend && npx vitest --run
 ```
+
+## CI/CD
+
+GitHub Actions pipelines in `.github/workflows/`:
+
+- **ci.yml** — Triggers on push to `main` and PRs. Builds and tests each backend service in parallel (5 matrix jobs), builds and tests the frontend, then runs a full solution build check.
+- **docker.yml** — Triggers on push to `main`. Builds Docker images for all 6 containers and pushes to GitHub Container Registry (ghcr.io).
+
+## Resources
+
+| Resource | Path |
+|----------|------|
+| Environment Configuration | [config/README.md](config/README.md) |
+| Docker Compose | [docker/README.md](docker/README.md) |
+| Postman Collection | [postman/README.md](postman/README.md) |
+| Database Migrations | [src/backend/migrations-guide.md](src/backend/mig
+## Resources
+
+| Resource | Path |
+|----------|------|
+| Environment Configuration | [config/README.md](config/README.md) |
+| Docker Compose | [docker/README.md](docker/README.md) |
+| Postman Collection | [postman/README.md](postman/README.md) |
+| Database Migrations | [migrations-guide.md](src/backend/migrations-guide.md) |
+| Platform Specification | [platform-specification.md](docs/platform-specification.md) |
+| Backend Requirements | [backend-requirements.md](docs/nexus-2.0-backend-requirements.md) |
+| Backend Specification | [backend-specification.md](docs/nexus-2.0-backend-specification.md) |

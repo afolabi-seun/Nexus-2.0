@@ -67,6 +67,60 @@ Subscription management and billing microservice for the Nexus 2.0 platform.
 |--------|------|------|-------------|
 | POST | `/webhooks/stripe` | Public | Handle Stripe webhook events |
 
+## Project Structure
+
+```
+BillingService/
+├── BillingService.Domain/
+│   ├── Entities/
+│   ├── Enums/
+│   ├── Exceptions/
+│   ├── Interfaces/
+│   │   ├── Repositories/
+│   │   └── Services/
+│   └── Common/
+├── BillingService.Application/
+│   ├── DTOs/
+│   ├── Contracts/
+│   └── Validators/
+├── BillingService.Infrastructure/
+│   ├── Configuration/
+│   ├── Data/
+│   ├── Repositories/
+│   │   ├── Subscriptions/
+│   │   ├── Plans/
+│   │   ├── UsageRecords/
+│   │   └── StripeEvents/
+│   └── Services/
+│       ├── Subscriptions/
+│       ├── Plans/
+│       ├── FeatureGates/
+│       ├── Usage/
+│       ├── Stripe/
+│       ├── Outbox/
+│       ├── ErrorCodeResolver/
+│       ├── ServiceClients/
+│       └── BackgroundServices/
+├── BillingService.Api/
+│   ├── Controllers/
+│   ├── Middleware/
+│   ├── Attributes/
+│   └── Extensions/
+└── BillingService.Tests/
+    ├── Unit/
+    └── Property/
+```
+
+## Architecture Conventions
+
+- **Clean Architecture** — 4 layers: Domain → Application → Infrastructure → Api. Dependencies flow inward only.
+- **Entity-named subfolders** — Repositories and Services are organized into subfolders named after the entity they manage (e.g., `Repositories/Subscriptions/SubscriptionRepository.cs`). Namespaces match folder paths.
+- **ApiResponse envelope** — All API responses wrapped in `ApiResponse<T>` with `ResponseCode`, `Success`, `Data`, `ErrorCode`, and `CorrelationId`.
+- **DomainException pattern** — Business rule violations throw typed exceptions (e.g., `PlanNotFoundException`) with error codes, HTTP status codes, and correlation IDs. Caught by `GlobalExceptionHandlerMiddleware`.
+- **Middleware pipeline** — CORS → CorrelationId → GlobalExceptionHandler → Serilog → RateLimiter → Routing → Auth → JwtClaims → TokenBlacklist → RoleAuthorization → OrganizationScope → Controllers.
+- **Polly resilience** — Inter-service HTTP calls use retry (3x exponential), circuit breaker (5 failures / 30s), and timeout (10s).
+- **Redis outbox** — Audit events published via `LPUSH outbox:{service}` for async processing by UtilityService.
+
 ## How to Run
 
 ```bash

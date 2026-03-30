@@ -106,6 +106,13 @@ var app = builder.Build();
 // Apply database migrations and seed data
 DatabaseMigrationHelper.ApplyMigrations(app);
 
+// Seed reference data (roles, notification types, navigation, platform admin)
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ProfileService.Infrastructure.Data.ProfileDbContext>();
+    await ProfileService.Infrastructure.Data.SeedData.SeedAllAsync(context);
+}
+
 // Swagger UI (Development only)
 app.UseSwaggerInDevelopment();
 

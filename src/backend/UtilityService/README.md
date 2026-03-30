@@ -68,6 +68,65 @@ Audit logging, notifications, and reference data microservice for the Nexus 2.0 
 | POST | `/reference/department-types` | OrgAdmin | Create department type |
 | POST | `/reference/priority-levels` | OrgAdmin | Create priority level |
 
+## Project Structure
+
+```
+UtilityService/
+├── UtilityService.Domain/
+│   ├── Entities/
+│   ├── Enums/
+│   ├── Exceptions/
+│   ├── Interfaces/
+│   │   ├── Repositories/
+│   │   └── Services/
+│   └── Common/
+├── UtilityService.Application/
+│   ├── DTOs/
+│   └── Validators/
+├── UtilityService.Infrastructure/
+│   ├── Configuration/
+│   ├── Data/
+│   ├── Templates/             # Email and Push notification templates
+│   │   ├── Email/
+│   │   └── Push/
+│   ├── Repositories/
+│   │   ├── AuditLogs/
+│   │   ├── ArchivedAuditLogs/
+│   │   ├── ErrorLogs/
+│   │   ├── NotificationLogs/
+│   │   ├── ErrorCodeEntries/
+│   │   ├── DepartmentTypes/
+│   │   ├── PriorityLevels/
+│   │   ├── TaskTypeRefs/
+│   │   └── WorkflowStates/
+│   └── Services/
+│       ├── AuditLogs/
+│       ├── ErrorLogs/
+│       ├── Notifications/
+│       ├── ErrorCodes/
+│       ├── ReferenceData/
+│       ├── PiiRedaction/
+│       ├── Outbox/
+│       ├── ErrorCodeResolver/
+│       └── BackgroundServices/
+├── UtilityService.Api/
+│   ├── Controllers/
+│   ├── Middleware/
+│   ├── Attributes/
+│   └── Extensions/
+└── UtilityService.Tests/
+```
+
+## Architecture Conventions
+
+- **Clean Architecture** — 4 layers: Domain → Application → Infrastructure → Api. Dependencies flow inward only.
+- **Entity-named subfolders** — Repositories and Services are organized into subfolders named after the entity they manage (e.g., `Repositories/AuditLogs/AuditLogRepository.cs`). Namespaces match folder paths.
+- **ApiResponse envelope** — All API responses wrapped in `ApiResponse<T>` with `ResponseCode`, `Success`, `Data`, `ErrorCode`, and `CorrelationId`.
+- **DomainException pattern** — Business rule violations throw typed exceptions (e.g., `ErrorCodeNotFoundException`) with error codes, HTTP status codes, and correlation IDs. Caught by `GlobalExceptionHandlerMiddleware`.
+- **Middleware pipeline** — CORS → CorrelationId → GlobalExceptionHandler → Serilog → RateLimiter → Routing → Auth → JwtClaims → TokenBlacklist → RoleAuthorization → OrganizationScope → Controllers.
+- **Polly resilience** — Inter-service HTTP calls use retry (3x exponential), circuit breaker (5 failures / 30s), and timeout (10s).
+- **Redis outbox** — Audit events published via `LPUSH outbox:{service}` for async processing by UtilityService.
+
 ## How to Run
 
 ```bash

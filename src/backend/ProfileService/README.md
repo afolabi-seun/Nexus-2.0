@@ -90,6 +90,71 @@ Organization and team member management microservice for the Nexus 2.0 platform.
 | GET | `/platform-admins/by-username/{username}` | Service | Get admin by username |
 | PATCH | `/platform-admins/{id}/password` | Service | Update admin password |
 
+## Project Structure
+
+```
+ProfileService/
+├── ProfileService.Domain/
+│   ├── Entities/
+│   ├── Enums/
+│   ├── Exceptions/
+│   ├── Helpers/
+│   ├── Interfaces/
+│   │   ├── Repositories/
+│   │   └── Services/
+│   └── Common/
+├── ProfileService.Application/
+│   ├── DTOs/
+│   ├── Contracts/
+│   └── Validators/
+├── ProfileService.Infrastructure/
+│   ├── Configuration/
+│   ├── Data/
+│   ├── Repositories/
+│   │   ├── Organizations/     # Entity-named subfolders
+│   │   ├── Departments/
+│   │   ├── DepartmentMembers/
+│   │   ├── TeamMembers/
+│   │   ├── Roles/
+│   │   ├── Invites/
+│   │   ├── Devices/
+│   │   ├── NotificationSettings/
+│   │   ├── NotificationTypes/
+│   │   ├── UserPreferences/
+│   │   ├── PlatformAdmins/
+│   │   └── NavigationItems/
+│   └── Services/
+│       ├── Organizations/
+│       ├── Departments/
+│       ├── TeamMembers/
+│       ├── Roles/
+│       ├── Invites/
+│       ├── Devices/
+│       ├── Preferences/
+│       ├── NotificationSettings/
+│       ├── PlatformAdmins/
+│       ├── Navigation/
+│       ├── Outbox/
+│       ├── ErrorCodeResolver/
+│       └── ServiceClients/
+├── ProfileService.Api/
+│   ├── Controllers/
+│   ├── Middleware/
+│   ├── Attributes/
+│   └── Extensions/
+└── ProfileService.Tests/
+```
+
+## Architecture Conventions
+
+- **Clean Architecture** — 4 layers: Domain → Application → Infrastructure → Api. Dependencies flow inward only.
+- **Entity-named subfolders** — Repositories and Services are organized into subfolders named after the entity they manage (e.g., `Repositories/Organizations/OrganizationRepository.cs`). Namespaces match folder paths.
+- **ApiResponse envelope** — All API responses wrapped in `ApiResponse<T>` with `ResponseCode`, `Success`, `Data`, `ErrorCode`, and `CorrelationId`.
+- **DomainException pattern** — Business rule violations throw typed exceptions (e.g., `OrganizationNotFoundException`) with error codes, HTTP status codes, and correlation IDs. Caught by `GlobalExceptionHandlerMiddleware`.
+- **Middleware pipeline** — CORS → CorrelationId → GlobalExceptionHandler → Serilog → RateLimiter → Routing → Auth → JwtClaims → TokenBlacklist → RoleAuthorization → OrganizationScope → Controllers.
+- **Polly resilience** — Inter-service HTTP calls use retry (3x exponential), circuit breaker (5 failures / 30s), and timeout (10s).
+- **Redis outbox** — Audit events published via `LPUSH outbox:{service}` for async processing by UtilityService.
+
 ## How to Run
 
 ```bash

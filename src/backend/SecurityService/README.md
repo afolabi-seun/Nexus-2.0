@@ -59,12 +59,56 @@ Authentication and authorization microservice for the Nexus 2.0 platform.
 
 ```
 SecurityService/
-├── SecurityService.Domain/          # Entities, interfaces, value objects
-├── SecurityService.Application/     # DTOs, validators, service contracts
-├── SecurityService.Infrastructure/  # EF Core, Redis, Polly, service clients
-├── SecurityService.Api/             # Controllers, middleware, Program.cs
-└── SecurityService.Tests/           # xUnit + Moq tests
+├── SecurityService.Domain/
+│   ├── Entities/              # Domain entities
+│   ├── Enums/                 # Domain enums
+│   ├── Exceptions/            # Domain exceptions (ErrorCodes.cs + specific exceptions)
+│   ├── Helpers/               # Constants and helpers
+│   ├── Interfaces/
+│   │   ├── Repositories/      # Repository interfaces
+│   │   └── Services/          # Service interfaces
+│   └── Common/                # Shared interfaces (IOrganizationEntity)
+├── SecurityService.Application/
+│   ├── DTOs/                  # Request/response DTOs organized by feature
+│   ├── Contracts/             # Inter-service contracts
+│   └── Validators/            # FluentValidation validators
+├── SecurityService.Infrastructure/
+│   ├── Configuration/         # AppSettings, DI, DatabaseMigrationHelper
+│   ├── Data/                  # EF Core DbContext
+│   ├── Repositories/
+│   │   └── PasswordHistory/   # Entity-named subfolders
+│   └── Services/
+│       ├── Auth/              # Each service in its own subfolder
+│       ├── Jwt/
+│       ├── Session/
+│       ├── Otp/
+│       ├── Password/
+│       ├── AnomalyDetection/
+│       ├── RateLimiter/
+│       ├── ServiceToken/
+│       ├── Outbox/
+│       ├── ErrorCodeResolver/
+│       └── ServiceClients/
+├── SecurityService.Api/
+│   ├── Controllers/
+│   ├── Middleware/
+│   ├── Attributes/
+│   ├── Extensions/
+│   └── Program.cs
+└── SecurityService.Tests/
+    ├── Unit/
+    └── Property/
 ```
+
+## Architecture Conventions
+
+- **Clean Architecture** — 4 layers: Domain → Application → Infrastructure → Api. Dependencies flow inward only.
+- **Entity-named subfolders** — Repositories and Services are organized into subfolders named after the entity they manage (e.g., `Repositories/PasswordHistory/PasswordHistoryRepository.cs`). Namespaces match folder paths.
+- **ApiResponse envelope** — All API responses wrapped in `ApiResponse<T>` with `ResponseCode`, `Success`, `Data`, `ErrorCode`, and `CorrelationId`.
+- **DomainException pattern** — Business rule violations throw typed exceptions (e.g., `InvalidCredentialsException`) with error codes, HTTP status codes, and correlation IDs. Caught by `GlobalExceptionHandlerMiddleware`.
+- **Middleware pipeline** — CORS → CorrelationId → GlobalExceptionHandler → Serilog → RateLimiter → Routing → Auth → JwtClaims → TokenBlacklist → RoleAuthorization → OrganizationScope → Controllers.
+- **Polly resilience** — Inter-service HTTP calls use retry (3x exponential), circuit breaker (5 failures / 30s), and timeout (10s).
+- **Redis outbox** — Audit events published via `LPUSH outbox:{service}` for async processing by UtilityService.
 
 ## How to Run
 

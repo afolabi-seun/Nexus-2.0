@@ -6,10 +6,10 @@
 .env
 *.env
 !*.env.example
-!config/development/*.env
-# Staging and production env files should NOT be committed
+# Config env files should NOT be committed (use setup-env.sh to deploy)
 config/staging/*.env
 config/production/*.env
+config/development/*.env
 
 # --- .NET ---
 bin/
