@@ -62,13 +62,16 @@ Key patterns shared across all services:
 
 ### Option A: Docker Compose (recommended)
 
-Spin up the entire platform with one command:
-
 ```bash
+# Full stack (fresh machine — includes PostgreSQL, Redis, Seq)
 docker compose -f docker/docker-compose.yml up --build
-```
 
-This starts all 5 backend services, the frontend, PostgreSQL (with all 5 databases), Redis, and Seq.
+# Local dev (you have PostgreSQL + Redis installed — only Seq + services)
+docker compose -f docker/docker-compose.local.yml up --build
+
+# Server (PostgreSQL installed, Redis in Docker)
+docker compose -f docker/docker-compose.server.yml up --build
+```
 
 - Frontend: http://localhost:5173
 - Swagger: http://localhost:5001/swagger (Security), :5002 (Profile), :5003 (Work), :5200 (Utility), :5300 (Billing)
