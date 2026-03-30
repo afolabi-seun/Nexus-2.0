@@ -14,7 +14,7 @@ services:
     container_name: nexus-postgres
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: pass.123
     ports:
       - "5432:5432"
     volumes:
@@ -58,7 +58,7 @@ services:
     ports:
       - "5001:5001"
     environment:
-      DATABASE_CONNECTION_STRING: "Host=postgres;Port=5432;Database=nexus_security;Username=postgres;Password=postgres"
+      DATABASE_CONNECTION_STRING: "Host=postgres;Port=5432;Database=nexus_security;Username=postgres;Password=pass.123"
       REDIS_CONNECTION_STRING: "redis:6379"
       JWT_SECRET_KEY: "docker-dev-secret-key-must-be-at-least-32-characters!!"
       JWT_ISSUER: SecurityService
@@ -97,7 +97,7 @@ services:
     ports:
       - "5002:5002"
     environment:
-      DATABASE_CONNECTION_STRING: "Host=postgres;Port=5432;Database=nexus_profile;Username=postgres;Password=postgres"
+      DATABASE_CONNECTION_STRING: "Host=postgres;Port=5432;Database=nexus_profile;Username=postgres;Password=pass.123"
       REDIS_CONNECTION_STRING: "redis:6379"
       JWT_SECRET_KEY: "docker-dev-secret-key-must-be-at-least-32-characters!!"
       JWT_ISSUER: SecurityService
@@ -128,7 +128,7 @@ services:
     ports:
       - "5003:5003"
     environment:
-      DATABASE_CONNECTION_STRING: "Host=postgres;Port=5432;Database=nexus_work;Username=postgres;Password=postgres"
+      DATABASE_CONNECTION_STRING: "Host=postgres;Port=5432;Database=nexus_work;Username=postgres;Password=pass.123"
       REDIS_CONNECTION_STRING: "redis:6379"
       JWT_SECRET_KEY: "docker-dev-secret-key-must-be-at-least-32-characters!!"
       JWT_ISSUER: SecurityService
@@ -157,7 +157,7 @@ services:
     ports:
       - "5200:5200"
     environment:
-      DATABASE_URL: "Host=postgres;Port=5432;Database=nexus_utility;Username=postgres;Password=postgres"
+      DATABASE_URL: "Host=postgres;Port=5432;Database=nexus_utility;Username=postgres;Password=pass.123"
       REDIS_URL: "redis:6379"
       JWT_SECRET: "docker-dev-secret-key-must-be-at-least-32-characters!!"
       JWT_ISSUER: SecurityService
@@ -184,7 +184,7 @@ services:
     ports:
       - "5300:5300"
     environment:
-      DATABASE_CONNECTION_STRING: "Host=postgres;Port=5432;Database=nexus_billing;Username=postgres;Password=postgres"
+      DATABASE_CONNECTION_STRING: "Host=postgres;Port=5432;Database=nexus_billing;Username=postgres;Password=pass.123"
       REDIS_CONNECTION_STRING: "redis:6379"
       JWT_SECRET_KEY: "docker-dev-secret-key-must-be-at-least-32-characters!!"
       JWT_ISSUER: SecurityService
