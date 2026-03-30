@@ -1,5 +1,3 @@
-version: "3.8"
-
 # =============================================================================
 # Nexus 2.0 — Docker Compose (Local Development)
 # Usage: docker compose -f docker/docker-compose.yml up --build
