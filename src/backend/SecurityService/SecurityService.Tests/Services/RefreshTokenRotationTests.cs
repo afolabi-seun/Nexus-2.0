@@ -1,7 +1,13 @@
 using Moq;
 using Microsoft.Extensions.Logging;
 using SecurityService.Domain.Exceptions;
-using SecurityService.Domain.Interfaces.Services;
+using SecurityService.Domain.Interfaces.Services.AnomalyDetection;
+using SecurityService.Domain.Interfaces.Services.Auth;
+using SecurityService.Domain.Interfaces.Services.Jwt;
+using SecurityService.Domain.Interfaces.Services.Outbox;
+using SecurityService.Domain.Interfaces.Services.Password;
+using SecurityService.Domain.Interfaces.Services.RateLimiter;
+using SecurityService.Domain.Interfaces.Services.Session;
 using SecurityService.Application.Contracts;
 using SecurityService.Infrastructure.Configuration;
 using SecurityService.Infrastructure.Services.Auth;

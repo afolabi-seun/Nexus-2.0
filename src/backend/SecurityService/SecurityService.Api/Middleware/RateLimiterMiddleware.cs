@@ -1,5 +1,5 @@
 using SecurityService.Domain.Exceptions;
-using SecurityService.Domain.Interfaces.Services;
+using SecurityService.Domain.Interfaces.Services.RateLimiter;
 using SecurityService.Infrastructure.Configuration;
 
 namespace SecurityService.Api.Middleware;

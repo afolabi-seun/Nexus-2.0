@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using SecurityService.Application.Contracts;
 using SecurityService.Application.DTOs;
 using SecurityService.Domain.Exceptions;
-using SecurityService.Domain.Interfaces.Services;
+using SecurityService.Domain.Interfaces.Services.ServiceToken;
 using SecurityService.Infrastructure.Configuration;
 using StackExchange.Redis;
 

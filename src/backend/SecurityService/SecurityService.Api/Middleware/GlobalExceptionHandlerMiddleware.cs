@@ -2,7 +2,7 @@ using System.Net;
 using System.Text.Json;
 using SecurityService.Application.DTOs;
 using SecurityService.Domain.Exceptions;
-using SecurityService.Domain.Interfaces.Services;
+using SecurityService.Domain.Interfaces.Services.ErrorCodeResolver;
 
 namespace SecurityService.Api.Middleware;
 

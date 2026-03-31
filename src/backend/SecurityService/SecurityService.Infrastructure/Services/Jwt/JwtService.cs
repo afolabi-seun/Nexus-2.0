@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using SecurityService.Domain.Interfaces.Services;
+using SecurityService.Domain.Interfaces.Services.Jwt;
 using SecurityService.Infrastructure.Configuration;
 
 namespace SecurityService.Infrastructure.Services.Jwt;

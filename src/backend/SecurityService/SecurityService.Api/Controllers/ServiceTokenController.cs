@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using SecurityService.Api.Attributes;
 using SecurityService.Application.DTOs;
 using SecurityService.Application.DTOs.ServiceToken;
-using SecurityService.Domain.Interfaces.Services;
+using SecurityService.Domain.Interfaces.Services.ServiceToken;
 
 namespace SecurityService.Api.Controllers;
 

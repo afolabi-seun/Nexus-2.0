@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using SecurityService.Domain.Exceptions;
-using SecurityService.Domain.Interfaces.Services;
+using SecurityService.Domain.Interfaces.Services.Otp;
 using SecurityService.Infrastructure.Configuration;
 using StackExchange.Redis;
 

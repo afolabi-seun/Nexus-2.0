@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SecurityService.Domain.Entities;
-using SecurityService.Domain.Interfaces.Repositories;
+using SecurityService.Domain.Interfaces.Repositories.PasswordHistory;
 using SecurityService.Infrastructure.Data;
 using PasswordHistoryEntity = SecurityService.Domain.Entities.PasswordHistory;
 

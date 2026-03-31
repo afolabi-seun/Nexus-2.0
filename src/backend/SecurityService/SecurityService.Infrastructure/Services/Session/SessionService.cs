@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using SecurityService.Domain.Interfaces.Services;
+using SecurityService.Domain.Interfaces.Services.Session;
 using StackExchange.Redis;
 
 namespace SecurityService.Infrastructure.Services.Session;

@@ -3,8 +3,10 @@ using System.Text.RegularExpressions;
 using SecurityService.Domain.Entities;
 using SecurityService.Domain.Exceptions;
 using SecurityService.Domain.Helpers;
-using SecurityService.Domain.Interfaces.Repositories;
-using SecurityService.Domain.Interfaces.Services;
+using SecurityService.Domain.Interfaces.Repositories.PasswordHistory;
+using SecurityService.Domain.Interfaces.Services.Otp;
+using SecurityService.Domain.Interfaces.Services.Outbox;
+using SecurityService.Domain.Interfaces.Services.Password;
 using SecurityService.Infrastructure.Configuration;
 using SecurityService.Infrastructure.Services.ServiceClients;
 

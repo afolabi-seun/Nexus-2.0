@@ -4,7 +4,8 @@ using SecurityService.Api.Attributes;
 using SecurityService.Application.DTOs;
 using SecurityService.Application.DTOs.Auth;
 using SecurityService.Application.DTOs.Otp;
-using SecurityService.Domain.Interfaces.Services;
+using SecurityService.Domain.Interfaces.Services.Auth;
+using SecurityService.Domain.Interfaces.Services.Otp;
 
 namespace SecurityService.Api.Controllers;
 

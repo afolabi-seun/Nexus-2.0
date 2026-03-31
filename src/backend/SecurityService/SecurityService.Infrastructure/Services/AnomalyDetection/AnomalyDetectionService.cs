@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SecurityService.Domain.Exceptions;
-using SecurityService.Domain.Interfaces.Services;
+using SecurityService.Domain.Interfaces.Services.AnomalyDetection;
 using StackExchange.Redis;
 
 namespace SecurityService.Infrastructure.Services.AnomalyDetection;
