@@ -10,6 +10,7 @@ using WorkService.Domain.Interfaces.Repositories.SprintStories;
 using WorkService.Domain.Interfaces.Repositories.Sprints;
 using WorkService.Domain.Interfaces.Repositories.Stories;
 using WorkService.Domain.Interfaces.Repositories.Tasks;
+using WorkService.Domain.Interfaces.Services.Analytics;
 using WorkService.Domain.Interfaces.Services.Outbox;
 using WorkService.Domain.Interfaces.Services.Sprints;
 using WorkService.Infrastructure.Services.ServiceClients;
@@ -27,17 +28,20 @@ public class SprintService : ISprintService
     private readonly IOutboxService _outbox;
     private readonly IConnectionMultiplexer _redis;
     private readonly IProfileServiceClient? _profileClient;
+    private readonly IAnalyticsSnapshotService? _analyticsSnapshotService;
     private readonly ILogger<SprintService> _logger;
 
     public SprintService(
         ISprintRepository sprintRepo, ISprintStoryRepository sprintStoryRepo,
         IStoryRepository storyRepo, ITaskRepository taskRepo, IProjectRepository projectRepo,
         IOutboxService outbox, IConnectionMultiplexer redis,
-        ILogger<SprintService> logger, IProfileServiceClient? profileClient = null)
+        ILogger<SprintService> logger, IProfileServiceClient? profileClient = null,
+        IAnalyticsSnapshotService? analyticsSnapshotService = null)
     {
         _sprintRepo = sprintRepo; _sprintStoryRepo = sprintStoryRepo;
         _storyRepo = storyRepo; _taskRepo = taskRepo; _projectRepo = projectRepo;
         _outbox = outbox; _redis = redis; _logger = logger; _profileClient = profileClient;
+        _analyticsSnapshotService = analyticsSnapshotService;
     }
 
     public async Task<object> CreateAsync(Guid organizationId, Guid projectId, object request, CancellationToken ct = default)
@@ -163,6 +167,22 @@ public class SprintService : ISprintService
 
         var completionRate = totalStories > 0 ? Math.Round((decimal)completedStories / totalStories * 100, 2) : 0;
         await _outbox.PublishAsync(new { MessageType = "NotificationRequest", Action = "SprintEnded", EntityType = "Sprint", EntityId = sprintId.ToString(), NotificationType = "SprintEnded", TemplateVariables = new Dictionary<string, string> { ["Velocity"] = velocity.ToString(), ["CompletionRate"] = completionRate.ToString() } }, ct);
+
+        // Fire-and-forget: trigger analytics snapshot generation
+        if (_analyticsSnapshotService != null)
+        {
+            _ = System.Threading.Tasks.Task.Run(async () =>
+            {
+                try
+                {
+                    await _analyticsSnapshotService.TriggerSprintCloseSnapshotsAsync(sprintId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to generate analytics snapshots for sprint {SprintId}", sprintId);
+                }
+            });
+        }
 
         return await BuildDetailResponse(sprint, ct);
     }

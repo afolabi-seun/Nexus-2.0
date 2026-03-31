@@ -25,6 +25,10 @@ public class WorkDbContext : DbContext
     public DbSet<TimePolicy> TimePolicies => Set<TimePolicy>();
     public DbSet<TimeApproval> TimeApprovals => Set<TimeApproval>();
     public DbSet<CostSnapshot> CostSnapshots => Set<CostSnapshot>();
+    public DbSet<VelocitySnapshot> VelocitySnapshots => Set<VelocitySnapshot>();
+    public DbSet<ProjectHealthSnapshot> ProjectHealthSnapshots => Set<ProjectHealthSnapshot>();
+    public DbSet<ResourceAllocationSnapshot> ResourceAllocationSnapshots => Set<ResourceAllocationSnapshot>();
+    public DbSet<RiskRegister> RiskRegisters => Set<RiskRegister>();
 
     public WorkDbContext(DbContextOptions<WorkDbContext> options, IHttpContextAccessor? httpContextAccessor = null)
         : base(options)
@@ -57,6 +61,10 @@ public class WorkDbContext : DbContext
         ConfigureTimePolicy(modelBuilder);
         ConfigureTimeApproval(modelBuilder);
         ConfigureCostSnapshot(modelBuilder);
+        ConfigureVelocitySnapshot(modelBuilder);
+        ConfigureProjectHealthSnapshot(modelBuilder);
+        ConfigureResourceAllocationSnapshot(modelBuilder);
+        ConfigureRiskRegister(modelBuilder);
     }
 
     private void ConfigureProject(ModelBuilder modelBuilder)
@@ -299,6 +307,54 @@ public class WorkDbContext : DbContext
             entity.HasKey(e => e.CostSnapshotId);
             entity.HasIndex(e => new { e.ProjectId, e.PeriodStart, e.PeriodEnd });
             entity.Property(e => e.TotalCost).IsRequired();
+        });
+    }
+
+    private void ConfigureVelocitySnapshot(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<VelocitySnapshot>(entity =>
+        {
+            entity.HasKey(e => e.VelocitySnapshotId);
+            entity.HasIndex(e => new { e.ProjectId, e.SprintId }).IsUnique();
+            entity.HasIndex(e => new { e.ProjectId, e.EndDate });
+            entity.HasQueryFilter(e => _organizationId == null || e.OrganizationId == _organizationId);
+        });
+    }
+
+    private void ConfigureProjectHealthSnapshot(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ProjectHealthSnapshot>(entity =>
+        {
+            entity.HasKey(e => e.ProjectHealthSnapshotId);
+            entity.HasIndex(e => new { e.ProjectId, e.SnapshotDate });
+            entity.HasQueryFilter(e => _organizationId == null || e.OrganizationId == _organizationId);
+        });
+    }
+
+    private void ConfigureResourceAllocationSnapshot(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ResourceAllocationSnapshot>(entity =>
+        {
+            entity.HasKey(e => e.ResourceAllocationSnapshotId);
+            entity.HasIndex(e => new { e.ProjectId, e.MemberId, e.PeriodStart, e.PeriodEnd }).IsUnique();
+            entity.HasIndex(e => new { e.ProjectId, e.PeriodStart });
+            entity.HasQueryFilter(e => _organizationId == null || e.OrganizationId == _organizationId);
+        });
+    }
+
+    private void ConfigureRiskRegister(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<RiskRegister>(entity =>
+        {
+            entity.HasKey(e => e.RiskRegisterId);
+            entity.HasIndex(e => new { e.OrganizationId, e.ProjectId });
+            entity.HasIndex(e => new { e.OrganizationId, e.ProjectId, e.SprintId });
+            entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Severity).IsRequired().HasDefaultValue("Medium");
+            entity.Property(e => e.Likelihood).IsRequired().HasDefaultValue("Medium");
+            entity.Property(e => e.MitigationStatus).IsRequired().HasDefaultValue("Open");
+            entity.Property(e => e.FlgStatus).IsRequired().HasDefaultValue("A");
+            entity.HasQueryFilter(e => (_organizationId == null || e.OrganizationId == _organizationId) && e.FlgStatus == "A");
         });
     }
 }
