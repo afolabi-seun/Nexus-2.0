@@ -28,11 +28,17 @@ using WorkService.Domain.Interfaces.Services.Tasks;
 using WorkService.Domain.Interfaces.Services.Workflows;
 using WorkService.Domain.Interfaces.Repositories.CostRates;
 using WorkService.Domain.Interfaces.Repositories.CostSnapshots;
+using WorkService.Domain.Interfaces.Repositories.ProjectHealthSnapshots;
+using WorkService.Domain.Interfaces.Repositories.ResourceAllocationSnapshots;
+using WorkService.Domain.Interfaces.Repositories.RiskRegisters;
 using WorkService.Domain.Interfaces.Repositories.TimeApprovals;
 using WorkService.Domain.Interfaces.Repositories.TimeEntries;
 using WorkService.Domain.Interfaces.Repositories.TimePolicies;
+using WorkService.Domain.Interfaces.Repositories.VelocitySnapshots;
+using WorkService.Domain.Interfaces.Services.Analytics;
 using WorkService.Domain.Interfaces.Services.CostRates;
 using WorkService.Domain.Interfaces.Services.CostSnapshots;
+using WorkService.Domain.Interfaces.Services.RiskRegisters;
 using WorkService.Domain.Interfaces.Services.TimeEntries;
 using WorkService.Domain.Interfaces.Services.TimePolicies;
 using WorkService.Domain.Interfaces.Services.TimerSessions;
@@ -51,9 +57,14 @@ using WorkService.Infrastructure.Repositories.ActivityLogs;
 using WorkService.Infrastructure.Repositories.SavedFilters;
 using WorkService.Infrastructure.Repositories.CostRates;
 using WorkService.Infrastructure.Repositories.CostSnapshots;
+using WorkService.Infrastructure.Repositories.ProjectHealthSnapshots;
+using WorkService.Infrastructure.Repositories.ResourceAllocationSnapshots;
+using WorkService.Infrastructure.Repositories.RiskRegisters;
 using WorkService.Infrastructure.Repositories.TimeApprovals;
 using WorkService.Infrastructure.Repositories.TimeEntries;
 using WorkService.Infrastructure.Repositories.TimePolicies;
+using WorkService.Infrastructure.Repositories.VelocitySnapshots;
+using WorkService.Infrastructure.Services.Analytics;
 using WorkService.Infrastructure.Services.Boards;
 using WorkService.Infrastructure.Services.Comments;
 using WorkService.Infrastructure.Services.ErrorCodeResolver;
@@ -69,6 +80,7 @@ using WorkService.Infrastructure.Services.Tasks;
 using WorkService.Infrastructure.Services.Workflows;
 using WorkService.Infrastructure.Services.CostRates;
 using WorkService.Infrastructure.Services.CostSnapshots;
+using WorkService.Infrastructure.Services.RiskRegisters;
 using WorkService.Infrastructure.Services.TimeEntries;
 using WorkService.Infrastructure.Services.TimePolicies;
 using WorkService.Infrastructure.Services.TimerSessions;
@@ -112,6 +124,12 @@ public static class DependencyInjection
         services.AddScoped<ITimeApprovalRepository, TimeApprovalRepository>();
         services.AddScoped<ICostSnapshotRepository, CostSnapshotRepository>();
 
+        // Analytics repositories
+        services.AddScoped<IRiskRegisterRepository, RiskRegisterRepository>();
+        services.AddScoped<IVelocitySnapshotRepository, VelocitySnapshotRepository>();
+        services.AddScoped<IProjectHealthSnapshotRepository, ProjectHealthSnapshotRepository>();
+        services.AddScoped<IResourceAllocationSnapshotRepository, ResourceAllocationSnapshotRepository>();
+
         // Domain services
         services.AddScoped<IProjectService, ProjectService>();
         services.AddScoped<IStoryService, StoryService>();
@@ -134,8 +152,16 @@ public static class DependencyInjection
         services.AddScoped<ITimerSessionService, TimerSessionService>();
         services.AddScoped<ICostSnapshotService, CostSnapshotHostedService>();
 
+        // Analytics services
+        services.AddScoped<IAnalyticsService, AnalyticsService>();
+        services.AddScoped<IHealthScoreCalculator, HealthScoreCalculator>();
+        services.AddScoped<IDependencyAnalyzer, DependencyAnalyzer>();
+        services.AddScoped<IRiskRegisterService, RiskRegisterService>();
+        services.AddScoped<IAnalyticsSnapshotService, AnalyticsSnapshotHostedService>();
+
         // Background services
         services.AddHostedService<CostSnapshotHostedService>();
+        services.AddHostedService<AnalyticsSnapshotHostedService>();
 
         // Infrastructure service clients
         services.AddScoped<IProfileServiceClient, ProfileServiceClient>();

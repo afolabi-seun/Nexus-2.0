@@ -134,6 +134,20 @@ public static class ErrorCodes
     public const string DailyHoursExceeded = "DAILY_HOURS_EXCEEDED";
     public const int DailyHoursExceededValue = 4056;
 
+    // Analytics & Reporting (4060–4065)
+    public const string InvalidAnalyticsParameter = "INVALID_ANALYTICS_PARAMETER";
+    public const int InvalidAnalyticsParameterValue = 4060;
+    public const string InvalidRiskSeverity = "INVALID_RISK_SEVERITY";
+    public const int InvalidRiskSeverityValue = 4061;
+    public const string InvalidRiskLikelihood = "INVALID_RISK_LIKELIHOOD";
+    public const int InvalidRiskLikelihoodValue = 4062;
+    public const string InvalidMitigationStatus = "INVALID_MITIGATION_STATUS";
+    public const int InvalidMitigationStatusValue = 4063;
+    public const string RiskNotFound = "RISK_NOT_FOUND";
+    public const int RiskNotFoundValue = 4064;
+    public const string SnapshotGenerationFailed = "SNAPSHOT_GENERATION_FAILED";
+    public const int SnapshotGenerationFailedValue = 4065;
+
     // Internal
     public const string InternalError = "INTERNAL_ERROR";
     public const int InternalErrorValue = 9999;
