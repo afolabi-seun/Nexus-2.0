@@ -3,8 +3,8 @@ using System.Text;
 using System.Text.Json;
 using WorkService.Application.DTOs.Search;
 using WorkService.Domain.Exceptions;
-using WorkService.Domain.Interfaces.Repositories;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Repositories.Stories;
+using WorkService.Domain.Interfaces.Services.Search;
 using StackExchange.Redis;
 
 namespace WorkService.Infrastructure.Services.Search;

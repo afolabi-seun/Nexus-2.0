@@ -5,8 +5,10 @@ using Moq;
 using SecurityService.Application.DTOs.Password;
 using SecurityService.Application.Validators;
 using SecurityService.Domain.Exceptions;
-using SecurityService.Domain.Interfaces.Repositories;
-using SecurityService.Domain.Interfaces.Services;
+using SecurityService.Domain.Interfaces.Repositories.PasswordHistory;
+using SecurityService.Domain.Interfaces.Services.Otp;
+using SecurityService.Domain.Interfaces.Services.Outbox;
+using SecurityService.Domain.Interfaces.Services.Password;
 using SecurityService.Infrastructure.Configuration;
 using SecurityService.Infrastructure.Services.Password;
 

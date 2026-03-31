@@ -1,7 +1,7 @@
 using ProfileService.Application.DTOs.Devices;
 using ProfileService.Domain.Exceptions;
-using ProfileService.Domain.Interfaces.Repositories;
-using ProfileService.Domain.Interfaces.Services;
+using ProfileService.Domain.Interfaces.Repositories.Devices;
+using ProfileService.Domain.Interfaces.Services.Devices;
 
 namespace ProfileService.Infrastructure.Services.Devices;
 

@@ -4,8 +4,12 @@ using StackExchange.Redis;
 using WorkService.Application.DTOs.Sprints;
 using WorkService.Domain.Entities;
 using WorkService.Domain.Exceptions;
-using WorkService.Domain.Interfaces.Repositories;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Repositories.Projects;
+using WorkService.Domain.Interfaces.Repositories.SprintStories;
+using WorkService.Domain.Interfaces.Repositories.Sprints;
+using WorkService.Domain.Interfaces.Repositories.Stories;
+using WorkService.Domain.Interfaces.Repositories.Tasks;
+using WorkService.Domain.Interfaces.Services.Outbox;
 using WorkService.Infrastructure.Services.Sprints;
 using Task = System.Threading.Tasks.Task;
 

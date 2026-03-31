@@ -1,7 +1,7 @@
 using ProfileService.Application.DTOs.Roles;
 using ProfileService.Domain.Exceptions;
-using ProfileService.Domain.Interfaces.Repositories;
-using ProfileService.Domain.Interfaces.Services;
+using ProfileService.Domain.Interfaces.Repositories.Roles;
+using ProfileService.Domain.Interfaces.Services.Roles;
 
 namespace ProfileService.Infrastructure.Services.Roles;
 

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkService.Application.DTOs;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Services.Boards;
 
 namespace WorkService.Api.Controllers;
 

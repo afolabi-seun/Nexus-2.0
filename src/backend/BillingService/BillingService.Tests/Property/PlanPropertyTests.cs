@@ -1,7 +1,7 @@
 using System.Text.Json;
 using BillingService.Application.DTOs.Plans;
 using BillingService.Domain.Entities;
-using BillingService.Domain.Interfaces.Repositories;
+using BillingService.Domain.Interfaces.Repositories.Plans;
 using BillingService.Infrastructure.Services.Plans;
 using BillingService.Tests.Property.Generators;
 using FsCheck;

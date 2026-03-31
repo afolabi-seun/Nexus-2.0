@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using UtilityService.Api.Middleware;
 using UtilityService.Domain.Exceptions;
-using UtilityService.Domain.Interfaces.Services;
+using UtilityService.Domain.Interfaces.Services.ErrorCodeResolver;
 
 namespace UtilityService.Tests.Middleware;
 

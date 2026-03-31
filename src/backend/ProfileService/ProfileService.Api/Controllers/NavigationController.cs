@@ -4,7 +4,8 @@ using ProfileService.Api.Attributes;
 using ProfileService.Application.DTOs;
 using ProfileService.Application.DTOs.Navigation;
 using ProfileService.Domain.Entities;
-using ProfileService.Domain.Interfaces.Services;
+using ProfileService.Domain.Interfaces.Services.Navigation;
+using ProfileService.Domain.Interfaces.Services.Roles;
 
 namespace ProfileService.Api.Controllers;
 

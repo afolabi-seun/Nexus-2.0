@@ -8,7 +8,7 @@ using Moq;
 using SecurityService.Api.Middleware;
 using SecurityService.Application.DTOs;
 using SecurityService.Domain.Exceptions;
-using SecurityService.Domain.Interfaces.Services;
+using SecurityService.Domain.Interfaces.Services.ErrorCodeResolver;
 using StackExchange.Redis;
 
 namespace SecurityService.Tests.Middleware;

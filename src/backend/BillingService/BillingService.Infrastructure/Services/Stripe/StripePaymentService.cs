@@ -1,5 +1,5 @@
 using BillingService.Domain.Exceptions;
-using BillingService.Domain.Interfaces.Services;
+using BillingService.Domain.Interfaces.Services.Stripe;
 using BillingService.Infrastructure.Configuration;
 using Microsoft.Extensions.Logging;
 using Stripe;

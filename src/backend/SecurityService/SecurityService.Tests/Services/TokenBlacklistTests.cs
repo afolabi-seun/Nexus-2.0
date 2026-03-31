@@ -1,5 +1,5 @@
 using Moq;
-using SecurityService.Domain.Interfaces.Services;
+using SecurityService.Domain.Interfaces.Services.Session;
 using SecurityService.Infrastructure.Services.Session;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;

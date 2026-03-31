@@ -20,6 +20,11 @@ public class WorkDbContext : DbContext
     public DbSet<StoryLink> StoryLinks => Set<StoryLink>();
     public DbSet<StorySequence> StorySequences => Set<StorySequence>();
     public DbSet<SavedFilter> SavedFilters => Set<SavedFilter>();
+    public DbSet<TimeEntry> TimeEntries => Set<TimeEntry>();
+    public DbSet<CostRate> CostRates => Set<CostRate>();
+    public DbSet<TimePolicy> TimePolicies => Set<TimePolicy>();
+    public DbSet<TimeApproval> TimeApprovals => Set<TimeApproval>();
+    public DbSet<CostSnapshot> CostSnapshots => Set<CostSnapshot>();
 
     public WorkDbContext(DbContextOptions<WorkDbContext> options, IHttpContextAccessor? httpContextAccessor = null)
         : base(options)
@@ -47,6 +52,11 @@ public class WorkDbContext : DbContext
         ConfigureStoryLink(modelBuilder);
         ConfigureStorySequence(modelBuilder);
         ConfigureSavedFilter(modelBuilder);
+        ConfigureTimeEntry(modelBuilder);
+        ConfigureCostRate(modelBuilder);
+        ConfigureTimePolicy(modelBuilder);
+        ConfigureTimeApproval(modelBuilder);
+        ConfigureCostSnapshot(modelBuilder);
     }
 
     private void ConfigureProject(ModelBuilder modelBuilder)
@@ -227,6 +237,68 @@ public class WorkDbContext : DbContext
             entity.Property(e => e.Name).IsRequired();
             entity.Property(e => e.Filters).IsRequired().HasColumnType("jsonb");
             entity.HasQueryFilter(e => _organizationId == null || e.OrganizationId == _organizationId);
+        });
+    }
+
+    private void ConfigureTimeEntry(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<TimeEntry>(entity =>
+        {
+            entity.HasKey(e => e.TimeEntryId);
+            entity.HasIndex(e => new { e.OrganizationId, e.StoryId });
+            entity.HasIndex(e => new { e.OrganizationId, e.MemberId, e.Date });
+            entity.HasIndex(e => new { e.OrganizationId, e.Status });
+            entity.Property(e => e.Status).IsRequired().HasDefaultValue("Pending");
+            entity.Property(e => e.FlgStatus).IsRequired().HasDefaultValue("A");
+            entity.HasQueryFilter(e => (_organizationId == null || e.OrganizationId == _organizationId) && e.FlgStatus == "A");
+        });
+    }
+
+    private void ConfigureCostRate(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<CostRate>(entity =>
+        {
+            entity.HasKey(e => e.CostRateId);
+            entity.HasIndex(e => new { e.OrganizationId, e.RateType, e.MemberId, e.RoleName, e.DepartmentId })
+                .IsUnique()
+                .HasFilter("\"FlgStatus\" = 'A'");
+            entity.Property(e => e.RateType).IsRequired();
+            entity.Property(e => e.HourlyRate).IsRequired();
+            entity.Property(e => e.FlgStatus).IsRequired().HasDefaultValue("A");
+            entity.HasQueryFilter(e => (_organizationId == null || e.OrganizationId == _organizationId) && e.FlgStatus == "A");
+        });
+    }
+
+    private void ConfigureTimePolicy(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<TimePolicy>(entity =>
+        {
+            entity.HasKey(e => e.TimePolicyId);
+            entity.HasIndex(e => e.OrganizationId)
+                .IsUnique()
+                .HasFilter("\"FlgStatus\" = 'A'");
+            entity.Property(e => e.FlgStatus).IsRequired().HasDefaultValue("A");
+            entity.HasQueryFilter(e => (_organizationId == null || e.OrganizationId == _organizationId) && e.FlgStatus == "A");
+        });
+    }
+
+    private void ConfigureTimeApproval(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<TimeApproval>(entity =>
+        {
+            entity.HasKey(e => e.TimeApprovalId);
+            entity.HasIndex(e => e.TimeEntryId);
+            entity.Property(e => e.Action).IsRequired();
+        });
+    }
+
+    private void ConfigureCostSnapshot(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<CostSnapshot>(entity =>
+        {
+            entity.HasKey(e => e.CostSnapshotId);
+            entity.HasIndex(e => new { e.ProjectId, e.PeriodStart, e.PeriodEnd });
+            entity.Property(e => e.TotalCost).IsRequired();
         });
     }
 }

@@ -4,7 +4,9 @@ using WorkService.Api.Attributes;
 using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.Labels;
 using WorkService.Application.DTOs.Stories;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Services.ActivityLog;
+using WorkService.Domain.Interfaces.Services.Comments;
+using WorkService.Domain.Interfaces.Services.Stories;
 
 namespace WorkService.Api.Controllers;
 

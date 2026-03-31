@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using WorkService.Domain.Interfaces.Repositories;
+using WorkService.Domain.Interfaces.Repositories.Tasks;
 using WorkService.Infrastructure.Data;
 
 namespace WorkService.Infrastructure.Repositories.Tasks;

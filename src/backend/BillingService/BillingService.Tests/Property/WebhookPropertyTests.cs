@@ -1,7 +1,10 @@
 using BillingService.Domain.Entities;
 using BillingService.Domain.Exceptions;
-using BillingService.Domain.Interfaces.Repositories;
-using BillingService.Domain.Interfaces.Services;
+using BillingService.Domain.Interfaces.Repositories.Plans;
+using BillingService.Domain.Interfaces.Repositories.StripeEvents;
+using BillingService.Domain.Interfaces.Repositories.Subscriptions;
+using BillingService.Domain.Interfaces.Services.Outbox;
+using BillingService.Domain.Interfaces.Services.Stripe;
 using BillingService.Infrastructure.Services.ServiceClients;
 using BillingService.Infrastructure.Services.Stripe;
 using FsCheck.Xunit;

@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using WorkService.Api.Attributes;
 using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.Projects;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Services.CostSnapshots;
+using WorkService.Domain.Interfaces.Services.Projects;
+using WorkService.Domain.Interfaces.Services.TimeEntries;
 
 namespace WorkService.Api.Controllers;
 
@@ -16,10 +18,14 @@ namespace WorkService.Api.Controllers;
 public class ProjectController : ControllerBase
 {
     private readonly IProjectService _projectService;
+    private readonly ITimeEntryService _timeEntryService;
+    private readonly ICostSnapshotService _costSnapshotService;
 
-    public ProjectController(IProjectService projectService)
+    public ProjectController(IProjectService projectService, ITimeEntryService timeEntryService, ICostSnapshotService costSnapshotService)
     {
         _projectService = projectService;
+        _timeEntryService = timeEntryService;
+        _costSnapshotService = costSnapshotService;
     }
 
     /// <summary>
@@ -131,6 +137,46 @@ public class ProjectController : ControllerBase
     {
         await _projectService.UpdateStatusAsync(id, request.Status, ct);
         return Ok(Wrap<object>(null!, "Project status updated."));
+    }
+
+    /// <summary>
+    /// Get project cost summary.
+    /// </summary>
+    [HttpGet("{projectId:guid}/cost-summary")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<object>>> GetCostSummary(
+        Guid projectId, [FromQuery] DateTime? dateFrom = null,
+        [FromQuery] DateTime? dateTo = null, CancellationToken ct = default)
+    {
+        var result = await _timeEntryService.GetProjectCostSummaryAsync(projectId, dateFrom, dateTo, ct);
+        return Ok(Wrap(result, "Project cost summary retrieved."));
+    }
+
+    /// <summary>
+    /// Get project resource utilization.
+    /// </summary>
+    [HttpGet("{projectId:guid}/utilization")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<object>>> GetUtilization(
+        Guid projectId, [FromQuery] DateTime? dateFrom = null,
+        [FromQuery] DateTime? dateTo = null, CancellationToken ct = default)
+    {
+        var result = await _timeEntryService.GetProjectUtilizationAsync(projectId, dateFrom, dateTo, ct);
+        return Ok(Wrap(result, "Resource utilization retrieved."));
+    }
+
+    /// <summary>
+    /// Get historical cost snapshots for a project.
+    /// </summary>
+    [HttpGet("{projectId:guid}/cost-snapshots")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<object>>> GetCostSnapshots(
+        Guid projectId, [FromQuery] DateTime? dateFrom = null,
+        [FromQuery] DateTime? dateTo = null, [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20, CancellationToken ct = default)
+    {
+        var result = await _costSnapshotService.ListByProjectAsync(projectId, dateFrom, dateTo, page, pageSize, ct);
+        return Ok(Wrap(result, "Cost snapshots retrieved."));
     }
 
     private Guid GetOrganizationId() => Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);

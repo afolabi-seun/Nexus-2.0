@@ -4,7 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using UtilityService.Application.DTOs;
-using UtilityService.Domain.Interfaces.Services;
+using UtilityService.Domain.Interfaces.Services.Outbox;
 using UtilityService.Infrastructure.Configuration;
 
 namespace UtilityService.Infrastructure.Services.BackgroundServices;

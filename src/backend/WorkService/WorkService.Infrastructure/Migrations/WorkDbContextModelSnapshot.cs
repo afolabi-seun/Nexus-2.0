@@ -121,6 +121,95 @@ namespace WorkService.Infrastructure.Migrations
                     b.ToTable("Comments");
                 });
 
+            modelBuilder.Entity("WorkService.Domain.Entities.CostRate", b =>
+                {
+                    b.Property<Guid>("CostRateId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("DateUpdated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DepartmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("EffectiveFrom")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FlgStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("A");
+
+                    b.Property<decimal>("HourlyRate")
+                        .HasColumnType("numeric");
+
+                    b.Property<Guid?>("MemberId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RateType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RoleName")
+                        .HasColumnType("text");
+
+                    b.HasKey("CostRateId");
+
+                    b.HasIndex("OrganizationId", "RateType", "MemberId", "RoleName", "DepartmentId")
+                        .IsUnique()
+                        .HasFilter("\"FlgStatus\" = 'A'");
+
+                    b.ToTable("CostRates");
+                });
+
+            modelBuilder.Entity("WorkService.Domain.Entities.CostSnapshot", b =>
+                {
+                    b.Property<Guid>("CostSnapshotId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("PeriodEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("PeriodStart")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("SnapshotDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("TotalBillableHours")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("TotalCost")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("TotalNonBillableHours")
+                        .HasColumnType("numeric");
+
+                    b.HasKey("CostSnapshotId");
+
+                    b.HasIndex("ProjectId", "PeriodStart", "PeriodEnd");
+
+                    b.ToTable("CostSnapshots");
+                });
+
             modelBuilder.Entity("WorkService.Domain.Entities.Label", b =>
                 {
                     b.Property<Guid>("LabelId")
@@ -568,6 +657,143 @@ namespace WorkService.Infrastructure.Migrations
                     b.HasIndex("OrganizationId", "StoryId");
 
                     b.ToTable("Tasks");
+                });
+
+            modelBuilder.Entity("WorkService.Domain.Entities.TimeApproval", b =>
+                {
+                    b.Property<Guid>("TimeApprovalId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ApproverId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("TimeEntryId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("TimeApprovalId");
+
+                    b.HasIndex("TimeEntryId");
+
+                    b.ToTable("TimeApprovals");
+                });
+
+            modelBuilder.Entity("WorkService.Domain.Entities.TimeEntry", b =>
+                {
+                    b.Property<Guid>("TimeEntryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("DateUpdated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("FlgStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("A");
+
+                    b.Property<bool>("IsBillable")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsOvertime")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("MemberId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Pending");
+
+                    b.Property<Guid>("StoryId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("TimeEntryId");
+
+                    b.HasIndex("OrganizationId", "Status");
+
+                    b.HasIndex("OrganizationId", "StoryId");
+
+                    b.HasIndex("OrganizationId", "MemberId", "Date");
+
+                    b.ToTable("TimeEntries");
+                });
+
+            modelBuilder.Entity("WorkService.Domain.Entities.TimePolicy", b =>
+                {
+                    b.Property<Guid>("TimePolicyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("ApprovalRequired")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ApprovalWorkflow")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("DateUpdated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FlgStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("A");
+
+                    b.Property<decimal>("MaxDailyHours")
+                        .HasColumnType("numeric");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("OvertimeThresholdHoursPerDay")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("RequiredHoursPerDay")
+                        .HasColumnType("numeric");
+
+                    b.HasKey("TimePolicyId");
+
+                    b.HasIndex("OrganizationId")
+                        .IsUnique()
+                        .HasFilter("\"FlgStatus\" = 'A'");
+
+                    b.ToTable("TimePolicies");
                 });
 
             modelBuilder.Entity("WorkService.Domain.Entities.Sprint", b =>

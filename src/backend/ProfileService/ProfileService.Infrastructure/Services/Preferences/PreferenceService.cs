@@ -1,8 +1,9 @@
 using ProfileService.Application.DTOs.Preferences;
 using ProfileService.Domain.Entities;
 using ProfileService.Domain.Exceptions;
-using ProfileService.Domain.Interfaces.Repositories;
-using ProfileService.Domain.Interfaces.Services;
+using ProfileService.Domain.Interfaces.Repositories.TeamMembers;
+using ProfileService.Domain.Interfaces.Repositories.UserPreferenceSettings;
+using ProfileService.Domain.Interfaces.Services.Preferences;
 using StackExchange.Redis;
 
 namespace ProfileService.Infrastructure.Services.Preferences;

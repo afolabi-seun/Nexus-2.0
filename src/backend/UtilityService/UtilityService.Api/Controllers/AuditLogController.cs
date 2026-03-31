@@ -4,7 +4,7 @@ using UtilityService.Api.Attributes;
 using UtilityService.Application.DTOs;
 using UtilityService.Application.DTOs.AuditLogs;
 using UtilityService.Domain.Exceptions;
-using UtilityService.Domain.Interfaces.Services;
+using UtilityService.Domain.Interfaces.Services.AuditLogs;
 
 namespace UtilityService.Api.Controllers;
 

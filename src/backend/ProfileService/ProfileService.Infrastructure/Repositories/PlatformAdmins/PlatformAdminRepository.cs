@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ProfileService.Domain.Entities;
-using ProfileService.Domain.Interfaces.Repositories;
+using ProfileService.Domain.Interfaces.Repositories.PlatformAdmins;
 using ProfileService.Infrastructure.Data;
 
 namespace ProfileService.Infrastructure.Repositories.PlatformAdmins;

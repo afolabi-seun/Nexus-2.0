@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProfileService.Application.DTOs;
 using ProfileService.Application.DTOs.Invites;
-using ProfileService.Domain.Interfaces.Services;
+using ProfileService.Domain.Interfaces.Services.Invites;
 
 namespace ProfileService.Api.Controllers;
 

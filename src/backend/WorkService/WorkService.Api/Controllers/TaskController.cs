@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using WorkService.Api.Attributes;
 using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.Tasks;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Services.ActivityLog;
+using WorkService.Domain.Interfaces.Services.Comments;
+using WorkService.Domain.Interfaces.Services.Tasks;
 
 namespace WorkService.Api.Controllers;
 

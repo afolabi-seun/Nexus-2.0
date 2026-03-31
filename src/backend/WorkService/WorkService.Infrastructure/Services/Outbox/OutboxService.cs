@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Services.Outbox;
 using StackExchange.Redis;
 
 namespace WorkService.Infrastructure.Services.Outbox;

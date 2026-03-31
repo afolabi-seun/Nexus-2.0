@@ -3,7 +3,9 @@ using Moq;
 using ProfileService.Domain.Entities;
 using ProfileService.Domain.Exceptions;
 using ProfileService.Domain.Helpers;
-using ProfileService.Domain.Interfaces.Repositories;
+using ProfileService.Domain.Interfaces.Repositories.DepartmentMembers;
+using ProfileService.Domain.Interfaces.Repositories.Departments;
+using ProfileService.Domain.Interfaces.Repositories.TeamMembers;
 using ProfileService.Infrastructure.Services.Departments;
 using StackExchange.Redis;
 

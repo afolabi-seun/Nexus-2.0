@@ -1,7 +1,7 @@
 using WorkService.Application.DTOs.Activity;
 using WorkService.Domain.Entities;
-using WorkService.Domain.Interfaces.Repositories;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Repositories.ActivityLogs;
+using WorkService.Domain.Interfaces.Services.ActivityLog;
 
 namespace WorkService.Infrastructure.Services.ActivityLog;
 

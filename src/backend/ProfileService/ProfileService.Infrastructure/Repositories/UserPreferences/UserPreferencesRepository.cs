@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ProfileService.Domain.Entities;
-using ProfileService.Domain.Interfaces.Repositories;
+using ProfileService.Domain.Interfaces.Repositories.UserPreferenceSettings;
 using ProfileService.Infrastructure.Data;
 using UserPreferencesEntity = ProfileService.Domain.Entities.UserPreferences;
 

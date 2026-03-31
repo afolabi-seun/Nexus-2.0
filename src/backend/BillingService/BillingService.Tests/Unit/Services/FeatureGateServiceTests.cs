@@ -1,6 +1,7 @@
 using BillingService.Application.DTOs.FeatureGates;
 using BillingService.Domain.Entities;
-using BillingService.Domain.Interfaces.Repositories;
+using BillingService.Domain.Interfaces.Repositories.Plans;
+using BillingService.Domain.Interfaces.Repositories.Subscriptions;
 using BillingService.Infrastructure.Services.FeatureGates;
 using BillingService.Tests.Property.Generators;
 using Microsoft.Extensions.Logging;

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SecurityService.Application.DTOs;
 using SecurityService.Application.DTOs.Password;
 using SecurityService.Domain.Helpers;
-using SecurityService.Domain.Interfaces.Services;
+using SecurityService.Domain.Interfaces.Services.Password;
 using SecurityService.Infrastructure.Services.ServiceClients;
 
 namespace SecurityService.Api.Controllers;

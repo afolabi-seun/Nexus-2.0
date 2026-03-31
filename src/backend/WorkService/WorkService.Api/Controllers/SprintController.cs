@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using WorkService.Api.Attributes;
 using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.Sprints;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Services.Sprints;
+using WorkService.Domain.Interfaces.Services.TimeEntries;
 
 namespace WorkService.Api.Controllers;
 
@@ -16,10 +17,12 @@ namespace WorkService.Api.Controllers;
 public class SprintController : ControllerBase
 {
     private readonly ISprintService _sprintService;
+    private readonly ITimeEntryService _timeEntryService;
 
-    public SprintController(ISprintService sprintService)
+    public SprintController(ISprintService sprintService, ITimeEntryService timeEntryService)
     {
         _sprintService = sprintService;
+        _timeEntryService = timeEntryService;
     }
 
     /// <summary>
@@ -245,6 +248,17 @@ public class SprintController : ControllerBase
         var orgId = GetOrganizationId();
         var result = await _sprintService.GetActiveSprintAsync(orgId, projectId, ct);
         return Ok(Wrap(result!));
+    }
+
+    /// <summary>
+    /// Get enriched sprint velocity with time tracking data.
+    /// </summary>
+    [HttpGet("sprints/{sprintId:guid}/velocity")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<object>>> GetVelocity(Guid sprintId, CancellationToken ct)
+    {
+        var result = await _timeEntryService.GetSprintVelocityAsync(sprintId, ct);
+        return Ok(Wrap(result, "Sprint velocity retrieved."));
     }
 
     private Guid GetOrganizationId() => Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);

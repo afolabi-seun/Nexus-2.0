@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ProfileService.Api.Attributes;
 using ProfileService.Application.DTOs;
 using ProfileService.Application.DTOs.Organizations;
-using ProfileService.Domain.Interfaces.Services;
+using ProfileService.Domain.Interfaces.Services.Organizations;
 
 namespace ProfileService.Api.Controllers;
 

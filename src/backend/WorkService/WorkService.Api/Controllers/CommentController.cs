@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.Comments;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Services.Comments;
 
 namespace WorkService.Api.Controllers;
 

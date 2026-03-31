@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SecurityService.Domain.Exceptions;
-using SecurityService.Domain.Interfaces.Services;
+using SecurityService.Domain.Interfaces.Services.Jwt;
+using SecurityService.Domain.Interfaces.Services.ServiceToken;
 using SecurityService.Infrastructure.Configuration;
 using SecurityService.Infrastructure.Data;
 using StackExchange.Redis;

@@ -1,8 +1,41 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
-using WorkService.Domain.Interfaces.Repositories;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Repositories.ActivityLogs;
+using WorkService.Domain.Interfaces.Repositories.Comments;
+using WorkService.Domain.Interfaces.Repositories.Labels;
+using WorkService.Domain.Interfaces.Repositories.Projects;
+using WorkService.Domain.Interfaces.Repositories.SavedFilters;
+using WorkService.Domain.Interfaces.Repositories.SprintStories;
+using WorkService.Domain.Interfaces.Repositories.Sprints;
+using WorkService.Domain.Interfaces.Repositories.Stories;
+using WorkService.Domain.Interfaces.Repositories.StoryLabels;
+using WorkService.Domain.Interfaces.Repositories.StoryLinks;
+using WorkService.Domain.Interfaces.Repositories.StorySequences;
+using WorkService.Domain.Interfaces.Repositories.Tasks;
+using WorkService.Domain.Interfaces.Services.ActivityLog;
+using WorkService.Domain.Interfaces.Services.Boards;
+using WorkService.Domain.Interfaces.Services.Comments;
+using WorkService.Domain.Interfaces.Services.ErrorCodeResolver;
+using WorkService.Domain.Interfaces.Services.Labels;
+using WorkService.Domain.Interfaces.Services.Outbox;
+using WorkService.Domain.Interfaces.Services.Projects;
+using WorkService.Domain.Interfaces.Services.Reports;
+using WorkService.Domain.Interfaces.Services.Search;
+using WorkService.Domain.Interfaces.Services.Sprints;
+using WorkService.Domain.Interfaces.Services.Stories;
+using WorkService.Domain.Interfaces.Services.Tasks;
+using WorkService.Domain.Interfaces.Services.Workflows;
+using WorkService.Domain.Interfaces.Repositories.CostRates;
+using WorkService.Domain.Interfaces.Repositories.CostSnapshots;
+using WorkService.Domain.Interfaces.Repositories.TimeApprovals;
+using WorkService.Domain.Interfaces.Repositories.TimeEntries;
+using WorkService.Domain.Interfaces.Repositories.TimePolicies;
+using WorkService.Domain.Interfaces.Services.CostRates;
+using WorkService.Domain.Interfaces.Services.CostSnapshots;
+using WorkService.Domain.Interfaces.Services.TimeEntries;
+using WorkService.Domain.Interfaces.Services.TimePolicies;
+using WorkService.Domain.Interfaces.Services.TimerSessions;
 using WorkService.Infrastructure.Data;
 using WorkService.Infrastructure.Repositories.Projects;
 using WorkService.Infrastructure.Repositories.Stories;
@@ -16,6 +49,11 @@ using WorkService.Infrastructure.Repositories.StoryLabels;
 using WorkService.Infrastructure.Repositories.StoryLinks;
 using WorkService.Infrastructure.Repositories.ActivityLogs;
 using WorkService.Infrastructure.Repositories.SavedFilters;
+using WorkService.Infrastructure.Repositories.CostRates;
+using WorkService.Infrastructure.Repositories.CostSnapshots;
+using WorkService.Infrastructure.Repositories.TimeApprovals;
+using WorkService.Infrastructure.Repositories.TimeEntries;
+using WorkService.Infrastructure.Repositories.TimePolicies;
 using WorkService.Infrastructure.Services.Boards;
 using WorkService.Infrastructure.Services.Comments;
 using WorkService.Infrastructure.Services.ErrorCodeResolver;
@@ -29,6 +67,11 @@ using WorkService.Infrastructure.Services.Sprints;
 using WorkService.Infrastructure.Services.Stories;
 using WorkService.Infrastructure.Services.Tasks;
 using WorkService.Infrastructure.Services.Workflows;
+using WorkService.Infrastructure.Services.CostRates;
+using WorkService.Infrastructure.Services.CostSnapshots;
+using WorkService.Infrastructure.Services.TimeEntries;
+using WorkService.Infrastructure.Services.TimePolicies;
+using WorkService.Infrastructure.Services.TimerSessions;
 using StackExchange.Redis;
 using ActivityLogService = WorkService.Infrastructure.Services.ActivityLog.ActivityLogService;
 
@@ -63,6 +106,11 @@ public static class DependencyInjection
         services.AddScoped<IStoryLinkRepository, StoryLinkRepository>();
         services.AddScoped<IStorySequenceRepository, StorySequenceRepository>();
         services.AddScoped<ISavedFilterRepository, SavedFilterRepository>();
+        services.AddScoped<ITimeEntryRepository, TimeEntryRepository>();
+        services.AddScoped<ICostRateRepository, CostRateRepository>();
+        services.AddScoped<ITimePolicyRepository, TimePolicyRepository>();
+        services.AddScoped<ITimeApprovalRepository, TimeApprovalRepository>();
+        services.AddScoped<ICostSnapshotRepository, CostSnapshotRepository>();
 
         // Domain services
         services.AddScoped<IProjectService, ProjectService>();
@@ -79,6 +127,15 @@ public static class DependencyInjection
         services.AddScoped<IStoryIdGenerator, StoryIdGenerator>();
         services.AddScoped<IOutboxService, OutboxService>();
         services.AddScoped<IErrorCodeResolverService, ErrorCodeResolverService>();
+        services.AddScoped<ITimeEntryService, TimeEntryService>();
+        services.AddScoped<ICostRateService, CostRateService>();
+        services.AddScoped<ICostRateResolver, CostRateResolver>();
+        services.AddScoped<ITimePolicyService, TimePolicyService>();
+        services.AddScoped<ITimerSessionService, TimerSessionService>();
+        services.AddScoped<ICostSnapshotService, CostSnapshotHostedService>();
+
+        // Background services
+        services.AddHostedService<CostSnapshotHostedService>();
 
         // Infrastructure service clients
         services.AddScoped<IProfileServiceClient, ProfileServiceClient>();

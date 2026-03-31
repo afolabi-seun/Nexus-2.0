@@ -1,6 +1,6 @@
 using UtilityService.Domain.Exceptions;
 using UtilityService.Domain.Helpers;
-using UtilityService.Domain.Interfaces.Services;
+using UtilityService.Domain.Interfaces.Services.Notifications;
 
 namespace UtilityService.Infrastructure.Services.Notifications;
 

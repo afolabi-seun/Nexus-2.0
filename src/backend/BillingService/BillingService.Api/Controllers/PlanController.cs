@@ -1,5 +1,5 @@
 using BillingService.Application.DTOs;
-using BillingService.Domain.Interfaces.Services;
+using BillingService.Domain.Interfaces.Services.Plans;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

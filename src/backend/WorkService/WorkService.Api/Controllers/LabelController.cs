@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using WorkService.Api.Attributes;
 using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.Labels;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Services.Labels;
 
 namespace WorkService.Api.Controllers;
 

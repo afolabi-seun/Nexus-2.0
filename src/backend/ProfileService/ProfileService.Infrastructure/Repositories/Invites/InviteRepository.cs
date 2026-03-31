@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ProfileService.Domain.Entities;
 using ProfileService.Domain.Helpers;
-using ProfileService.Domain.Interfaces.Repositories;
+using ProfileService.Domain.Interfaces.Repositories.Invites;
 using ProfileService.Infrastructure.Data;
 
 namespace ProfileService.Infrastructure.Repositories.Invites;

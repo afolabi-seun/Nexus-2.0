@@ -1,4 +1,4 @@
-using BillingService.Domain.Interfaces.Services;
+using BillingService.Domain.Interfaces.Services.Plans;
 using BillingService.Infrastructure.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;

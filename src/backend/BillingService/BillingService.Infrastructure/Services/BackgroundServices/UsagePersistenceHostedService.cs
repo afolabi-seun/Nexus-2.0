@@ -1,6 +1,6 @@
 using BillingService.Domain.Entities;
 using BillingService.Domain.Enums;
-using BillingService.Domain.Interfaces.Repositories;
+using BillingService.Domain.Interfaces.Repositories.UsageRecords;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.SavedFilters;
 using WorkService.Domain.Entities;
-using WorkService.Domain.Interfaces.Repositories;
+using WorkService.Domain.Interfaces.Repositories.SavedFilters;
 
 namespace WorkService.Api.Controllers;
 

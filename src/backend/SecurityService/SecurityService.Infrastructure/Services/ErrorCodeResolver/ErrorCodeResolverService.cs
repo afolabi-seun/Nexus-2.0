@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using SecurityService.Application.Contracts;
-using SecurityService.Domain.Interfaces.Services;
+using SecurityService.Domain.Interfaces.Services.ErrorCodeResolver;
 using SecurityService.Infrastructure.Services.ServiceClients;
 using StackExchange.Redis;
 

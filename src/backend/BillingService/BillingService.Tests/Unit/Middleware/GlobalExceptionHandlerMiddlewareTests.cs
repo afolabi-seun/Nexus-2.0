@@ -1,7 +1,7 @@
 using System.Text.Json;
 using BillingService.Api.Middleware;
 using BillingService.Domain.Exceptions;
-using BillingService.Domain.Interfaces.Services;
+using BillingService.Domain.Interfaces.Services.ErrorCodeResolver;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SecurityService.Application.DTOs;
 using SecurityService.Application.DTOs.Session;
-using SecurityService.Domain.Interfaces.Services;
+using SecurityService.Domain.Interfaces.Services.Session;
 
 namespace SecurityService.Api.Controllers;
 
