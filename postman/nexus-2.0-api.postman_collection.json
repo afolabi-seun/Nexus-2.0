@@ -1083,6 +1083,143 @@
                                 "description": "Get project details by ID including story count, sprint count, and project settings."
                             },
                             "response": []
+                        },
+                        {
+                            "name": "Project Cost Summary",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{authToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{workUrl}}/api/v1/projects/:projectId/cost-summary?dateFrom=&dateTo=",
+                                    "host": [
+                                        "{{workUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "projects",
+                                        ":projectId",
+                                        "cost-summary"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "dateFrom",
+                                            "value": ""
+                                        },
+                                        {
+                                            "key": "dateTo",
+                                            "value": ""
+                                        }
+                                    ],
+                                    "variable": [
+                                        {
+                                            "key": "projectId",
+                                            "value": "{{project_id}}"
+                                        }
+                                    ]
+                                },
+                                "description": "Get cost summary for a project including total cost, billable vs non-billable breakdown."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Resource Utilization",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{authToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{workUrl}}/api/v1/projects/:projectId/utilization?dateFrom=&dateTo=",
+                                    "host": [
+                                        "{{workUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "projects",
+                                        ":projectId",
+                                        "utilization"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "dateFrom",
+                                            "value": ""
+                                        },
+                                        {
+                                            "key": "dateTo",
+                                            "value": ""
+                                        }
+                                    ],
+                                    "variable": [
+                                        {
+                                            "key": "projectId",
+                                            "value": "{{project_id}}"
+                                        }
+                                    ]
+                                },
+                                "description": "Get resource utilization data for a project."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Cost Snapshots",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{authToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{workUrl}}/api/v1/projects/:projectId/cost-snapshots?dateFrom=&dateTo=&page=1&pageSize=20",
+                                    "host": [
+                                        "{{workUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "projects",
+                                        ":projectId",
+                                        "cost-snapshots"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "dateFrom",
+                                            "value": ""
+                                        },
+                                        {
+                                            "key": "dateTo",
+                                            "value": ""
+                                        },
+                                        {
+                                            "key": "page",
+                                            "value": "1"
+                                        },
+                                        {
+                                            "key": "pageSize",
+                                            "value": "20"
+                                        }
+                                    ],
+                                    "variable": [
+                                        {
+                                            "key": "projectId",
+                                            "value": "{{project_id}}"
+                                        }
+                                    ]
+                                },
+                                "description": "Get historical cost snapshots for a project."
+                            },
+                            "response": []
                         }
                     ]
                 },
@@ -1383,6 +1520,39 @@
                                 "description": "Complete a sprint. Calculates velocity (sum of Done/Closed story points), moves incomplete stories back to Backlog. Requires DeptLead role."
                             },
                             "response": []
+                        },
+                        {
+                            "name": "Sprint Velocity",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{authToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{workUrl}}/api/v1/sprints/:sprintId/velocity",
+                                    "host": [
+                                        "{{workUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "v1",
+                                        "sprints",
+                                        ":sprintId",
+                                        "velocity"
+                                    ],
+                                    "variable": [
+                                        {
+                                            "key": "sprintId",
+                                            "value": "{{sprint_id}}"
+                                        }
+                                    ]
+                                },
+                                "description": "Get velocity data for a specific sprint."
+                            },
+                            "response": []
                         }
                     ]
                 },
@@ -1565,6 +1735,1049 @@
                             "response": []
                         }
                     ]
+                }
+            ]
+        },
+        {
+            "name": "WorkService - Time Tracking",
+            "description": "Time tracking, timer, cost rates, and time policy endpoints (port 5003)",
+            "item": [
+                {
+                    "name": "Create Time Entry",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"storyId\": \"{{story_id}}\",\n    \"durationMinutes\": 120,\n    \"date\": \"2026-04-10\",\n    \"isBillable\": true,\n    \"notes\": \"Implemented login flow\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/time-entries",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "time-entries"
+                            ]
+                        },
+                        "description": "Create a manual time entry for a story."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List Time Entries",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/time-entries?storyId=&projectId=&sprintId=&memberId=&dateFrom=&dateTo=&isBillable=&status=&page=1&pageSize=20",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "time-entries"
+                            ],
+                            "query": [
+                                {
+                                    "key": "storyId",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "projectId",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "sprintId",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "memberId",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "dateFrom",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "dateTo",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "isBillable",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "status",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "pageSize",
+                                    "value": "20"
+                                }
+                            ]
+                        },
+                        "description": "List and filter time entries. Supports filtering by storyId, projectId, sprintId, memberId, date range, billable status, and approval status."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Time Entry",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"durationMinutes\": 90,\n    \"date\": \"2026-04-10\",\n    \"isBillable\": true,\n    \"notes\": \"Updated notes\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/time-entries/:timeEntryId",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "time-entries",
+                                ":timeEntryId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "timeEntryId",
+                                    "value": ""
+                                }
+                            ]
+                        },
+                        "description": "Update an existing time entry. Only the owner can update pending entries."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Time Entry",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/time-entries/:timeEntryId",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "time-entries",
+                                ":timeEntryId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "timeEntryId",
+                                    "value": ""
+                                }
+                            ]
+                        },
+                        "description": "Soft-delete a time entry. Only the owner can delete pending entries."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Approve Time Entry",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/time-entries/:timeEntryId/approve",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "time-entries",
+                                ":timeEntryId",
+                                "approve"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "timeEntryId",
+                                    "value": ""
+                                }
+                            ]
+                        },
+                        "description": "Approve a pending time entry. Requires DeptLead role."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Reject Time Entry",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"reason\": \"Duration seems too high for this task\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/time-entries/:timeEntryId/reject",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "time-entries",
+                                ":timeEntryId",
+                                "reject"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "timeEntryId",
+                                    "value": ""
+                                }
+                            ]
+                        },
+                        "description": "Reject a pending time entry with a reason. Requires DeptLead role."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Start Timer",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"storyId\": \"{{story_id}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/time-entries/timer/start",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "time-entries",
+                                "timer",
+                                "start"
+                            ]
+                        },
+                        "description": "Start a timer for a story. Only one active timer per user."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Stop Timer",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/time-entries/timer/stop",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "time-entries",
+                                "timer",
+                                "stop"
+                            ]
+                        },
+                        "description": "Stop the active timer and create a time entry from the elapsed duration."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Timer Status",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/time-entries/timer/status",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "time-entries",
+                                "timer",
+                                "status"
+                            ]
+                        },
+                        "description": "Get the current user's active timer status."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Cost Rate",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"rateType\": \"Member\",\n    \"hourlyRate\": 75.00,\n    \"memberId\": \"{{member_id}}\",\n    \"roleName\": null,\n    \"departmentId\": null,\n    \"effectiveFrom\": \"2026-04-01\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/cost-rates",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "cost-rates"
+                            ]
+                        },
+                        "description": "Create a cost rate. Supports Member, Role, Department, and OrgDefault rate types. Requires OrgAdmin role."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List Cost Rates",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/cost-rates?rateType=&memberId=&departmentId=&roleName=&page=1&pageSize=20",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "cost-rates"
+                            ],
+                            "query": [
+                                {
+                                    "key": "rateType",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "memberId",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "departmentId",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "roleName",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "pageSize",
+                                    "value": "20"
+                                }
+                            ]
+                        },
+                        "description": "List cost rates with optional filters by rate type, member, department, and role."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Cost Rate",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"hourlyRate\": 85.00,\n    \"effectiveFrom\": \"2026-05-01\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/cost-rates/:costRateId",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "cost-rates",
+                                ":costRateId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "costRateId",
+                                    "value": ""
+                                }
+                            ]
+                        },
+                        "description": "Update a cost rate's hourly rate and effective date. Requires OrgAdmin role."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Cost Rate",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/cost-rates/:costRateId",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "cost-rates",
+                                ":costRateId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "costRateId",
+                                    "value": ""
+                                }
+                            ]
+                        },
+                        "description": "Delete a cost rate. Requires OrgAdmin role."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Time Policy",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/time-policies",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "time-policies"
+                            ]
+                        },
+                        "description": "Get the organization's time tracking policy."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Time Policy",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"requiredHoursPerDay\": 8,\n    \"overtimeThresholdHoursPerDay\": 10,\n    \"approvalRequired\": true,\n    \"approvalWorkflow\": \"DeptLead\",\n    \"maxDailyHours\": 12\n}"
+                        },
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/time-policies",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "time-policies"
+                            ]
+                        },
+                        "description": "Create or update the organization's time tracking policy. Requires OrgAdmin role."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "WorkService - Analytics",
+            "description": "Analytics, reporting, risk register, and dashboard endpoints (port 5003)",
+            "item": [
+                {
+                    "name": "Velocity Trends",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/analytics/velocity?projectId=&sprintCount=10",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "analytics",
+                                "velocity"
+                            ],
+                            "query": [
+                                {
+                                    "key": "projectId",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "sprintCount",
+                                    "value": "10"
+                                }
+                            ]
+                        },
+                        "description": "Get velocity trends for a project across recent sprints."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Resource Management",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/analytics/resource-management?dateFrom=&dateTo=&departmentId=",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "analytics",
+                                "resource-management"
+                            ],
+                            "query": [
+                                {
+                                    "key": "dateFrom",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "dateTo",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "departmentId",
+                                    "value": ""
+                                }
+                            ]
+                        },
+                        "description": "Get resource management data including workload distribution and capacity."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Resource Utilization",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/analytics/resource-utilization?projectId=&dateFrom=&dateTo=",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "analytics",
+                                "resource-utilization"
+                            ],
+                            "query": [
+                                {
+                                    "key": "projectId",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "dateFrom",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "dateTo",
+                                    "value": ""
+                                }
+                            ]
+                        },
+                        "description": "Get resource utilization metrics for a project."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Project Cost",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/analytics/project-cost?projectId=&dateFrom=&dateTo=",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "analytics",
+                                "project-cost"
+                            ],
+                            "query": [
+                                {
+                                    "key": "projectId",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "dateFrom",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "dateTo",
+                                    "value": ""
+                                }
+                            ]
+                        },
+                        "description": "Get project cost analytics including total cost, cost by member, and cost trends."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Project Health",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/analytics/project-health?projectId=&history=false",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "analytics",
+                                "project-health"
+                            ],
+                            "query": [
+                                {
+                                    "key": "projectId",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "history",
+                                    "value": "false"
+                                }
+                            ]
+                        },
+                        "description": "Get project health scoring with optional historical data."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Dependencies",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/analytics/dependencies?projectId=&sprintId=",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "analytics",
+                                "dependencies"
+                            ],
+                            "query": [
+                                {
+                                    "key": "projectId",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "sprintId",
+                                    "value": ""
+                                }
+                            ]
+                        },
+                        "description": "Get dependency analysis for a project including cycle detection and critical path."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Bug Metrics",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/analytics/bugs?projectId=&sprintId=",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "analytics",
+                                "bugs"
+                            ],
+                            "query": [
+                                {
+                                    "key": "projectId",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "sprintId",
+                                    "value": ""
+                                }
+                            ]
+                        },
+                        "description": "Get bug metrics including open/closed counts, severity distribution, and trends."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Dashboard",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/analytics/dashboard?projectId=",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "analytics",
+                                "dashboard"
+                            ],
+                            "query": [
+                                {
+                                    "key": "projectId",
+                                    "value": ""
+                                }
+                            ]
+                        },
+                        "description": "Get the analytics dashboard summary for a project."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Snapshot Status",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/analytics/snapshot-status",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "analytics",
+                                "snapshot-status"
+                            ]
+                        },
+                        "description": "Get the status of analytics snapshot background jobs. Requires DeptLead role."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Risk",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"projectId\": \"{{project_id}}\",\n    \"sprintId\": \"{{sprint_id}}\",\n    \"title\": \"API integration delay\",\n    \"description\": \"Third-party API may not be ready on time\",\n    \"severity\": \"High\",\n    \"likelihood\": \"Medium\",\n    \"mitigationStatus\": \"Open\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/analytics/risks",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "analytics",
+                                "risks"
+                            ]
+                        },
+                        "description": "Create a risk register entry. Requires DeptLead role."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List Risks",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/analytics/risks?projectId=&sprintId=&severity=&mitigationStatus=&page=1&pageSize=20",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "analytics",
+                                "risks"
+                            ],
+                            "query": [
+                                {
+                                    "key": "projectId",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "sprintId",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "severity",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "mitigationStatus",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "pageSize",
+                                    "value": "20"
+                                }
+                            ]
+                        },
+                        "description": "List risk register entries with optional filters."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Risk",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"title\": \"API integration delay\",\n    \"description\": \"Updated risk description\",\n    \"severity\": \"Critical\",\n    \"likelihood\": \"High\",\n    \"mitigationStatus\": \"Mitigating\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/analytics/risks/:riskId",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "analytics",
+                                "risks",
+                                ":riskId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "riskId",
+                                    "value": ""
+                                }
+                            ]
+                        },
+                        "description": "Update a risk register entry. Requires DeptLead role."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Risk",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{authToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{workUrl}}/api/v1/analytics/risks/:riskId",
+                            "host": [
+                                "{{workUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "analytics",
+                                "risks",
+                                ":riskId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "riskId",
+                                    "value": ""
+                                }
+                            ]
+                        },
+                        "description": "Soft-delete a risk register entry. Requires DeptLead role."
+                    },
+                    "response": []
                 }
             ]
         },

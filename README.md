@@ -10,7 +10,7 @@ A multi-tenant agile project management platform built with .NET 8 microservices
 |---------|------|----------|-------------|
 | SecurityService | 5001 | nexus_security | Auth, JWT, sessions, RBAC, OTP, rate limiting |
 | ProfileService | 5002 | nexus_profile | Organizations, departments, team members, invites |
-| WorkService | 5003 | nexus_work | Projects, stories, tasks, sprints, boards |
+| WorkService | 5003 | nexus_work | Projects, stories, tasks, sprints, boards, time tracking, cost rates, analytics |
 | UtilityService | 5200 | nexus_utility | Audit logs, notifications, reference data |
 | BillingService | 5300 | nexus_billing | Subscriptions, plans, feature gates, usage |
 | Frontend | 5173 | — | React 18 SPA (TypeScript, Vite, Tailwind) |
@@ -19,7 +19,7 @@ A multi-tenant agile project management platform built with .NET 8 microservices
 
 - **Backend:** .NET 8, ASP.NET Core, Entity Framework Core, PostgreSQL, Redis, FluentValidation
 - **Frontend:** React 18, TypeScript, Vite, Tailwind CSS v3, Zustand, React Router v6, Recharts, dnd-kit
-- **Testing:** xUnit, Moq, FsCheck (401 backend tests) · Vitest, fast-check (93 frontend tests)
+- **Testing:** xUnit, Moq, FsCheck (421 backend tests) · Vitest, fast-check (93 frontend tests)
 - **Infrastructure:** Polly (resilience), Serilog + Seq (logging), Stripe SDK (payments), Docker Compose
 - **CI/CD:** GitHub Actions (build, test, Docker image push)
 
@@ -48,6 +48,11 @@ Key patterns shared across all services:
 - **Polly resilience** — Inter-service calls use retry (3x exponential), circuit breaker (5/30s), timeout (10s).
 - **Redis outbox** — Audit events published via `LPUSH outbox:{service}` for async processing by UtilityService.
 - **Swagger + JWT** — All services expose `/swagger` with Bearer token auth support and XML doc comments.
+
+## New Features (Phase 1 & 2)
+
+- **Time Tracking:** time entries, start/stop timer, cost rates, time policies, approval workflows
+- **Analytics:** velocity trends, resource management, project cost, project health scoring, risk register, dependency analysis, bug metrics, dashboard
 
 ## Prerequisites
 
@@ -137,6 +142,8 @@ Nexus-2.0/
 │   ├── security-service/            # Requirements, design, tasks per feature
 │   ├── profile-service/
 │   ├── work-service/
+│   ├── time-tracking-cost/          # Time tracking & cost rate specs
+│   ├── analytics-reporting/         # Analytics & reporting specs
 │   ├── utility-service/
 │   ├── billing-service/
 │   ├── frontend-app/
@@ -155,13 +162,13 @@ Nexus-2.0/
 ```
 ## Tests
 
-494 tests total, all passing:
+514 tests total, all passing:
 
 | Service | Tests | Framework |
 |---------|-------|-----------|
 | SecurityService | 54 | xUnit + Moq |
 | ProfileService | 58 | xUnit + Moq |
-| WorkService | 130 | xUnit + Moq |
+| WorkService | 150 | xUnit + Moq + FsCheck (130 + 20 property tests) |
 | UtilityService | 80 | xUnit + Moq |
 | BillingService | 79 | xUnit + Moq + FsCheck |
 | Frontend | 93 | Vitest + fast-check |
