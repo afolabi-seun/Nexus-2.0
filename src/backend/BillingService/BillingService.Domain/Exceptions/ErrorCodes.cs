@@ -49,6 +49,15 @@ public static class ErrorCodes
     public const string UsageLimitReached = "USAGE_LIMIT_REACHED";
     public const int UsageLimitReachedValue = 5014;
 
+    public const string PlanAlreadyExists = "PLAN_ALREADY_EXISTS";
+    public const int PlanAlreadyExistsValue = 5015;
+
+    public const string InsufficientPermissions = "INSUFFICIENT_PERMISSIONS";
+    public const int InsufficientPermissionsValue = 5016;
+
+    public const string PlanCodeImmutable = "PLAN_CODE_IMMUTABLE";
+    public const int PlanCodeImmutableValue = 5017;
+
     // Internal
     public const string InternalError = "INTERNAL_ERROR";
     public const int InternalErrorValue = 9999;

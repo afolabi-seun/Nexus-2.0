@@ -72,9 +72,9 @@ export function StoryForm({ mode = 'create', story, defaultProjectId, onSuccess 
             workApi.getProjects({ page: 1, pageSize: 100 }),
             profileApi.getDepartments(),
             workApi.getLabels(),
-        ]).then(([projRes, depts, lbls]) => {
+        ]).then(([projRes, deptRes, lbls]) => {
             setProjects(projRes.data);
-            setDepartments(depts);
+            setDepartments(deptRes.data);
             setLabels(lbls);
         }).catch(() => { });
     }, []);

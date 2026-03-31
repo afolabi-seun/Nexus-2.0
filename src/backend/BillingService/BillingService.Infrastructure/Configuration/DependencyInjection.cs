@@ -16,6 +16,7 @@ using BillingService.Infrastructure.Services.Outbox;
 using BillingService.Infrastructure.Services.Plans;
 using BillingService.Infrastructure.Services.ServiceClients;
 using BillingService.Infrastructure.Services.Stripe;
+using BillingService.Infrastructure.Services.AdminBilling;
 using BillingService.Infrastructure.Services.Subscriptions;
 using BillingService.Infrastructure.Services.Usage;
 using StackExchange.Redis;
@@ -53,6 +54,10 @@ public static class DependencyInjection
         services.AddScoped<IOutboxService, OutboxService>();
         services.AddScoped<IErrorCodeResolverService, ErrorCodeResolverService>();
         services.AddScoped<StripeWebhookService>();
+
+        // Admin services
+        services.AddScoped<IAdminBillingService, AdminBillingService>();
+        services.AddScoped<IAdminPlanService, AdminPlanService>();
 
         // Service clients
         services.AddScoped<IProfileServiceClient, ProfileServiceClient>();

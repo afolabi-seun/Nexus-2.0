@@ -53,7 +53,7 @@ export const useOrgStore = create<OrgState & OrgActions>()((set) => ({
 
             const [org, depts, refData, nav] = await Promise.all([
                 profileApi.getOrganization(user.organizationId),
-                profileApi.getDepartments(),
+                profileApi.getDepartments().then((r) => r.data),
                 utilityApi.getReferenceData(),
                 profileApi.getNavigation().catch(() => []),
             ]);

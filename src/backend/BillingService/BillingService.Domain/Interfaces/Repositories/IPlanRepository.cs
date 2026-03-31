@@ -9,4 +9,6 @@ public interface IPlanRepository
     Task<List<Plan>> GetAllActiveAsync(CancellationToken ct);
     Task CreateAsync(Plan plan, CancellationToken ct);
     Task<bool> ExistsByCodeAsync(string planCode, CancellationToken ct);
+    Task<List<Plan>> GetAllAsync(CancellationToken ct);
+    Task UpdateAsync(Plan plan, CancellationToken ct);
 }

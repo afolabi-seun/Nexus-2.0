@@ -10,4 +10,6 @@ public interface ISubscriptionRepository
     Task UpdateAsync(Subscription subscription, CancellationToken ct);
     Task<List<Subscription>> GetExpiredTrialsAsync(DateTime cutoff, CancellationToken ct);
     Task<List<Subscription>> GetSubscriptionsDueForDowngradeAsync(DateTime cutoff, CancellationToken ct);
+    Task<List<Subscription>> GetAllWithPlansAsync(CancellationToken ct);
+    Task<int> GetCountByStatusAsync(string status, CancellationToken ct);
 }

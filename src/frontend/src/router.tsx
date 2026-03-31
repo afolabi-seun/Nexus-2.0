@@ -4,6 +4,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import { AuthGuard } from '@/components/guards/AuthGuard';
 import { GuestGuard } from '@/components/guards/GuestGuard';
 import { RoleGuard } from '@/components/guards/RoleGuard';
+import { OrgUserGuard } from '@/components/guards/OrgUserGuard';
 import { FirstTimeGuard } from '@/components/guards/FirstTimeGuard';
 
 // Layouts
@@ -42,6 +43,9 @@ import { SessionManagementPage } from '@/features/sessions/pages/SessionManageme
 import { SearchPage } from '@/features/search/pages/SearchPage';
 import { ReportsPage } from '@/features/reports/pages/ReportsPage';
 import { PlatformAdminOrganizationsPage } from '@/features/admin/pages/PlatformAdminOrganizationsPage';
+import { PlatformAdminBillingPage } from '@/features/admin/pages/PlatformAdminBillingPage';
+import { PlatformAdminOrgBillingDetailPage } from '@/features/admin/pages/PlatformAdminOrgBillingDetailPage';
+import { PlatformAdminPlansPage } from '@/features/admin/pages/PlatformAdminPlansPage';
 import { NotificationHistoryPage } from '@/features/notifications/pages/NotificationHistoryPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { BillingPage } from '@/features/billing/pages/BillingPage';
@@ -94,46 +98,51 @@ export const router = createBrowserRouter([
         element: <AuthGuard />,
         children: [
             {
-                element: <AppShell />,
+                element: <OrgUserGuard />,
                 children: [
-                    // General app routes
-                    { path: '/', element: <DashboardPage /> },
-                    { path: '/projects', element: <ProjectListPage /> },
-                    { path: '/projects/:id', element: <ProjectDetailPage /> },
-                    { path: '/stories', element: <StoryListPage /> },
-                    { path: '/stories/:id', element: <StoryDetailPage /> },
-                    { path: '/stories/key/:key', element: <StoryByKeyRedirect /> },
-                    { path: '/boards/kanban', element: <KanbanBoardPage /> },
-                    { path: '/boards/sprint', element: <SprintBoardPage /> },
-                    { path: '/boards/department', element: <DepartmentBoardPage /> },
-                    { path: '/boards/backlog', element: <BacklogPage /> },
-                    { path: '/sprints', element: <SprintListPage /> },
-                    { path: '/sprints/:id', element: <SprintDetailPage /> },
-                    { path: '/members', element: <MemberListPage /> },
-                    { path: '/members/:id', element: <MemberProfilePage /> },
-                    { path: '/departments', element: <DepartmentListPage /> },
-                    { path: '/departments/:id', element: <DepartmentDetailPage /> },
-                    { path: '/preferences', element: <PreferencesPage /> },
-                    { path: '/sessions', element: <SessionManagementPage /> },
-                    { path: '/search', element: <SearchPage /> },
-                    { path: '/reports', element: <ReportsPage /> },
-                    { path: '/notifications', element: <NotificationHistoryPage /> },
-
-                    // OrgAdmin-only routes
                     {
-                        element: <RoleGuard allowedRoles={['OrgAdmin']} />,
+                        element: <AppShell />,
                         children: [
-                            { path: '/settings', element: <SettingsPage /> },
-                            { path: '/billing', element: <BillingPage /> },
-                            { path: '/billing/plans', element: <PlanComparisonPage /> },
-                        ],
-                    },
+                            // General app routes
+                            { path: '/', element: <DashboardPage /> },
+                            { path: '/projects', element: <ProjectListPage /> },
+                            { path: '/projects/:id', element: <ProjectDetailPage /> },
+                            { path: '/stories', element: <StoryListPage /> },
+                            { path: '/stories/:id', element: <StoryDetailPage /> },
+                            { path: '/stories/key/:key', element: <StoryByKeyRedirect /> },
+                            { path: '/boards/kanban', element: <KanbanBoardPage /> },
+                            { path: '/boards/sprint', element: <SprintBoardPage /> },
+                            { path: '/boards/department', element: <DepartmentBoardPage /> },
+                            { path: '/boards/backlog', element: <BacklogPage /> },
+                            { path: '/sprints', element: <SprintListPage /> },
+                            { path: '/sprints/:id', element: <SprintDetailPage /> },
+                            { path: '/members', element: <MemberListPage /> },
+                            { path: '/members/:id', element: <MemberProfilePage /> },
+                            { path: '/departments', element: <DepartmentListPage /> },
+                            { path: '/departments/:id', element: <DepartmentDetailPage /> },
+                            { path: '/preferences', element: <PreferencesPage /> },
+                            { path: '/sessions', element: <SessionManagementPage /> },
+                            { path: '/search', element: <SearchPage /> },
+                            { path: '/reports', element: <ReportsPage /> },
+                            { path: '/notifications', element: <NotificationHistoryPage /> },
 
-                    // OrgAdmin + DeptLead routes
-                    {
-                        element: <RoleGuard allowedRoles={['OrgAdmin', 'DeptLead']} />,
-                        children: [
-                            { path: '/invites', element: <InviteManagementPage /> },
+                            // OrgAdmin-only routes
+                            {
+                                element: <RoleGuard allowedRoles={['OrgAdmin']} />,
+                                children: [
+                                    { path: '/settings', element: <SettingsPage /> },
+                                    { path: '/billing', element: <BillingPage /> },
+                                    { path: '/billing/plans', element: <PlanComparisonPage /> },
+                                ],
+                            },
+
+                            // OrgAdmin + DeptLead routes
+                            {
+                                element: <RoleGuard allowedRoles={['OrgAdmin', 'DeptLead']} />,
+                                children: [
+                                    { path: '/invites', element: <InviteManagementPage /> },
+                                ],
+                            },
                         ],
                     },
                 ],
@@ -147,6 +156,9 @@ export const router = createBrowserRouter([
                         element: <AdminLayout />,
                         children: [
                             { path: '/admin/organizations', element: <PlatformAdminOrganizationsPage /> },
+                            { path: '/admin/billing', element: <PlatformAdminBillingPage /> },
+                            { path: '/admin/billing/organizations/:id', element: <PlatformAdminOrgBillingDetailPage /> },
+                            { path: '/admin/billing/plans', element: <PlatformAdminPlansPage /> },
                         ],
                     },
                 ],

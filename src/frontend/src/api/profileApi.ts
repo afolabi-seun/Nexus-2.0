@@ -78,8 +78,8 @@ export const profileApi = {
             .then(() => undefined),
 
     // Departments
-    getDepartments: (): Promise<Department[]> =>
-        client.get('/api/v1/departments').then((r) => r.data),
+    getDepartments: (params?: PaginationParams): Promise<PaginatedResponse<Department>> =>
+        client.get('/api/v1/departments', { params }).then((r) => r.data),
 
     getDepartment: (id: string): Promise<Department> =>
         client.get(`/api/v1/departments/${id}`).then((r) => r.data),

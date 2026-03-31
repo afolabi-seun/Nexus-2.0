@@ -54,4 +54,15 @@ public class SubscriptionRepository : ISubscriptionRepository
             .Include(s => s.ScheduledPlan)
             .Where(s => s.ScheduledPlanId != null && s.CurrentPeriodEnd <= cutoff)
             .ToListAsync(ct);
+
+    public async Task<List<Subscription>> GetAllWithPlansAsync(CancellationToken ct) =>
+        await _context.Subscriptions
+            .IgnoreQueryFilters()
+            .Include(s => s.Plan)
+            .ToListAsync(ct);
+
+    public async Task<int> GetCountByStatusAsync(string status, CancellationToken ct) =>
+        await _context.Subscriptions
+            .IgnoreQueryFilters()
+            .CountAsync(s => s.Status == status, ct);
 }
