@@ -58,14 +58,14 @@ Implements time tracking, cost rate management, approval workflows, timer sessio
     - Place in `Application/Validators/`
     - _Requirements: 1.3, 6.7, 8.5, 8.6_
 
-- [ ] 5. Infrastructure layer — EF Core configuration
+- [x] 5. Infrastructure layer — EF Core configuration
   - [x] 5.1 Add DbSet properties and entity configurations to WorkDbContext
     - Add `DbSet<TimeEntry>`, `DbSet<CostRate>`, `DbSet<TimePolicy>`, `DbSet<TimeApproval>`, `DbSet<CostSnapshot>`
     - Configure indexes: composite on `(OrganizationId, StoryId)`, `(OrganizationId, MemberId, Date)` for TimeEntry; unique filtered index on CostRate; unique on `(OrganizationId)` for TimePolicy; composite on `(ProjectId, PeriodStart, PeriodEnd)` for CostSnapshot
     - Apply standard org-scoped global query filter `FlgStatus == "A"`
     - _Requirements: 1.1, 6.6, 8.1, 12.1_
 
-  - [~] 5.2 Create EF Core migration for new tables
+  - [x] 5.2 Create EF Core migration for new tables
     - Generate migration for TimeEntries, CostRates, TimePolicies, TimeApprovals, CostSnapshots tables
     - _Requirements: 1.1, 6.1, 8.1, 5.1, 12.1_
 
