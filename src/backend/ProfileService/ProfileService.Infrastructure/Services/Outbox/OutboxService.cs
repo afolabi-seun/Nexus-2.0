@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using ProfileService.Application.DTOs;
-using ProfileService.Domain.Interfaces.Services;
+using ProfileService.Domain.Interfaces.Services.Outbox;
 using StackExchange.Redis;
 
 namespace ProfileService.Infrastructure.Services.Outbox;

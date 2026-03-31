@@ -1,8 +1,9 @@
 using System.Text.Json;
 using BillingService.Application.DTOs;
 using BillingService.Domain.Enums;
-using BillingService.Domain.Interfaces.Repositories;
-using BillingService.Domain.Interfaces.Services;
+using BillingService.Domain.Interfaces.Repositories.Plans;
+using BillingService.Domain.Interfaces.Repositories.Subscriptions;
+using BillingService.Domain.Interfaces.Services.Outbox;
 using BillingService.Infrastructure.Services.ServiceClients;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

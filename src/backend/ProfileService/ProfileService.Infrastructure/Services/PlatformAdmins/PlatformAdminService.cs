@@ -1,7 +1,7 @@
 using ProfileService.Application.DTOs.PlatformAdmins;
 using ProfileService.Domain.Exceptions;
-using ProfileService.Domain.Interfaces.Repositories;
-using ProfileService.Domain.Interfaces.Services;
+using ProfileService.Domain.Interfaces.Repositories.PlatformAdmins;
+using ProfileService.Domain.Interfaces.Services.PlatformAdmins;
 
 namespace ProfileService.Infrastructure.Services.PlatformAdmins;
 

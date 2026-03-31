@@ -3,8 +3,10 @@ using Microsoft.Extensions.Logging;
 using ProfileService.Application.DTOs.Preferences;
 using ProfileService.Domain.Entities;
 using ProfileService.Domain.Helpers;
-using ProfileService.Domain.Interfaces.Repositories;
-using ProfileService.Domain.Interfaces.Services;
+using ProfileService.Domain.Interfaces.Repositories.Departments;
+using ProfileService.Domain.Interfaces.Repositories.Organizations;
+using ProfileService.Domain.Interfaces.Repositories.UserPreferenceSettings;
+using ProfileService.Domain.Interfaces.Services.Preferences;
 using StackExchange.Redis;
 
 namespace ProfileService.Infrastructure.Services.Preferences;

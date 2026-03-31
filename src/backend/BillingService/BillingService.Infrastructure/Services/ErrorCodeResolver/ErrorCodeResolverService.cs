@@ -1,4 +1,4 @@
-using BillingService.Domain.Interfaces.Services;
+using BillingService.Domain.Interfaces.Services.ErrorCodeResolver;
 
 namespace BillingService.Infrastructure.Services.ErrorCodeResolver;
 

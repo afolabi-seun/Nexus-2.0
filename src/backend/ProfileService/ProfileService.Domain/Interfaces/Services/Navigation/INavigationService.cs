@@ -1,6 +1,6 @@
 using ProfileService.Domain.Entities;
 
-namespace ProfileService.Domain.Interfaces.Services;
+namespace ProfileService.Domain.Interfaces.Services.Navigation;
 
 public interface INavigationService
 {

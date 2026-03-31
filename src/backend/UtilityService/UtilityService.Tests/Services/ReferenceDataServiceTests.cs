@@ -3,7 +3,10 @@ using StackExchange.Redis;
 using UtilityService.Application.DTOs.ReferenceData;
 using UtilityService.Domain.Entities;
 using UtilityService.Domain.Exceptions;
-using UtilityService.Domain.Interfaces.Repositories;
+using UtilityService.Domain.Interfaces.Repositories.DepartmentTypes;
+using UtilityService.Domain.Interfaces.Repositories.PriorityLevels;
+using UtilityService.Domain.Interfaces.Repositories.TaskTypeRefs;
+using UtilityService.Domain.Interfaces.Repositories.WorkflowStates;
 using UtilityService.Infrastructure.Services.ReferenceData;
 
 namespace UtilityService.Tests.Services;

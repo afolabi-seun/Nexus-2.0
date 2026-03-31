@@ -1,8 +1,8 @@
 using System.Text.Json;
 using BillingService.Application.DTOs.Plans;
 using BillingService.Domain.Entities;
-using BillingService.Domain.Interfaces.Repositories;
-using BillingService.Domain.Interfaces.Services;
+using BillingService.Domain.Interfaces.Repositories.Plans;
+using BillingService.Domain.Interfaces.Services.Plans;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 

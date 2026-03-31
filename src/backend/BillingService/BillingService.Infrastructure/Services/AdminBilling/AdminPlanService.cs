@@ -3,8 +3,9 @@ using BillingService.Application.DTOs;
 using BillingService.Application.DTOs.Admin;
 using BillingService.Domain.Entities;
 using BillingService.Domain.Exceptions;
-using BillingService.Domain.Interfaces.Repositories;
-using BillingService.Domain.Interfaces.Services;
+using BillingService.Domain.Interfaces.Repositories.Plans;
+using BillingService.Domain.Interfaces.Services.AdminBilling;
+using BillingService.Domain.Interfaces.Services.Outbox;
 using Microsoft.Extensions.Logging;
 
 namespace BillingService.Infrastructure.Services.AdminBilling;

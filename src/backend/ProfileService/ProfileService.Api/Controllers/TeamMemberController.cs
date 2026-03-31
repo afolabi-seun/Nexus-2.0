@@ -4,7 +4,7 @@ using ProfileService.Api.Attributes;
 using ProfileService.Application.DTOs;
 using ProfileService.Application.DTOs.Organizations;
 using ProfileService.Application.DTOs.TeamMembers;
-using ProfileService.Domain.Interfaces.Services;
+using ProfileService.Domain.Interfaces.Services.TeamMembers;
 
 namespace ProfileService.Api.Controllers;
 

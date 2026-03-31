@@ -1,6 +1,6 @@
 using UtilityService.Domain.Entities;
 
-namespace UtilityService.Domain.Interfaces.Repositories;
+namespace UtilityService.Domain.Interfaces.Repositories.ErrorLogs;
 
 public interface IErrorLogRepository
 {

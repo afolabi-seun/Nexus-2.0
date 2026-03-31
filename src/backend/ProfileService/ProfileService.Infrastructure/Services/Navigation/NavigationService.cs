@@ -1,7 +1,7 @@
 using ProfileService.Domain.Entities;
 using ProfileService.Domain.Exceptions;
-using ProfileService.Domain.Interfaces.Repositories;
-using ProfileService.Domain.Interfaces.Services;
+using ProfileService.Domain.Interfaces.Repositories.NavigationItems;
+using ProfileService.Domain.Interfaces.Services.Navigation;
 
 namespace ProfileService.Infrastructure.Services.Navigation;
 

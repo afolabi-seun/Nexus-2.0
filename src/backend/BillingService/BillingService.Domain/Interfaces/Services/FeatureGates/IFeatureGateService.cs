@@ -1,4 +1,4 @@
-namespace BillingService.Domain.Interfaces.Services;
+namespace BillingService.Domain.Interfaces.Services.FeatureGates;
 
 public interface IFeatureGateService
 {

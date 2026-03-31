@@ -1,4 +1,4 @@
-namespace WorkService.Domain.Interfaces.Services;
+namespace WorkService.Domain.Interfaces.Services.Search;
 
 public interface ISearchService
 {

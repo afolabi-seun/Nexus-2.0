@@ -1,6 +1,6 @@
 using BillingService.Domain.Entities;
 
-namespace BillingService.Domain.Interfaces.Repositories;
+namespace BillingService.Domain.Interfaces.Repositories.Plans;
 
 public interface IPlanRepository
 {

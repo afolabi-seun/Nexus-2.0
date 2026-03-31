@@ -1,7 +1,7 @@
 using System.Net;
 using WorkService.Application.DTOs;
 using WorkService.Domain.Exceptions;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Services.ErrorCodeResolver;
 
 namespace WorkService.Api.Middleware;
 

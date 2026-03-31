@@ -3,8 +3,10 @@ using Microsoft.Extensions.Logging;
 using WorkService.Application.DTOs.Comments;
 using WorkService.Domain.Entities;
 using WorkService.Domain.Exceptions;
-using WorkService.Domain.Interfaces.Repositories;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Repositories.ActivityLogs;
+using WorkService.Domain.Interfaces.Repositories.Comments;
+using WorkService.Domain.Interfaces.Services.Comments;
+using WorkService.Domain.Interfaces.Services.Outbox;
 using WorkService.Infrastructure.Services.ServiceClients;
 
 namespace WorkService.Infrastructure.Services.Comments;

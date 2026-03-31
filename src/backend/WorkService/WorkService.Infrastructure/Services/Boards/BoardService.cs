@@ -1,7 +1,11 @@
 using System.Text.Json;
 using WorkService.Application.DTOs.Boards;
-using WorkService.Domain.Interfaces.Repositories;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Repositories.Projects;
+using WorkService.Domain.Interfaces.Repositories.SprintStories;
+using WorkService.Domain.Interfaces.Repositories.Sprints;
+using WorkService.Domain.Interfaces.Repositories.Stories;
+using WorkService.Domain.Interfaces.Repositories.Tasks;
+using WorkService.Domain.Interfaces.Services.Boards;
 using StackExchange.Redis;
 
 namespace WorkService.Infrastructure.Services.Boards;

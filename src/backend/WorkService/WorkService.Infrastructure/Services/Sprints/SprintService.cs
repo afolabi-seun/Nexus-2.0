@@ -5,8 +5,13 @@ using WorkService.Application.DTOs.Sprints;
 using WorkService.Application.DTOs.Stories;
 using WorkService.Domain.Entities;
 using WorkService.Domain.Exceptions;
-using WorkService.Domain.Interfaces.Repositories;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Repositories.Projects;
+using WorkService.Domain.Interfaces.Repositories.SprintStories;
+using WorkService.Domain.Interfaces.Repositories.Sprints;
+using WorkService.Domain.Interfaces.Repositories.Stories;
+using WorkService.Domain.Interfaces.Repositories.Tasks;
+using WorkService.Domain.Interfaces.Services.Outbox;
+using WorkService.Domain.Interfaces.Services.Sprints;
 using WorkService.Infrastructure.Services.ServiceClients;
 using StackExchange.Redis;
 

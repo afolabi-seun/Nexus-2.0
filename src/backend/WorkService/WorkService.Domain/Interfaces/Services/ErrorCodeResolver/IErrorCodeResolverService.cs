@@ -1,4 +1,4 @@
-namespace WorkService.Domain.Interfaces.Services;
+namespace WorkService.Domain.Interfaces.Services.ErrorCodeResolver;
 
 public interface IErrorCodeResolverService
 {

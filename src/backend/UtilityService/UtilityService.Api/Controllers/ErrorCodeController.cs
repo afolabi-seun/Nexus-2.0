@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using UtilityService.Api.Attributes;
 using UtilityService.Application.DTOs;
 using UtilityService.Application.DTOs.ErrorCodes;
-using UtilityService.Domain.Interfaces.Services;
+using UtilityService.Domain.Interfaces.Services.ErrorCodes;
 
 namespace UtilityService.Api.Controllers;
 

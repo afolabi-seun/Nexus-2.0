@@ -1,4 +1,4 @@
-namespace UtilityService.Domain.Interfaces.Services;
+namespace UtilityService.Domain.Interfaces.Services.Notifications;
 
 public interface INotificationService
 {

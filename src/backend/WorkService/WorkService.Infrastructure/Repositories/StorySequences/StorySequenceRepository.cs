@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using WorkService.Domain.Interfaces.Repositories;
+using WorkService.Domain.Interfaces.Repositories.StorySequences;
 using WorkService.Infrastructure.Data;
 using Task = System.Threading.Tasks.Task;
 

@@ -1,6 +1,6 @@
 using ProfileService.Domain.Entities;
 
-namespace ProfileService.Domain.Interfaces.Repositories;
+namespace ProfileService.Domain.Interfaces.Repositories.DepartmentMembers;
 
 public interface IDepartmentMemberRepository
 {

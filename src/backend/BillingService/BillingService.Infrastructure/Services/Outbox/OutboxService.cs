@@ -1,5 +1,5 @@
 using System.Text.Json;
-using BillingService.Domain.Interfaces.Services;
+using BillingService.Domain.Interfaces.Services.Outbox;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 

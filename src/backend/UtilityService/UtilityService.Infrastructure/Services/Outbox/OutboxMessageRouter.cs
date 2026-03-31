@@ -4,7 +4,9 @@ using StackExchange.Redis;
 using UtilityService.Application.DTOs;
 using UtilityService.Application.DTOs.AuditLogs;
 using UtilityService.Application.DTOs.Notifications;
-using UtilityService.Domain.Interfaces.Services;
+using UtilityService.Domain.Interfaces.Services.AuditLogs;
+using UtilityService.Domain.Interfaces.Services.Notifications;
+using UtilityService.Domain.Interfaces.Services.Outbox;
 
 namespace UtilityService.Infrastructure.Services.Outbox;
 

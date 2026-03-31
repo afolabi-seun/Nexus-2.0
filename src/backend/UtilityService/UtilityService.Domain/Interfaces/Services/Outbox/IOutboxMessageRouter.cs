@@ -1,4 +1,4 @@
-namespace UtilityService.Domain.Interfaces.Services;
+namespace UtilityService.Domain.Interfaces.Services.Outbox;
 
 public interface IOutboxMessageRouter
 {

@@ -1,6 +1,6 @@
 using BillingService.Domain.Entities;
 using BillingService.Domain.Enums;
-using BillingService.Domain.Interfaces.Repositories;
+using BillingService.Domain.Interfaces.Repositories.Subscriptions;
 using BillingService.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 

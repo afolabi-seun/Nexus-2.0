@@ -1,7 +1,7 @@
 using WorkService.Domain.Entities;
 using Task = System.Threading.Tasks.Task;
 
-namespace WorkService.Domain.Interfaces.Repositories;
+namespace WorkService.Domain.Interfaces.Repositories.Projects;
 
 public interface IProjectRepository
 {

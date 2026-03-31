@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using UtilityService.Domain.Interfaces.Services;
+using UtilityService.Domain.Interfaces.Services.Notifications;
 
 namespace UtilityService.Infrastructure.Services.BackgroundServices;
 

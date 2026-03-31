@@ -1,7 +1,7 @@
 using System.Net;
 using UtilityService.Application.DTOs;
 using UtilityService.Domain.Exceptions;
-using UtilityService.Domain.Interfaces.Services;
+using UtilityService.Domain.Interfaces.Services.ErrorCodeResolver;
 
 namespace UtilityService.Api.Middleware;
 

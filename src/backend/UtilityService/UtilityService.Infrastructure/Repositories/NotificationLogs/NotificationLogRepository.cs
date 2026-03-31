@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using UtilityService.Domain.Entities;
 using UtilityService.Domain.Helpers;
-using UtilityService.Domain.Interfaces.Repositories;
+using UtilityService.Domain.Interfaces.Repositories.NotificationLogs;
 using UtilityService.Infrastructure.Data;
 
 namespace UtilityService.Infrastructure.Repositories.NotificationLogs;

@@ -4,8 +4,8 @@ using UtilityService.Application.DTOs;
 using UtilityService.Application.DTOs.Notifications;
 using UtilityService.Domain.Entities;
 using UtilityService.Domain.Helpers;
-using UtilityService.Domain.Interfaces.Repositories;
-using UtilityService.Domain.Interfaces.Services;
+using UtilityService.Domain.Interfaces.Repositories.NotificationLogs;
+using UtilityService.Domain.Interfaces.Services.Notifications;
 using UtilityService.Infrastructure.Configuration;
 
 namespace UtilityService.Infrastructure.Services.Notifications;

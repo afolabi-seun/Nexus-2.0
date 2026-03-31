@@ -3,8 +3,11 @@ using WorkService.Application.DTOs.Tasks;
 using WorkService.Domain.Entities;
 using WorkService.Domain.Exceptions;
 using WorkService.Domain.Helpers;
-using WorkService.Domain.Interfaces.Repositories;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Repositories.ActivityLogs;
+using WorkService.Domain.Interfaces.Repositories.Stories;
+using WorkService.Domain.Interfaces.Repositories.Tasks;
+using WorkService.Domain.Interfaces.Services.Outbox;
+using WorkService.Domain.Interfaces.Services.Tasks;
 using WorkService.Infrastructure.Services.ServiceClients;
 
 namespace WorkService.Infrastructure.Services.Tasks;

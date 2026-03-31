@@ -2,8 +2,9 @@ using UtilityService.Application.DTOs;
 using UtilityService.Application.DTOs.AuditLogs;
 using UtilityService.Domain.Entities;
 using UtilityService.Domain.Exceptions;
-using UtilityService.Domain.Interfaces.Repositories;
-using UtilityService.Domain.Interfaces.Services;
+using UtilityService.Domain.Interfaces.Repositories.ArchivedAuditLogs;
+using UtilityService.Domain.Interfaces.Repositories.AuditLogs;
+using UtilityService.Domain.Interfaces.Services.AuditLogs;
 
 namespace UtilityService.Infrastructure.Services.AuditLogs;
 

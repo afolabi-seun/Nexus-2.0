@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WorkService.Domain.Entities;
-using WorkService.Domain.Interfaces.Repositories;
+using WorkService.Domain.Interfaces.Repositories.SavedFilters;
 using WorkService.Infrastructure.Data;
 using Task = System.Threading.Tasks.Task;
 

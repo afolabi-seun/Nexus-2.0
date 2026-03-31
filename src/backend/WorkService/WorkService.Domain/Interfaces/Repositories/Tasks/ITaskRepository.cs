@@ -1,6 +1,6 @@
 using Task = System.Threading.Tasks.Task;
 
-namespace WorkService.Domain.Interfaces.Repositories;
+namespace WorkService.Domain.Interfaces.Repositories.Tasks;
 
 public interface ITaskRepository
 {

@@ -2,8 +2,9 @@ using Microsoft.AspNetCore.Http;
 using ProfileService.Application.DTOs.NotificationSettings;
 using ProfileService.Domain.Entities;
 using ProfileService.Domain.Exceptions;
-using ProfileService.Domain.Interfaces.Repositories;
-using ProfileService.Domain.Interfaces.Services;
+using ProfileService.Domain.Interfaces.Repositories.NotificationSettings;
+using ProfileService.Domain.Interfaces.Repositories.NotificationTypes;
+using ProfileService.Domain.Interfaces.Services.NotificationSettings;
 
 namespace ProfileService.Infrastructure.Services.NotificationSettings;
 

@@ -3,8 +3,9 @@ using Moq;
 using WorkService.Application.DTOs.Projects;
 using WorkService.Domain.Entities;
 using WorkService.Domain.Exceptions;
-using WorkService.Domain.Interfaces.Repositories;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Repositories.Projects;
+using WorkService.Domain.Interfaces.Repositories.Stories;
+using WorkService.Domain.Interfaces.Services.Outbox;
 using WorkService.Infrastructure.Services.Projects;
 using Task = System.Threading.Tasks.Task;
 

@@ -1,7 +1,8 @@
 using Microsoft.Extensions.Logging;
 using WorkService.Domain.Exceptions;
-using WorkService.Domain.Interfaces.Repositories;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Repositories.Projects;
+using WorkService.Domain.Interfaces.Repositories.StorySequences;
+using WorkService.Domain.Interfaces.Services.Stories;
 using StackExchange.Redis;
 
 namespace WorkService.Infrastructure.Services.Stories;

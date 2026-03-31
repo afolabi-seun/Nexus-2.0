@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using WorkService.Application.Contracts;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Services.ErrorCodeResolver;
 using WorkService.Infrastructure.Configuration;
 using StackExchange.Redis;
 

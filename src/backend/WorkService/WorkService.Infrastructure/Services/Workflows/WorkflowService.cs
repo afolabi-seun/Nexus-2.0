@@ -1,7 +1,7 @@
 using System.Text.Json;
 using WorkService.Application.DTOs.Workflows;
 using WorkService.Domain.Helpers;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Services.Workflows;
 using StackExchange.Redis;
 
 namespace WorkService.Infrastructure.Services.Workflows;

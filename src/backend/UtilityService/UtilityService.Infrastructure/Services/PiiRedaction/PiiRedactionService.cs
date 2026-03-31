@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-using UtilityService.Domain.Interfaces.Services;
+using UtilityService.Domain.Interfaces.Services.PiiRedaction;
 
 namespace UtilityService.Infrastructure.Services.PiiRedaction;
 

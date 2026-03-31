@@ -1,6 +1,6 @@
 using StackExchange.Redis;
-using UtilityService.Domain.Interfaces.Repositories;
-using UtilityService.Domain.Interfaces.Services;
+using UtilityService.Domain.Interfaces.Repositories.ErrorCodeEntries;
+using UtilityService.Domain.Interfaces.Services.ErrorCodeResolver;
 using DomainErrorCodes = UtilityService.Domain.Exceptions.ErrorCodes;
 
 namespace UtilityService.Infrastructure.Services.ErrorCodeResolver;

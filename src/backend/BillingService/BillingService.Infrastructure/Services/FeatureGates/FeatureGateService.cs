@@ -2,8 +2,9 @@ using System.Text.Json;
 using BillingService.Application.DTOs.FeatureGates;
 using BillingService.Domain.Entities;
 using BillingService.Domain.Enums;
-using BillingService.Domain.Interfaces.Repositories;
-using BillingService.Domain.Interfaces.Services;
+using BillingService.Domain.Interfaces.Repositories.Plans;
+using BillingService.Domain.Interfaces.Repositories.Subscriptions;
+using BillingService.Domain.Interfaces.Services.FeatureGates;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 

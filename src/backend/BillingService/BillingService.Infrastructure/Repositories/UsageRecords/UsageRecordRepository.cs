@@ -1,5 +1,5 @@
 using BillingService.Domain.Entities;
-using BillingService.Domain.Interfaces.Repositories;
+using BillingService.Domain.Interfaces.Repositories.UsageRecords;
 using BillingService.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 

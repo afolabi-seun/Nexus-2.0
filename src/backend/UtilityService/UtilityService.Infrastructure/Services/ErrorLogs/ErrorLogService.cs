@@ -1,8 +1,9 @@
 using UtilityService.Application.DTOs;
 using UtilityService.Application.DTOs.ErrorLogs;
 using UtilityService.Domain.Entities;
-using UtilityService.Domain.Interfaces.Repositories;
-using UtilityService.Domain.Interfaces.Services;
+using UtilityService.Domain.Interfaces.Repositories.ErrorLogs;
+using UtilityService.Domain.Interfaces.Services.ErrorLogs;
+using UtilityService.Domain.Interfaces.Services.PiiRedaction;
 
 namespace UtilityService.Infrastructure.Services.ErrorLogs;
 

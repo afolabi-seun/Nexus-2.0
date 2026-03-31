@@ -1,7 +1,7 @@
 using System.Net;
 using BillingService.Application.DTOs;
 using BillingService.Domain.Exceptions;
-using BillingService.Domain.Interfaces.Services;
+using BillingService.Domain.Interfaces.Services.ErrorCodeResolver;
 
 namespace BillingService.Api.Middleware;
 

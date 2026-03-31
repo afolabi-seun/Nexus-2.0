@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using UtilityService.Api.Attributes;
 using UtilityService.Application.DTOs;
 using UtilityService.Application.DTOs.ReferenceData;
-using UtilityService.Domain.Interfaces.Services;
+using UtilityService.Domain.Interfaces.Services.ReferenceData;
 
 namespace UtilityService.Api.Controllers;
 

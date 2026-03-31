@@ -1,8 +1,8 @@
 using WorkService.Application.DTOs.Labels;
 using WorkService.Domain.Entities;
 using WorkService.Domain.Exceptions;
-using WorkService.Domain.Interfaces.Repositories;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Repositories.Labels;
+using WorkService.Domain.Interfaces.Services.Labels;
 
 namespace WorkService.Infrastructure.Services.Labels;
 

@@ -1,7 +1,7 @@
 using BillingService.Api.Attributes;
 using BillingService.Application.DTOs;
 using BillingService.Application.DTOs.Usage;
-using BillingService.Domain.Interfaces.Services;
+using BillingService.Domain.Interfaces.Services.Usage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

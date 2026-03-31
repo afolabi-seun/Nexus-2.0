@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.Search;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Services.Search;
 
 namespace WorkService.Api.Controllers;
 

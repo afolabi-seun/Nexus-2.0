@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using UtilityService.Domain.Entities;
-using UtilityService.Domain.Interfaces.Repositories;
+using UtilityService.Domain.Interfaces.Repositories.ErrorLogs;
 using UtilityService.Infrastructure.Data;
 
 namespace UtilityService.Infrastructure.Repositories.ErrorLogs;

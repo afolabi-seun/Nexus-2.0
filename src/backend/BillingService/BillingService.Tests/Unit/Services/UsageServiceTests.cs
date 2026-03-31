@@ -1,7 +1,8 @@
 using BillingService.Application.DTOs.Usage;
 using BillingService.Domain.Entities;
 using BillingService.Domain.Enums;
-using BillingService.Domain.Interfaces.Repositories;
+using BillingService.Domain.Interfaces.Repositories.Plans;
+using BillingService.Domain.Interfaces.Repositories.Subscriptions;
 using BillingService.Infrastructure.Services.Usage;
 using BillingService.Tests.Property.Generators;
 using Microsoft.Extensions.Logging;

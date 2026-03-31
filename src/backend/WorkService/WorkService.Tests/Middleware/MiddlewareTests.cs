@@ -7,7 +7,7 @@ using Moq;
 using WorkService.Api.Middleware;
 using WorkService.Application.DTOs;
 using WorkService.Domain.Exceptions;
-using WorkService.Domain.Interfaces.Services;
+using WorkService.Domain.Interfaces.Services.ErrorCodeResolver;
 
 namespace WorkService.Tests.Middleware;
 

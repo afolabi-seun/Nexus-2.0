@@ -9,7 +9,7 @@ using ProfileService.Api.Middleware;
 using ProfileService.Application.DTOs;
 using ProfileService.Domain.Exceptions;
 using ProfileService.Domain.Helpers;
-using ProfileService.Domain.Interfaces.Services;
+using ProfileService.Domain.Interfaces.Services.ErrorCodeResolver;
 using ProfileService.Api.Attributes;
 
 namespace ProfileService.Tests.Middleware;

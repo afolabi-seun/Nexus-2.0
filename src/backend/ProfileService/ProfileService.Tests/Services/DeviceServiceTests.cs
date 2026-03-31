@@ -1,7 +1,7 @@
 using Moq;
 using ProfileService.Domain.Entities;
 using ProfileService.Domain.Exceptions;
-using ProfileService.Domain.Interfaces.Repositories;
+using ProfileService.Domain.Interfaces.Repositories.Devices;
 using ProfileService.Infrastructure.Services.Devices;
 
 namespace ProfileService.Tests.Services;

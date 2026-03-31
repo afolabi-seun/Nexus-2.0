@@ -1,4 +1,4 @@
-namespace ProfileService.Domain.Interfaces.Services;
+namespace ProfileService.Domain.Interfaces.Services.TeamMembers;
 
 public interface ITeamMemberService
 {

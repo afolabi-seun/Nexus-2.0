@@ -3,8 +3,8 @@ using StackExchange.Redis;
 using UtilityService.Application.DTOs.ErrorCodes;
 using UtilityService.Domain.Entities;
 using UtilityService.Domain.Exceptions;
-using UtilityService.Domain.Interfaces.Repositories;
-using UtilityService.Domain.Interfaces.Services;
+using UtilityService.Domain.Interfaces.Repositories.ErrorCodeEntries;
+using UtilityService.Domain.Interfaces.Services.ErrorCodes;
 
 namespace UtilityService.Infrastructure.Services.ErrorCodes;
 

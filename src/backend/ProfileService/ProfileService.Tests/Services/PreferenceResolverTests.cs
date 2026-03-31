@@ -4,7 +4,9 @@ using Moq;
 using ProfileService.Application.DTOs.Preferences;
 using ProfileService.Domain.Entities;
 using ProfileService.Domain.Helpers;
-using ProfileService.Domain.Interfaces.Repositories;
+using ProfileService.Domain.Interfaces.Repositories.Departments;
+using ProfileService.Domain.Interfaces.Repositories.Organizations;
+using ProfileService.Domain.Interfaces.Repositories.UserPreferenceSettings;
 using ProfileService.Infrastructure.Services.Preferences;
 using StackExchange.Redis;
 

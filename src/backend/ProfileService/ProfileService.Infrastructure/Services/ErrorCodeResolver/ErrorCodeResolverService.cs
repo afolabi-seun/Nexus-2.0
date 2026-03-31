@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using ProfileService.Application.Contracts;
-using ProfileService.Domain.Interfaces.Services;
+using ProfileService.Domain.Interfaces.Services.ErrorCodeResolver;
 using ProfileService.Infrastructure.Services.ServiceClients;
 using StackExchange.Redis;
 

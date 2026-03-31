@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WorkService.Domain.Entities;
-using WorkService.Domain.Interfaces.Repositories;
+using WorkService.Domain.Interfaces.Repositories.ActivityLogs;
 using WorkService.Infrastructure.Data;
 
 namespace WorkService.Infrastructure.Repositories.ActivityLogs;
