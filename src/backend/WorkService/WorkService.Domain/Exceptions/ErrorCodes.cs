@@ -118,6 +118,22 @@ public static class ErrorCodes
     public const string StoryProjectMismatch = "STORY_PROJECT_MISMATCH";
     public const int StoryProjectMismatchValue = 4046;
 
+    // Time Tracking (4050–4056)
+    public const string TimerAlreadyActive = "TIMER_ALREADY_ACTIVE";
+    public const int TimerAlreadyActiveValue = 4050;
+    public const string NoActiveTimer = "NO_ACTIVE_TIMER";
+    public const int NoActiveTimerValue = 4051;
+    public const string TimeEntryNotFound = "TIME_ENTRY_NOT_FOUND";
+    public const int TimeEntryNotFoundValue = 4052;
+    public const string CostRateDuplicate = "COST_RATE_DUPLICATE";
+    public const int CostRateDuplicateValue = 4053;
+    public const string InvalidCostRate = "INVALID_COST_RATE";
+    public const int InvalidCostRateValue = 4054;
+    public const string InvalidTimePolicy = "INVALID_TIME_POLICY";
+    public const int InvalidTimePolicyValue = 4055;
+    public const string DailyHoursExceeded = "DAILY_HOURS_EXCEEDED";
+    public const int DailyHoursExceededValue = 4056;
+
     // Internal
     public const string InternalError = "INTERNAL_ERROR";
     public const int InternalErrorValue = 9999;
