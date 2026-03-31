@@ -13,7 +13,8 @@ interface AuthState {
 interface AuthActions {
     login(
         tokens: { accessToken: string; refreshToken: string },
-        user: AuthUser
+        user: AuthUser,
+        isFirstTimeUser?: boolean
     ): void;
     logout(): void;
     refreshTokens(accessToken: string, refreshToken: string): void;
@@ -74,17 +75,18 @@ export const useAuthStore = create<AuthState & AuthActions>()((set) => ({
     isPlatformAdmin: false,
     isFirstTimeUser: false,
 
-    login(tokens, user) {
+    login(tokens, user, isFirstTimeUser) {
         persistRefreshToken(tokens.refreshToken);
         const isPlatformAdmin =
             !user.organizationId && user.roleName === 'PlatformAdmin';
+        const firstTime = isFirstTimeUser ?? user.isFirstTimeUser;
         set({
             accessToken: tokens.accessToken,
             refreshToken: tokens.refreshToken,
-            user,
+            user: { ...user, isFirstTimeUser: firstTime },
             isAuthenticated: true,
             isPlatformAdmin,
-            isFirstTimeUser: user.isFirstTimeUser,
+            isFirstTimeUser: firstTime,
         });
     },
 

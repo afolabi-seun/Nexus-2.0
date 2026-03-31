@@ -28,4 +28,13 @@ public class PlanRepository : IPlanRepository
 
     public async Task<bool> ExistsByCodeAsync(string planCode, CancellationToken ct) =>
         await _context.Plans.AnyAsync(p => p.PlanCode == planCode, ct);
+
+    public async Task<List<Plan>> GetAllAsync(CancellationToken ct) =>
+        await _context.Plans.OrderBy(p => p.TierLevel).ToListAsync(ct);
+
+    public async Task UpdateAsync(Plan plan, CancellationToken ct)
+    {
+        _context.Plans.Update(plan);
+        await _context.SaveChangesAsync(ct);
+    }
 }

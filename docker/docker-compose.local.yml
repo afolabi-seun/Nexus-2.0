@@ -10,6 +10,7 @@ services:
   seq:
     image: datalust/seq:latest
     container_name: nexus-seq
+    restart: unless-stopped
     environment:
       ACCEPT_EULA: "Y"
     ports:

@@ -7,10 +7,25 @@ import { Modal } from '@/components/common/Modal';
 import { FormField } from '@/components/forms/FormField';
 import { useToast } from '@/components/common/Toast';
 import { useAuth } from '@/hooks/useAuth';
+import { ListFilter } from '@/components/common/ListFilter';
+import { useListFilters } from '@/hooks/useListFilters';
 import { mapErrorCode } from '@/utils/errorMapping';
 import { ApiError } from '@/types/api';
+import type { FilterConfig } from '@/types/filters';
 import type { Department } from '@/types/profile';
 import { Plus } from 'lucide-react';
+
+const filterConfigs: FilterConfig[] = [
+    {
+        key: 'status',
+        label: 'Status',
+        type: 'select',
+        options: [
+            { value: 'A', label: 'Active' },
+            { value: 'I', label: 'Inactive' },
+        ],
+    },
+];
 
 export function DepartmentListPage() {
     const navigate = useNavigate();
@@ -27,17 +42,22 @@ export function DepartmentListPage() {
     const [creating, setCreating] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
+    const { filterValues, updateFilter, clearFilters, hasActiveFilters, activeFilterCount } =
+        useListFilters(filterConfigs);
+
     const fetchDepartments = useCallback(async () => {
         setLoading(true);
         try {
-            const data = await profileApi.getDepartments();
-            setDepartments(data);
+            const res = await profileApi.getDepartments({
+                status: filterValues.status as string | undefined,
+            } as Record<string, unknown>);
+            setDepartments(res.data);
         } catch {
             addToast('error', 'Failed to load departments');
         } finally {
             setLoading(false);
         }
-    }, [addToast]);
+    }, [filterValues, addToast]);
 
     useEffect(() => { fetchDepartments(); }, [fetchDepartments]);
 
@@ -80,6 +100,15 @@ export function DepartmentListPage() {
                     </button>
                 )}
             </div>
+
+            <ListFilter
+                configs={filterConfigs}
+                values={filterValues}
+                onUpdateFilter={updateFilter}
+                onClearFilters={clearFilters}
+                hasActiveFilters={hasActiveFilters}
+                activeFilterCount={activeFilterCount}
+            />
 
             <DataTable columns={columns} data={departments} loading={loading} keyExtractor={(d) => d.departmentId} onRowClick={(d) => navigate(`/departments/${d.departmentId}`)} />
 

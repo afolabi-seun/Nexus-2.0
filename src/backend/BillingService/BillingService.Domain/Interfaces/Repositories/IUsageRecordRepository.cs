@@ -7,4 +7,5 @@ public interface IUsageRecordRepository
     Task<List<UsageRecord>> GetByOrganizationAndPeriodAsync(Guid organizationId, DateTime periodStart, CancellationToken ct);
     Task UpsertAsync(UsageRecord record, CancellationToken ct);
     Task ArchivePeriodAsync(Guid organizationId, DateTime periodEnd, CancellationToken ct);
+    Task<List<UsageRecord>> GetAllCurrentPeriodAsync(DateTime periodStart, CancellationToken ct);
 }

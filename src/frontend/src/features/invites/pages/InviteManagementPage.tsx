@@ -8,10 +8,27 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { useToast } from '@/components/common/Toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrg } from '@/hooks/useOrg';
+import { ListFilter } from '@/components/common/ListFilter';
+import { useListFilters } from '@/hooks/useListFilters';
 import { mapErrorCode } from '@/utils/errorMapping';
 import { ApiError } from '@/types/api';
+import type { FilterConfig } from '@/types/filters';
 import type { Invite } from '@/types/profile';
 import { Plus, X } from 'lucide-react';
+
+const filterConfigs: FilterConfig[] = [
+    {
+        key: 'status',
+        label: 'Status',
+        type: 'select',
+        options: [
+            { value: 'Pending', label: 'Pending' },
+            { value: 'Accepted', label: 'Accepted' },
+            { value: 'Cancelled', label: 'Cancelled' },
+            { value: 'Expired', label: 'Expired' },
+        ],
+    },
+];
 
 export function InviteManagementPage() {
     const { addToast } = useToast();
@@ -37,17 +54,21 @@ export function InviteManagementPage() {
         ? departments.filter((d) => d.departmentId === user.departmentId)
         : departments;
 
+    const { filterValues, updateFilter, clearFilters, hasActiveFilters, activeFilterCount } =
+        useListFilters(filterConfigs);
+
     const fetchInvites = useCallback(async () => {
         setLoading(true);
         try {
             const data = await profileApi.getInvites();
-            setInvites(data);
+            const statusFilter = filterValues.status as string | undefined;
+            setInvites(statusFilter ? data.filter((i) => i.status === statusFilter) : data);
         } catch {
             addToast('error', 'Failed to load invites');
         } finally {
             setLoading(false);
         }
-    }, [addToast]);
+    }, [filterValues, addToast]);
 
     useEffect(() => { fetchInvites(); }, [fetchInvites]);
 
@@ -115,6 +136,15 @@ export function InviteManagementPage() {
                     <Plus size={16} /> Create Invite
                 </button>
             </div>
+
+            <ListFilter
+                configs={filterConfigs}
+                values={filterValues}
+                onUpdateFilter={updateFilter}
+                onClearFilters={clearFilters}
+                hasActiveFilters={hasActiveFilters}
+                activeFilterCount={activeFilterCount}
+            />
 
             <DataTable columns={columns} data={invites} loading={loading} keyExtractor={(i) => i.inviteId} />
 

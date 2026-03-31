@@ -1,16 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DndContext, DragOverlay } from '@dnd-kit/core';
 import { workApi } from '@/api/workApi';
 import { useToast } from '@/components/common/Toast';
 import { SkeletonLoader } from '@/components/common/SkeletonLoader';
-import { StoryStatus } from '@/types/enums';
-import type { KanbanBoard, KanbanCard, BoardFilters as BoardFiltersType } from '@/types/work';
+import { ListFilter } from '@/components/common/ListFilter';
+import { useListFilters } from '@/hooks/useListFilters';
+import { StoryStatus, Priority } from '@/types/enums';
+import type { FilterConfig } from '@/types/filters';
+import type { KanbanBoard, KanbanCard } from '@/types/work';
 import { BoardColumn } from '../components/BoardColumn.js';
 import { DraggableCard, StoryCardContent } from '../components/DraggableCard.js';
-import { BoardFilters } from '../components/BoardFilters.js';
-import { SaveFilterDialog } from '@/features/filters/components/SaveFilterDialog';
-import { SavedFilterDropdown } from '@/features/filters/components/SavedFilterDropdown';
 import { useBoardDragDrop } from '../hooks/useBoardDragDrop';
 
 const KANBAN_COLUMNS = [
@@ -23,24 +23,51 @@ const KANBAN_COLUMNS = [
     StoryStatus.Closed,
 ];
 
+const filterConfigs: FilterConfig[] = [
+    {
+        key: 'projectId',
+        label: 'Project',
+        type: 'select',
+        loadOptions: async () => {
+            const res = await workApi.getProjects({ page: 1, pageSize: 100 });
+            return res.data.map((p) => ({ value: p.projectId, label: p.name }));
+        },
+    },
+    {
+        key: 'priority',
+        label: 'Priority',
+        type: 'multi-select',
+        options: Object.values(Priority).map((p) => ({ value: p, label: p })),
+    },
+];
+
 export function KanbanBoardPage() {
     const navigate = useNavigate();
     const { addToast } = useToast();
     const [board, setBoard] = useState<KanbanBoard | null>(null);
     const [loading, setLoading] = useState(true);
-    const [filters, setFilters] = useState<BoardFiltersType>({});
+
+    const { filterValues, updateFilter, clearFilters, hasActiveFilters, activeFilterCount } =
+        useListFilters(filterConfigs, { syncToUrl: true });
+
+    const apiFilters = useMemo(() => ({
+        projectId: filterValues.projectId as string | undefined,
+        priority: Array.isArray(filterValues.priority)
+            ? filterValues.priority[0]
+            : (filterValues.priority as string | undefined),
+    }), [filterValues]);
 
     const fetchBoard = useCallback(async () => {
         setLoading(true);
         try {
-            const data = await workApi.getKanbanBoard(filters);
+            const data = await workApi.getKanbanBoard(apiFilters);
             setBoard(data);
         } catch {
             addToast('error', 'Failed to load kanban board');
         } finally {
             setLoading(false);
         }
-    }, [filters, addToast]);
+    }, [apiFilters, addToast]);
 
     useEffect(() => { fetchBoard(); }, [fetchBoard]);
 
@@ -83,12 +110,17 @@ export function KanbanBoardPage() {
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-semibold text-foreground">Kanban Board</h1>
-                <div className="flex items-center gap-2">
-                    <SavedFilterDropdown onApply={(f) => setFilters(f as BoardFiltersType)} />
-                    <SaveFilterDialog filters={filters} />
-                    <BoardFilters filters={filters} onChange={setFilters} />
-                </div>
             </div>
+
+            <ListFilter
+                configs={filterConfigs}
+                values={filterValues}
+                onUpdateFilter={updateFilter}
+                onClearFilters={clearFilters}
+                hasActiveFilters={hasActiveFilters}
+                activeFilterCount={activeFilterCount}
+                enableSavedFilters
+            />
 
             <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
                 <div className="flex gap-3 overflow-x-auto pb-4">

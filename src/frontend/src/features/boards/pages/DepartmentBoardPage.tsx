@@ -1,30 +1,58 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { workApi } from '@/api/workApi';
 import { useToast } from '@/components/common/Toast';
 import { SkeletonLoader } from '@/components/common/SkeletonLoader';
 import { Badge } from '@/components/common/Badge';
-import type { DepartmentBoard, BoardFilters as BoardFiltersType } from '@/types/work';
-import { BoardFilters } from '../components/BoardFilters.js';
-import { SaveFilterDialog } from '@/features/filters/components/SaveFilterDialog';
-import { SavedFilterDropdown } from '@/features/filters/components/SavedFilterDropdown';
+import { ListFilter } from '@/components/common/ListFilter';
+import { useListFilters } from '@/hooks/useListFilters';
+import { Priority } from '@/types/enums';
+import type { FilterConfig } from '@/types/filters';
+import type { DepartmentBoard } from '@/types/work';
+
+const filterConfigs: FilterConfig[] = [
+    {
+        key: 'projectId',
+        label: 'Project',
+        type: 'select',
+        loadOptions: async () => {
+            const res = await workApi.getProjects({ page: 1, pageSize: 100 });
+            return res.data.map((p) => ({ value: p.projectId, label: p.name }));
+        },
+    },
+    {
+        key: 'priority',
+        label: 'Priority',
+        type: 'multi-select',
+        options: Object.values(Priority).map((p) => ({ value: p, label: p })),
+    },
+];
 
 export function DepartmentBoardPage() {
     const { addToast } = useToast();
     const [board, setBoard] = useState<DepartmentBoard | null>(null);
     const [loading, setLoading] = useState(true);
-    const [filters, setFilters] = useState<BoardFiltersType>({});
+
+    const { filterValues, updateFilter, clearFilters, hasActiveFilters, activeFilterCount } =
+        useListFilters(filterConfigs, { syncToUrl: true });
+
+    const apiFilters = useMemo(() => ({
+        projectId: filterValues.projectId as string | undefined,
+        priority: Array.isArray(filterValues.priority)
+            ? filterValues.priority[0]
+            : (filterValues.priority as string | undefined),
+    }), [filterValues]);
 
     const fetchBoard = useCallback(async () => {
         setLoading(true);
         try {
-            const data = await workApi.getDepartmentBoard(filters);
+            const data = await workApi.getDepartmentBoard(apiFilters);
             setBoard(data);
         } catch {
             addToast('error', 'Failed to load department board');
         } finally {
             setLoading(false);
         }
-    }, [filters, addToast]);
+    }, [apiFilters, addToast]);
 
     useEffect(() => { fetchBoard(); }, [fetchBoard]);
 
@@ -34,12 +62,17 @@ export function DepartmentBoardPage() {
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-semibold text-foreground">Department Board</h1>
-                <div className="flex items-center gap-2">
-                    <SavedFilterDropdown onApply={(f) => setFilters(f as BoardFiltersType)} />
-                    <SaveFilterDialog filters={filters} />
-                    <BoardFilters filters={filters} onChange={setFilters} />
-                </div>
             </div>
+
+            <ListFilter
+                configs={filterConfigs}
+                values={filterValues}
+                onUpdateFilter={updateFilter}
+                onClearFilters={clearFilters}
+                hasActiveFilters={hasActiveFilters}
+                activeFilterCount={activeFilterCount}
+                enableSavedFilters
+            />
 
             {!board || board.departments.length === 0 ? (
                 <div className="py-12 text-center text-muted-foreground">No department data available</div>

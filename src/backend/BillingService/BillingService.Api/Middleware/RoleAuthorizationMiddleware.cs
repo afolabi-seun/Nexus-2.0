@@ -35,8 +35,25 @@ public class RoleAuthorizationMiddleware
             return;
         }
 
-        // Check if endpoint requires OrgAdmin
         var endpoint = context.GetEndpoint();
+
+        // Check if endpoint requires PlatformAdmin
+        var requiresPlatformAdmin = endpoint?.Metadata.GetMetadata<PlatformAdminAttribute>() is not null;
+
+        if (requiresPlatformAdmin)
+        {
+            if (roleName != "PlatformAdmin")
+            {
+                await WriteErrorResponse(context, "PlatformAdmin access required.");
+                return;
+            }
+
+            // PlatformAdmin is authorized — bypass OrgAdmin check
+            await _next(context);
+            return;
+        }
+
+        // Check if endpoint requires OrgAdmin
         var requiresOrgAdmin = endpoint?.Metadata.GetMetadata<OrgAdminAttribute>() is not null;
 
         if (requiresOrgAdmin && roleName != "OrgAdmin")

@@ -7,7 +7,10 @@ import { Pagination } from '@/components/common/Pagination';
 import { useToast } from '@/components/common/Toast';
 import { usePagination } from '@/hooks/usePagination';
 import { useOrg } from '@/hooks/useOrg';
-import type { TeamMember, MemberFilters } from '@/types/profile';
+import { ListFilter } from '@/components/common/ListFilter';
+import { useListFilters } from '@/hooks/useListFilters';
+import type { FilterConfig } from '@/types/filters';
+import type { TeamMember } from '@/types/profile';
 
 export function MemberListPage() {
     const navigate = useNavigate();
@@ -18,12 +21,62 @@ export function MemberListPage() {
     const [members, setMembers] = useState<TeamMember[]>([]);
     const [totalCount, setTotalCount] = useState(0);
     const [loading, setLoading] = useState(true);
-    const [filters, setFilters] = useState<MemberFilters>({});
+
+    const filterConfigs: FilterConfig[] = [
+        {
+            key: 'departmentId',
+            label: 'Department',
+            type: 'select',
+            options: departments.map((d) => ({ value: d.departmentId, label: d.name })),
+        },
+        {
+            key: 'roleName',
+            label: 'Role',
+            type: 'select',
+            options: [
+                { value: 'OrgAdmin', label: 'OrgAdmin' },
+                { value: 'DeptLead', label: 'DeptLead' },
+                { value: 'Member', label: 'Member' },
+                { value: 'Viewer', label: 'Viewer' },
+            ],
+        },
+        {
+            key: 'status',
+            label: 'Status',
+            type: 'select',
+            options: [
+                { value: 'A', label: 'Active' },
+                { value: 'S', label: 'Suspended' },
+                { value: 'D', label: 'Deactivated' },
+            ],
+        },
+        {
+            key: 'availability',
+            label: 'Availability',
+            type: 'select',
+            options: [
+                { value: 'Available', label: 'Available' },
+                { value: 'Busy', label: 'Busy' },
+                { value: 'Away', label: 'Away' },
+                { value: 'Offline', label: 'Offline' },
+            ],
+        },
+    ];
+
+    const { filterValues, updateFilter, clearFilters, hasActiveFilters, activeFilterCount } =
+        useListFilters(filterConfigs, { onPageReset: () => setPage(1) });
 
     const fetchMembers = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await profileApi.getTeamMembers({ page, pageSize, ...filters });
+            const res = await profileApi.getTeamMembers({
+                page,
+                pageSize,
+                departmentId: filterValues.departmentId as string | undefined,
+                roleName: filterValues.roleName as string | undefined,
+                status: filterValues.status as string | undefined,
+                availability: filterValues.availability as string | undefined,
+            });
             setMembers(res.data);
             setTotalCount(res.totalCount);
         } catch {
@@ -31,7 +84,7 @@ export function MemberListPage() {
         } finally {
             setLoading(false);
         }
-    }, [page, pageSize, filters, addToast]);
+    }, [page, pageSize, filterValues, addToast]);
 
     useEffect(() => { fetchMembers(); }, [fetchMembers]);
 
@@ -49,49 +102,14 @@ export function MemberListPage() {
         <div className="space-y-4">
             <h1 className="text-2xl font-semibold text-foreground">Members</h1>
 
-            {/* Filters */}
-            <div className="flex flex-wrap gap-3">
-                <select
-                    value={filters.departmentId ?? ''}
-                    onChange={(e) => { setFilters((f) => ({ ...f, departmentId: e.target.value || undefined })); setPage(1); }}
-                    className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-                >
-                    <option value="">All Departments</option>
-                    {departments.map((d) => (
-                        <option key={d.departmentId} value={d.departmentId}>{d.name}</option>
-                    ))}
-                </select>
-                <select
-                    value={filters.roleName ?? ''}
-                    onChange={(e) => { setFilters((f) => ({ ...f, roleName: e.target.value || undefined })); setPage(1); }}
-                    className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-                >
-                    <option value="">All Roles</option>
-                    {['OrgAdmin', 'DeptLead', 'Member', 'Viewer'].map((r) => (
-                        <option key={r} value={r}>{r}</option>
-                    ))}
-                </select>
-                <select
-                    value={filters.status ?? ''}
-                    onChange={(e) => { setFilters((f) => ({ ...f, status: e.target.value || undefined })); setPage(1); }}
-                    className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-                >
-                    <option value="">All Statuses</option>
-                    <option value="A">Active</option>
-                    <option value="S">Suspended</option>
-                    <option value="D">Deactivated</option>
-                </select>
-                <select
-                    value={filters.availability ?? ''}
-                    onChange={(e) => { setFilters((f) => ({ ...f, availability: e.target.value || undefined })); setPage(1); }}
-                    className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-                >
-                    <option value="">All Availability</option>
-                    {['Available', 'Busy', 'Away', 'Offline'].map((a) => (
-                        <option key={a} value={a}>{a}</option>
-                    ))}
-                </select>
-            </div>
+            <ListFilter
+                configs={filterConfigs}
+                values={filterValues}
+                onUpdateFilter={updateFilter}
+                onClearFilters={clearFilters}
+                hasActiveFilters={hasActiveFilters}
+                activeFilterCount={activeFilterCount}
+            />
 
             <DataTable
                 columns={columns}

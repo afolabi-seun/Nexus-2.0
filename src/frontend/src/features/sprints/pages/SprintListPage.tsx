@@ -2,18 +2,33 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { workApi } from '@/api/workApi';
 import { Badge } from '@/components/common/Badge';
+import { DataTable, type Column } from '@/components/common/DataTable';
 import { Modal } from '@/components/common/Modal';
 import { Pagination } from '@/components/common/Pagination';
 import { useToast } from '@/components/common/Toast';
-import { SkeletonLoader } from '@/components/common/SkeletonLoader';
 import { usePagination } from '@/hooks/usePagination';
 import { useAuth } from '@/hooks/useAuth';
+import { ListFilter } from '@/components/common/ListFilter';
+import { useListFilters } from '@/hooks/useListFilters';
 import { mapErrorCode } from '@/utils/errorMapping';
 import { ApiError } from '@/types/api';
 import { SprintStatus } from '@/types/enums';
+import type { FilterConfig } from '@/types/filters';
 import type { SprintListItem, ProjectListItem } from '@/types/work';
 import { SprintForm } from '../components/SprintForm.js';
 import { Plus, Play, CheckCircle2, XCircle } from 'lucide-react';
+
+const filterConfigs: FilterConfig[] = [
+    {
+        key: 'projectId',
+        label: 'Project',
+        type: 'select',
+        loadOptions: async () => {
+            const res = await workApi.getProjects({ page: 1, pageSize: 100 });
+            return res.data.map((p) => ({ value: p.projectId, label: p.name }));
+        },
+    },
+];
 
 export function SprintListPage() {
     const navigate = useNavigate();
@@ -26,10 +41,12 @@ export function SprintListPage() {
     const [loading, setLoading] = useState(true);
     const [createOpen, setCreateOpen] = useState(false);
     const [projects, setProjects] = useState<ProjectListItem[]>([]);
-    const [projectFilter, setProjectFilter] = useState('');
     const [actionLoading, setActionLoading] = useState<string | null>(null);
 
     const canCreate = user?.roleName === 'OrgAdmin' || user?.roleName === 'DeptLead';
+
+    const { filterValues, updateFilter, clearFilters, hasActiveFilters, activeFilterCount } =
+        useListFilters(filterConfigs, { onPageReset: () => setPage(1) });
 
     const fetchSprints = useCallback(async () => {
         setLoading(true);
@@ -37,7 +54,7 @@ export function SprintListPage() {
             const res = await workApi.getSprints({
                 page,
                 pageSize,
-                projectId: projectFilter || undefined,
+                projectId: filterValues.projectId as string | undefined,
             });
             setSprints(res.data);
             setTotalCount(res.totalCount);
@@ -46,7 +63,7 @@ export function SprintListPage() {
         } finally {
             setLoading(false);
         }
-    }, [page, pageSize, projectFilter, addToast]);
+    }, [page, pageSize, filterValues, addToast]);
 
     useEffect(() => {
         workApi.getProjects({ page: 1, pageSize: 100 }).then((r) => setProjects(r.data)).catch(() => { });
@@ -73,6 +90,66 @@ export function SprintListPage() {
         }
     };
 
+    const columns: Column<SprintListItem>[] = [
+        { key: 'name', header: 'Sprint Name', sortable: true },
+        { key: 'projectName', header: 'Project', sortable: true },
+        {
+            key: 'status',
+            header: 'Status',
+            render: (row) => <Badge variant="status" value={row.status} />,
+        },
+        {
+            key: 'startDate',
+            header: 'Dates',
+            render: (row) =>
+                `${new Date(row.startDate).toLocaleDateString()} – ${new Date(row.endDate).toLocaleDateString()}`,
+        },
+        { key: 'storyCount', header: 'Stories', sortable: true },
+        {
+            key: 'velocity',
+            header: 'Velocity',
+            render: (row) => String(row.velocity ?? '—'),
+        },
+        {
+            key: 'actions',
+            header: 'Actions',
+            render: (row) => (
+                <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                    {row.status === SprintStatus.Planning && (
+                        <button
+                            onClick={() => handleLifecycleAction(row.sprintId, 'start')}
+                            disabled={actionLoading === row.sprintId}
+                            className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/30"
+                            title="Start Sprint"
+                        >
+                            <Play size={12} /> Start
+                        </button>
+                    )}
+                    {row.status === SprintStatus.Active && (
+                        <>
+                            <button
+                                onClick={() => handleLifecycleAction(row.sprintId, 'complete')}
+                                disabled={actionLoading === row.sprintId}
+                                className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                                title="Complete Sprint"
+                            >
+                                <CheckCircle2 size={12} /> Complete
+                            </button>
+                            <button
+                                onClick={() => handleLifecycleAction(row.sprintId, 'cancel')}
+                                disabled={actionLoading === row.sprintId}
+                                className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30"
+                                title="Cancel Sprint"
+                            >
+                                <XCircle size={12} /> Cancel
+                            </button>
+                        </>
+                    )}
+                </div>
+            ),
+        },
+    ];
+
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -87,93 +164,22 @@ export function SprintListPage() {
                 )}
             </div>
 
-            {/* Filters */}
-            <div className="flex items-center gap-3">
-                <select
-                    value={projectFilter}
-                    onChange={(e) => { setProjectFilter(e.target.value); setPage(1); }}
-                    className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-                >
-                    <option value="">All Projects</option>
-                    {projects.map((p) => (
-                        <option key={p.projectId} value={p.projectId}>{p.name}</option>
-                    ))}
-                </select>
-            </div>
+            <ListFilter
+                configs={filterConfigs}
+                values={filterValues}
+                onUpdateFilter={updateFilter}
+                onClearFilters={clearFilters}
+                hasActiveFilters={hasActiveFilters}
+                activeFilterCount={activeFilterCount}
+            />
 
-            {loading ? (
-                <SkeletonLoader variant="table" rows={5} columns={7} />
-            ) : sprints.length === 0 ? (
-                <div className="py-12 text-center text-muted-foreground">No sprints found</div>
-            ) : (
-                <div className="overflow-x-auto rounded-md border border-border">
-                    <table className="w-full text-sm">
-                        <thead>
-                            <tr className="border-b border-border bg-muted/50">
-                                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Sprint Name</th>
-                                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Project</th>
-                                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
-                                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Dates</th>
-                                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Stories</th>
-                                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Velocity</th>
-                                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {sprints.map((sprint) => (
-                                <tr
-                                    key={sprint.sprintId}
-                                    className="border-b border-border last:border-0 cursor-pointer hover:bg-muted/50"
-                                    onClick={() => navigate(`/sprints/${sprint.sprintId}`)}
-                                >
-                                    <td className="px-4 py-3 font-medium text-foreground">{sprint.name}</td>
-                                    <td className="px-4 py-3 text-muted-foreground">{sprint.projectName}</td>
-                                    <td className="px-4 py-3"><Badge variant="status" value={sprint.status} /></td>
-                                    <td className="px-4 py-3 text-muted-foreground">
-                                        {new Date(sprint.startDate).toLocaleDateString()} – {new Date(sprint.endDate).toLocaleDateString()}
-                                    </td>
-                                    <td className="px-4 py-3 text-foreground">{sprint.storyCount}</td>
-                                    <td className="px-4 py-3 text-foreground">{sprint.velocity ?? '—'}</td>
-                                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                                        <div className="flex gap-1">
-                                            {sprint.status === SprintStatus.Planning && (
-                                                <button
-                                                    onClick={() => handleLifecycleAction(sprint.sprintId, 'start')}
-                                                    disabled={actionLoading === sprint.sprintId}
-                                                    className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/30"
-                                                    title="Start Sprint"
-                                                >
-                                                    <Play size={12} /> Start
-                                                </button>
-                                            )}
-                                            {sprint.status === SprintStatus.Active && (
-                                                <>
-                                                    <button
-                                                        onClick={() => handleLifecycleAction(sprint.sprintId, 'complete')}
-                                                        disabled={actionLoading === sprint.sprintId}
-                                                        className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30"
-                                                        title="Complete Sprint"
-                                                    >
-                                                        <CheckCircle2 size={12} /> Complete
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleLifecycleAction(sprint.sprintId, 'cancel')}
-                                                        disabled={actionLoading === sprint.sprintId}
-                                                        className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30"
-                                                        title="Cancel Sprint"
-                                                    >
-                                                        <XCircle size={12} /> Cancel
-                                                    </button>
-                                                </>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+            <DataTable
+                columns={columns}
+                data={sprints}
+                loading={loading}
+                onRowClick={(row) => navigate(`/sprints/${row.sprintId}`)}
+                keyExtractor={(row) => row.sprintId}
+            />
 
             <Pagination
                 page={page}

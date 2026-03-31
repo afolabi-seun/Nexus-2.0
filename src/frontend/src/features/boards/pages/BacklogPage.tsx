@@ -1,42 +1,70 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { workApi } from '@/api/workApi';
 import { Badge } from '@/components/common/Badge';
+import { DataTable, type Column } from '@/components/common/DataTable';
 import { Modal } from '@/components/common/Modal';
 import { useToast } from '@/components/common/Toast';
 import { SkeletonLoader } from '@/components/common/SkeletonLoader';
+import { ListFilter } from '@/components/common/ListFilter';
+import { useListFilters } from '@/hooks/useListFilters';
 import { mapErrorCode } from '@/utils/errorMapping';
 import { ApiError } from '@/types/api';
-import { SprintStatus } from '@/types/enums';
-import type { Backlog, BacklogItem, SprintListItem, BoardFilters as BoardFiltersType } from '@/types/work';
-import { BoardFilters } from '../components/BoardFilters.js';
-import { SaveFilterDialog } from '@/features/filters/components/SaveFilterDialog';
-import { SavedFilterDropdown } from '@/features/filters/components/SavedFilterDropdown';
+import { SprintStatus, Priority } from '@/types/enums';
+import type { FilterConfig } from '@/types/filters';
+import type { Backlog, BacklogItem, SprintListItem } from '@/types/work';
 import { Plus } from 'lucide-react';
+
+const filterConfigs: FilterConfig[] = [
+    {
+        key: 'projectId',
+        label: 'Project',
+        type: 'select',
+        loadOptions: async () => {
+            const res = await workApi.getProjects({ page: 1, pageSize: 100 });
+            return res.data.map((p) => ({ value: p.projectId, label: p.name }));
+        },
+    },
+    {
+        key: 'priority',
+        label: 'Priority',
+        type: 'multi-select',
+        options: Object.values(Priority).map((p) => ({ value: p, label: p })),
+    },
+];
 
 export function BacklogPage() {
     const navigate = useNavigate();
     const { addToast } = useToast();
     const [backlog, setBacklog] = useState<Backlog | null>(null);
     const [loading, setLoading] = useState(true);
-    const [filters, setFilters] = useState<BoardFiltersType>({});
     const [addToSprintOpen, setAddToSprintOpen] = useState(false);
     const [selectedStory, setSelectedStory] = useState<BacklogItem | null>(null);
     const [sprints, setSprints] = useState<SprintListItem[]>([]);
     const [selectedSprintId, setSelectedSprintId] = useState('');
     const [adding, setAdding] = useState(false);
 
+    const { filterValues, updateFilter, clearFilters, hasActiveFilters, activeFilterCount } =
+        useListFilters(filterConfigs, { syncToUrl: true });
+
+    const apiFilters = useMemo(() => ({
+        projectId: filterValues.projectId as string | undefined,
+        priority: Array.isArray(filterValues.priority)
+            ? filterValues.priority[0]
+            : (filterValues.priority as string | undefined),
+    }), [filterValues]);
+
     const fetchBacklog = useCallback(async () => {
         setLoading(true);
         try {
-            const data = await workApi.getBacklog(filters);
+            const data = await workApi.getBacklog(apiFilters);
             setBacklog(data);
         } catch {
             addToast('error', 'Failed to load backlog');
         } finally {
             setLoading(false);
         }
-    }, [filters, addToast]);
+    }, [apiFilters, addToast]);
 
     useEffect(() => { fetchBacklog(); }, [fetchBacklog]);
 
@@ -73,6 +101,37 @@ export function BacklogPage() {
 
     if (loading) return <SkeletonLoader variant="table" rows={8} columns={7} />;
 
+    const backlogColumns: Column<BacklogItem>[] = [
+        { key: 'storyKey', header: 'Key' },
+        { key: 'title', header: 'Title', render: (row) => <span className="truncate max-w-xs block">{row.title}</span> },
+        { key: 'priority', header: 'Priority', render: (row) => <Badge variant="priority" value={row.priority} /> },
+        { key: 'storyPoints', header: 'Points', render: (row) => String(row.storyPoints ?? '—') },
+        { key: 'assigneeName', header: 'Assignee', render: (row) => row.assigneeName ?? 'Unassigned' },
+        {
+            key: 'labels', header: 'Labels', render: (row) => (
+                <div className="flex gap-1">
+                    {row.labels.map((l) => (
+                        <span key={l.labelId} className="h-3 w-3 rounded-full" style={{ backgroundColor: l.color }} title={l.name} />
+                    ))}
+                </div>
+            ),
+        },
+        { key: 'dateCreated', header: 'Created', render: (row) => new Date(row.dateCreated).toLocaleDateString() },
+        {
+            key: 'actions', header: 'Actions', render: (row) => (
+                <div onClick={(e) => e.stopPropagation()}>
+                    <button
+                        onClick={() => openAddToSprint(row)}
+                        className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10"
+                        title="Add to Sprint"
+                    >
+                        <Plus size={12} /> Sprint
+                    </button>
+                </div>
+            ),
+        },
+    ];
+
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -84,69 +143,27 @@ export function BacklogPage() {
                         </p>
                     )}
                 </div>
-                <div className="flex items-center gap-2">
-                    <SavedFilterDropdown onApply={(f) => setFilters(f as BoardFiltersType)} />
-                    <SaveFilterDialog filters={filters} />
-                    <BoardFilters filters={filters} onChange={setFilters} />
-                </div>
             </div>
+
+            <ListFilter
+                configs={filterConfigs}
+                values={filterValues}
+                onUpdateFilter={updateFilter}
+                onClearFilters={clearFilters}
+                hasActiveFilters={hasActiveFilters}
+                activeFilterCount={activeFilterCount}
+                enableSavedFilters
+            />
 
             {!backlog || backlog.items.length === 0 ? (
                 <div className="py-12 text-center text-muted-foreground">No stories in backlog</div>
             ) : (
-                <div className="overflow-x-auto rounded-md border border-border">
-                    <table className="w-full text-sm">
-                        <thead>
-                            <tr className="border-b border-border bg-muted/50">
-                                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Key</th>
-                                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Title</th>
-                                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Priority</th>
-                                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Points</th>
-                                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Assignee</th>
-                                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Labels</th>
-                                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Created</th>
-                                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {backlog.items.map((item) => (
-                                <tr
-                                    key={item.storyId}
-                                    className="border-b border-border last:border-0 cursor-pointer hover:bg-muted/50"
-                                    onClick={() => navigate(`/stories/${item.storyId}`)}
-                                >
-                                    <td className="px-4 py-3 font-medium text-foreground">{item.storyKey}</td>
-                                    <td className="px-4 py-3 text-foreground truncate max-w-xs">{item.title}</td>
-                                    <td className="px-4 py-3"><Badge variant="priority" value={item.priority} /></td>
-                                    <td className="px-4 py-3 text-foreground">{item.storyPoints ?? '—'}</td>
-                                    <td className="px-4 py-3 text-muted-foreground">{item.assigneeName ?? 'Unassigned'}</td>
-                                    <td className="px-4 py-3">
-                                        <div className="flex gap-1">
-                                            {item.labels.map((l) => (
-                                                <span
-                                                    key={l.labelId}
-                                                    className="h-3 w-3 rounded-full"
-                                                    style={{ backgroundColor: l.color }}
-                                                    title={l.name}
-                                                />
-                                            ))}
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-3 text-muted-foreground">{new Date(item.dateCreated).toLocaleDateString()}</td>
-                                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                                        <button
-                                            onClick={() => openAddToSprint(item)}
-                                            className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10"
-                                            title="Add to Sprint"
-                                        >
-                                            <Plus size={12} /> Sprint
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                <DataTable
+                    columns={backlogColumns}
+                    data={backlog.items}
+                    onRowClick={(row) => navigate(`/stories/${row.storyId}`)}
+                    keyExtractor={(row) => row.storyId}
+                />
             )}
 
             {/* Add to Sprint Modal */}

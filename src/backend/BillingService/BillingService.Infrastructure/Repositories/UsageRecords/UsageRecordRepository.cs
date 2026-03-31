@@ -45,4 +45,10 @@ public class UsageRecordRepository : IUsageRecordRepository
         // Archive is a no-op for now — records are kept for historical queries
         await Task.CompletedTask;
     }
+
+    public async Task<List<UsageRecord>> GetAllCurrentPeriodAsync(DateTime periodStart, CancellationToken ct) =>
+        await _context.UsageRecords
+            .IgnoreQueryFilters()
+            .Where(u => u.PeriodStart >= periodStart)
+            .ToListAsync(ct);
 }

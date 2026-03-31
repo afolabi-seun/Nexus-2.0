@@ -37,7 +37,8 @@ export function LoginPage() {
             const user = extractUserFromToken(response.accessToken);
             login(
                 { accessToken: response.accessToken, refreshToken: response.refreshToken },
-                user
+                user,
+                response.isFirstTimeUser
             );
 
             if (response.isFirstTimeUser || user.isFirstTimeUser) {

@@ -2,12 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { workApi } from '@/api/workApi';
 import { Badge } from '@/components/common/Badge';
+import { DataTable, type Column } from '@/components/common/DataTable';
 import { useToast } from '@/components/common/Toast';
 import { SkeletonLoader } from '@/components/common/SkeletonLoader';
 import { mapErrorCode } from '@/utils/errorMapping';
 import { ApiError } from '@/types/api';
 import { SprintStatus } from '@/types/enums';
 import type { SprintDetail, SprintMetrics } from '@/types/work';
+import type { StoryListItem } from '@/types/work';
 import { SprintPlanningView } from '../components/SprintPlanningView.js';
 import { SprintMetricsPanel } from '../components/SprintMetricsPanel.js';
 import { BurndownChart } from '../components/BurndownChart.js';
@@ -73,6 +75,15 @@ export function SprintDetailPage() {
 
     if (loading) return <SkeletonLoader variant="form" />;
     if (!sprint) return <div className="py-12 text-center text-muted-foreground">Sprint not found</div>;
+
+    const storyColumns: Column<StoryListItem>[] = [
+        { key: 'storyKey', header: 'Key' },
+        { key: 'title', header: 'Title', render: (row) => <span className="truncate max-w-xs block">{row.title}</span> },
+        { key: 'status', header: 'Status', render: (row) => <Badge variant="status" value={row.status} /> },
+        { key: 'priority', header: 'Priority', render: (row) => <Badge variant="priority" value={row.priority} /> },
+        { key: 'storyPoints', header: 'Points', render: (row) => String(row.storyPoints ?? '—') },
+        { key: 'assigneeName', header: 'Assignee', render: (row) => row.assigneeName ?? 'Unassigned' },
+    ];
 
     const completionPct = sprint.totalStoryPoints > 0
         ? Math.round((sprint.completedStoryPoints / sprint.totalStoryPoints) * 100)
@@ -168,36 +179,12 @@ export function SprintDetailPage() {
             {sprint.stories.length > 0 && (
                 <section className="space-y-2">
                     <h2 className="text-lg font-medium text-foreground">Sprint Stories</h2>
-                    <div className="overflow-x-auto rounded-md border border-border">
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="border-b border-border bg-muted/50">
-                                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Key</th>
-                                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Title</th>
-                                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
-                                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Priority</th>
-                                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Points</th>
-                                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Assignee</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {sprint.stories.map((story) => (
-                                    <tr
-                                        key={story.storyId}
-                                        className="border-b border-border last:border-0 cursor-pointer hover:bg-muted/50"
-                                        onClick={() => navigate(`/stories/${story.storyId}`)}
-                                    >
-                                        <td className="px-4 py-3 font-medium text-foreground">{story.storyKey}</td>
-                                        <td className="px-4 py-3 text-foreground truncate max-w-xs">{story.title}</td>
-                                        <td className="px-4 py-3"><Badge variant="status" value={story.status} /></td>
-                                        <td className="px-4 py-3"><Badge variant="priority" value={story.priority} /></td>
-                                        <td className="px-4 py-3 text-foreground">{story.storyPoints ?? '—'}</td>
-                                        <td className="px-4 py-3 text-muted-foreground">{story.assigneeName ?? 'Unassigned'}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                    <DataTable
+                        columns={storyColumns}
+                        data={sprint.stories}
+                        onRowClick={(row) => navigate(`/stories/${row.storyId}`)}
+                        keyExtractor={(row) => row.storyId}
+                    />
                 </section>
             )}
         </div>

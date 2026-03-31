@@ -50,7 +50,9 @@ export function ForcedPasswordChangePage() {
                 refreshOrg();
             }
 
-            navigate('/', { replace: true });
+            // PlatformAdmin goes to admin panel, regular users go to home
+            const isPlatformAdmin = !user?.organizationId && user?.roleName === 'PlatformAdmin';
+            navigate(isPlatformAdmin ? '/admin/organizations' : '/', { replace: true });
         } catch (err) {
             if (err instanceof ApiError) {
                 setServerError(mapErrorCode(err.errorCode));
