@@ -50,6 +50,9 @@ import { NotificationHistoryPage } from '@/features/notifications/pages/Notifica
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { BillingPage } from '@/features/billing/pages/BillingPage';
 import { PlanComparisonPage } from '@/features/billing/pages/PlanComparisonPage';
+import { AnalyticsDashboardPage } from '@/features/analytics/pages/AnalyticsDashboardPage';
+import { TimeTrackingPage } from '@/features/time-tracking/pages/TimeTrackingPage';
+import { TimeTrackingSettingsPage } from '@/features/time-tracking/pages/TimeTrackingSettingsPage';
 
 export const router = createBrowserRouter([
     // --- Guest routes (redirect away if already authenticated) ---
@@ -124,6 +127,8 @@ export const router = createBrowserRouter([
                             { path: '/sessions', element: <SessionManagementPage /> },
                             { path: '/search', element: <SearchPage /> },
                             { path: '/reports', element: <ReportsPage /> },
+                            { path: '/analytics', element: <AnalyticsDashboardPage /> },
+                            { path: '/time-tracking', element: <TimeTrackingPage /> },
                             { path: '/notifications', element: <NotificationHistoryPage /> },
 
                             // OrgAdmin-only routes
@@ -133,6 +138,7 @@ export const router = createBrowserRouter([
                                     { path: '/settings', element: <SettingsPage /> },
                                     { path: '/billing', element: <BillingPage /> },
                                     { path: '/billing/plans', element: <PlanComparisonPage /> },
+                                    { path: '/time-tracking/settings', element: <TimeTrackingSettingsPage /> },
                                 ],
                             },
 
