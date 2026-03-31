@@ -40,7 +40,7 @@ Implements the analytics and reporting layer (Phase 2) for WorkService, adding f
     - Key indexes: `VelocitySnapshot(ProjectId, SprintId)` unique, `ProjectHealthSnapshot(ProjectId, SnapshotDate)`, `ResourceAllocationSnapshot(ProjectId, MemberId, PeriodStart, PeriodEnd)` unique, `RiskRegister(OrganizationId, ProjectId)` filtered
     - _Requirements: 1.6, 3.6, 6.3, 9.4_
 
-  - [~] 2.3 Create EF Core migration
+  - [x] 2.3 Create EF Core migration
     - Generate migration for the four new tables with all indexes and constraints
     - _Requirements: 1.1, 3.5, 5.1, 6.1_
 
@@ -248,61 +248,61 @@ Implements the analytics and reporting layer (Phase 2) for WorkService, adding f
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 14. Frontend — Zustand stores and API layer
-  - [ ] 14.1 Create analytics Zustand store
+  - [x] 14.1 Create analytics Zustand store
     - Create `useAnalyticsStore` with actions for all analytics endpoints: velocity trends, resource management, resource utilization, project cost, project health, bug metrics, dashboard
     - Create `useRiskRegisterStore` with CRUD actions for risk register
     - Create `useDependencyStore` with action for dependency analysis
     - _Requirements: 1.1, 2.1, 3.1, 4.1, 5.1, 6.1, 7.1, 8.1, 10.1_
 
-  - [ ] 14.2 Create API service functions
+  - [x] 14.2 Create API service functions
     - Create typed API functions for all analytics and risk register endpoints
     - Use existing API client pattern with `ApiResponse<T>` unwrapping
     - _Requirements: 1.1, 2.1, 3.1, 4.1, 5.1, 6.1, 7.1, 8.1, 10.1_
 
 - [ ] 15. Frontend — Analytics components
-  - [ ] 15.1 Create VelocityTrendChart component
+  - [x] 15.1 Create VelocityTrendChart component
     - Line chart showing committed vs completed points across sprints
     - Sprint count selector (1–50)
     - _Requirements: 1.1, 1.2_
 
-  - [ ] 15.2 Create ResourceManagementTable component
+  - [x] 15.2 Create ResourceManagementTable component
     - Table of member allocations with project breakdown expandable rows
     - Date range and department filters
     - _Requirements: 2.1, 2.2_
 
-  - [ ] 15.3 Create ResourceUtilizationChart component
+  - [x] 15.3 Create ResourceUtilizationChart component
     - Bar chart of per-member utilization percentages for a project
     - Date range filter
     - _Requirements: 3.1, 3.2_
 
-  - [ ] 15.4 Create ProjectCostDashboard component
+  - [x] 15.4 Create ProjectCostDashboard component
     - Cost summary with burn rate, cost trend line chart, cost by member/department tables
     - _Requirements: 4.1, 4.2, 4.3_
 
-  - [ ] 15.5 Create ProjectHealthGauge component
+  - [x] 15.5 Create ProjectHealthGauge component
     - Circular gauge for overall health score with sub-score breakdown
     - Trend indicator (improving/stable/declining)
     - History toggle for last 10 snapshots
     - _Requirements: 5.1, 5.7, 5.9_
 
-  - [ ] 15.6 Create RiskRegisterTable component
+  - [x] 15.6 Create RiskRegisterTable component
     - Paginated table with severity/status filters
     - Create and edit modals with form validation
     - Soft-delete confirmation
     - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-  - [ ] 15.7 Create DependencyGraph component
+  - [x] 15.7 Create DependencyGraph component
     - Visual graph of blocking chains using a graph library (e.g., react-flow)
     - Highlight critical path chains and circular dependencies
     - Sprint filter
     - _Requirements: 7.1, 7.2, 7.3, 7.6_
 
-  - [ ] 15.8 Create BugMetricsPanel component
+  - [x] 15.8 Create BugMetricsPanel component
     - Bug counts, bug rate, severity breakdown chart, trend chart
     - Sprint selector
     - _Requirements: 8.1, 8.5_
 
-  - [ ] 15.9 Create AnalyticsDashboard page
+  - [x] 15.9 Create AnalyticsDashboard page
     - Consolidated view using the dashboard endpoint
     - Renders VelocityTrendChart, ProjectHealthGauge, BugMetricsPanel, RiskRegisterTable summary, DependencyGraph summary, cost summary
     - Project selector
