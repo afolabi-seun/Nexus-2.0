@@ -3,6 +3,7 @@ using ProfileService.Domain.Entities;
 using ProfileService.Domain.Exceptions;
 using ProfileService.Domain.Interfaces.Repositories.Devices;
 using ProfileService.Infrastructure.Services.Devices;
+using ProfileService.Tests.Helpers;
 
 namespace ProfileService.Tests.Services;
 
@@ -13,7 +14,7 @@ public class DeviceServiceTests
 
     public DeviceServiceTests()
     {
-        _service = new DeviceService(_deviceRepo.Object);
+        _service = new DeviceService(_deviceRepo.Object, TestDbContextFactory.Create());
     }
 
     [Fact]

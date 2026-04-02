@@ -12,8 +12,10 @@ using ProfileService.Domain.Interfaces.Repositories.Roles;
 using ProfileService.Domain.Interfaces.Repositories.TeamMembers;
 using ProfileService.Domain.Interfaces.Services.Outbox;
 using ProfileService.Infrastructure.Configuration;
+using ProfileService.Infrastructure.Data;
 using ProfileService.Infrastructure.Services.Invites;
 using ProfileService.Infrastructure.Services.ServiceClients;
+using ProfileService.Tests.Helpers;
 using StackExchange.Redis;
 
 namespace ProfileService.Tests.Services;
@@ -53,6 +55,7 @@ public class InviteServiceTests
             _securityClient.Object,
             _redis.Object,
             appSettings,
+            TestDbContextFactory.Create(),
             Mock.Of<ILogger<InviteService>>());
     }
 
