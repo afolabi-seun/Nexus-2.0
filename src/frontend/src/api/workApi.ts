@@ -81,6 +81,10 @@ export const workApi = {
         client.put(`/api/v1/stories/${id}/assign`, data).then(() => undefined),
     getStoryActivity: (id: string): Promise<ActivityLogEntry[]> =>
         client.get(`/api/v1/stories/${id}/activity`).then((r) => r.data),
+    deleteStory: (id: string): Promise<void> =>
+        client.delete(`/api/v1/stories/${id}`).then(() => undefined),
+    unassignStory: (id: string): Promise<void> =>
+        client.patch(`/api/v1/stories/${id}/unassign`).then(() => undefined),
 
     // Story Labels
     getLabels: (): Promise<Label[]> =>
@@ -119,6 +123,10 @@ export const workApi = {
         client.post(`/api/v1/tasks/${id}/hours`, data).then(() => undefined),
     getTaskActivity: (id: string): Promise<ActivityLogEntry[]> =>
         client.get(`/api/v1/tasks/${id}/activity`).then((r) => r.data),
+    deleteTask: (id: string): Promise<void> =>
+        client.delete(`/api/v1/tasks/${id}`).then(() => undefined),
+    unassignTask: (id: string): Promise<void> =>
+        client.patch(`/api/v1/tasks/${id}/unassign`).then(() => undefined),
 
     // Sprints
     getActiveSprint: (): Promise<SprintDetail> =>

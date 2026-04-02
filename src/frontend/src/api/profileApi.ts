@@ -165,6 +165,13 @@ export const profileApi = {
             .post(`/api/v1/admin/organizations/${orgId}/provision`, data)
             .then(() => undefined),
 
+    // Member Status & Availability
+    updateMemberStatus: (id: string, data: { status: string }): Promise<void> =>
+        client.patch(`/api/v1/team-members/${id}/status`, data).then(() => undefined),
+
+    updateAvailability: (id: string, data: { availability: string }): Promise<void> =>
+        client.patch(`/api/v1/team-members/${id}/availability`, data).then(() => undefined),
+
     // Navigation
     getNavigation: (): Promise<import('@/types/profile').NavigationItem[]> =>
         client.get('/api/v1/navigation').then((r) => r.data),

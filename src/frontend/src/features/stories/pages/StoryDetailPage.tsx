@@ -2,9 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { workApi } from '@/api/workApi';
 import { Badge } from '@/components/common/Badge';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { Modal } from '@/components/common/Modal';
 import { useToast } from '@/components/common/Toast';
 import { SkeletonLoader } from '@/components/common/SkeletonLoader';
+import { useAuth } from '@/hooks/useAuth';
+import { mapErrorCode } from '@/utils/errorMapping';
+import { ApiError } from '@/types/api';
 import type { StoryDetail, TaskDetail, ActivityLogEntry } from '@/types/work';
 import { StatusTransitionButtons } from '../components/StatusTransitionButtons.js';
 import { LabelManager } from '../components/LabelManager.js';
@@ -21,6 +25,8 @@ import {
     CheckCircle2,
     Plus,
     ListTodo,
+    Trash2,
+    UserX,
 } from 'lucide-react';
 
 export function StoryDetailPage() {
@@ -32,6 +38,12 @@ export function StoryDetailPage() {
     const [activity, setActivity] = useState<ActivityLogEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [editOpen, setEditOpen] = useState(false);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [taskDeleteConfirmOpen, setTaskDeleteConfirmOpen] = useState(false);
+    const [pendingTaskDeleteId, setPendingTaskDeleteId] = useState<string | null>(null);
+
+    const { user } = useAuth();
+    const canDelete = user?.roleName === 'OrgAdmin' || user?.roleName === 'DeptLead';
 
     const fetchStory = useCallback(async () => {
         if (!id) return;
@@ -89,6 +101,15 @@ export function StoryDetailPage() {
                 >
                     <Pencil size={14} /> Edit
                 </button>
+                {canDelete && (
+                    <button
+                        onClick={() => setDeleteConfirmOpen(true)}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-2 text-sm font-medium text-destructive hover:bg-accent"
+                        aria-label="Delete story"
+                    >
+                        <Trash2 size={14} />
+                    </button>
+                )}
             </div>
 
             {/* Status Transitions */}
@@ -101,7 +122,26 @@ export function StoryDetailPage() {
 
             {/* Meta grid */}
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                <MetaItem icon={<User size={14} />} label="Assignee" value={story.assigneeName ?? 'Unassigned'} />
+                <MetaItem icon={<User size={14} />} label="Assignee" value={story.assigneeName ?? 'Unassigned'}>
+                    {story.assigneeId && (
+                        <button
+                            onClick={async () => {
+                                try {
+                                    await workApi.unassignStory(story.storyId);
+                                    addToast('success', 'Story unassigned');
+                                    fetchStory();
+                                } catch (err) {
+                                    if (err instanceof ApiError) addToast('error', mapErrorCode(err.errorCode));
+                                    else addToast('error', 'Failed to unassign story');
+                                }
+                            }}
+                            className="ml-1 text-muted-foreground hover:text-foreground"
+                            aria-label="Unassign story"
+                        >
+                            <UserX size={14} />
+                        </button>
+                    )}
+                </MetaItem>
                 <MetaItem icon={<User size={14} />} label="Reporter" value={story.reporterName ?? '—'} />
                 <MetaItem label="Project" value={`${story.projectName} (${story.projectKey})`} />
                 <MetaItem label="Sprint" value={story.sprintName ?? 'None'} />
@@ -185,7 +225,25 @@ export function StoryDetailPage() {
                 ) : (
                     <div className="space-y-1.5">
                         {story.tasks.map((task) => (
-                            <TaskRow key={task.taskId} task={task} />
+                            <TaskRow
+                                key={task.taskId}
+                                task={task}
+                                canDelete={canDelete}
+                                onDelete={(taskId) => {
+                                    setPendingTaskDeleteId(taskId);
+                                    setTaskDeleteConfirmOpen(true);
+                                }}
+                                onUnassign={async (taskId) => {
+                                    try {
+                                        await workApi.unassignTask(taskId);
+                                        addToast('success', 'Task unassigned');
+                                        fetchStory();
+                                    } catch (err) {
+                                        if (err instanceof ApiError) addToast('error', mapErrorCode(err.errorCode));
+                                        else addToast('error', 'Failed to unassign task');
+                                    }
+                                }}
+                            />
                         ))}
                     </div>
                 )}
@@ -231,23 +289,70 @@ export function StoryDetailPage() {
                     }}
                 />
             </Modal>
+
+            {/* Delete Story Confirm Dialog */}
+            <ConfirmDialog
+                open={deleteConfirmOpen}
+                title="Delete Story"
+                message="This story will be soft-deleted. Are you sure?"
+                onConfirm={async () => {
+                    try {
+                        await workApi.deleteStory(story.storyId);
+                        addToast('success', 'Story deleted');
+                        navigate('/stories');
+                    } catch (err) {
+                        if (err instanceof ApiError) addToast('error', mapErrorCode(err.errorCode));
+                        else addToast('error', 'Failed to delete story');
+                    } finally {
+                        setDeleteConfirmOpen(false);
+                    }
+                }}
+                onCancel={() => setDeleteConfirmOpen(false)}
+            />
+
+            {/* Delete Task Confirm Dialog */}
+            <ConfirmDialog
+                open={taskDeleteConfirmOpen}
+                title="Delete Task"
+                message="This task will be soft-deleted. Are you sure?"
+                onConfirm={async () => {
+                    try {
+                        await workApi.deleteTask(pendingTaskDeleteId!);
+                        addToast('success', 'Task deleted');
+                        fetchStory();
+                    } catch (err) {
+                        if (err instanceof ApiError) addToast('error', mapErrorCode(err.errorCode));
+                        else addToast('error', 'Failed to delete task');
+                    } finally {
+                        setPendingTaskDeleteId(null);
+                        setTaskDeleteConfirmOpen(false);
+                    }
+                }}
+                onCancel={() => {
+                    setPendingTaskDeleteId(null);
+                    setTaskDeleteConfirmOpen(false);
+                }}
+            />
         </div>
     );
 }
 
-function MetaItem({ icon, label, value }: { icon?: React.ReactNode; label: string; value: string }) {
+function MetaItem({ icon, label, value, children }: { icon?: React.ReactNode; label: string; value: string; children?: React.ReactNode }) {
     return (
         <div className="rounded-lg border border-border bg-card p-3">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 {icon}
                 {label}
             </div>
-            <p className="mt-0.5 text-sm font-medium text-card-foreground truncate">{value}</p>
+            <div className="mt-0.5 flex items-center gap-1">
+                <p className="text-sm font-medium text-card-foreground truncate">{value}</p>
+                {children}
+            </div>
         </div>
     );
 }
 
-function TaskRow({ task }: { task: TaskDetail }) {
+function TaskRow({ task, canDelete, onDelete, onUnassign }: { task: TaskDetail; canDelete: boolean; onDelete: (taskId: string) => void; onUnassign: (taskId: string) => void }) {
     return (
         <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
             <div className="flex items-center gap-2 min-w-0">
@@ -257,6 +362,24 @@ function TaskRow({ task }: { task: TaskDetail }) {
             <div className="flex items-center gap-2 shrink-0">
                 <Badge variant="priority" value={task.priority} />
                 <span className="text-xs text-muted-foreground">{task.assigneeName ?? 'Unassigned'}</span>
+                {task.assigneeId && (
+                    <button
+                        onClick={() => onUnassign(task.taskId)}
+                        className="text-muted-foreground hover:text-foreground"
+                        aria-label="Unassign task"
+                    >
+                        <UserX size={14} />
+                    </button>
+                )}
+                {canDelete && (
+                    <button
+                        onClick={() => onDelete(task.taskId)}
+                        className="text-muted-foreground hover:text-destructive"
+                        aria-label="Delete task"
+                    >
+                        <Trash2 size={14} />
+                    </button>
+                )}
             </div>
         </div>
     );
