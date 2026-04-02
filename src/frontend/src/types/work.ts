@@ -236,6 +236,13 @@ export interface CreateSprintRequest {
     endDate: string;
 }
 
+export interface UpdateSprintRequest {
+    name: string;
+    goal?: string;
+    startDate: string;
+    endDate: string;
+}
+
 export interface SprintFilters {
     projectId?: string;
     status?: string;

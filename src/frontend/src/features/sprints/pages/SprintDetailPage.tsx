@@ -3,8 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { workApi } from '@/api/workApi';
 import { Badge } from '@/components/common/Badge';
 import { DataTable, type Column } from '@/components/common/DataTable';
+import { Modal } from '@/components/common/Modal';
 import { useToast } from '@/components/common/Toast';
 import { SkeletonLoader } from '@/components/common/SkeletonLoader';
+import { useAuth } from '@/hooks/useAuth';
 import { mapErrorCode } from '@/utils/errorMapping';
 import { ApiError } from '@/types/api';
 import { SprintStatus } from '@/types/enums';
@@ -13,17 +15,144 @@ import type { StoryListItem } from '@/types/work';
 import { SprintPlanningView } from '../components/SprintPlanningView.js';
 import { SprintMetricsPanel } from '../components/SprintMetricsPanel.js';
 import { BurndownChart } from '../components/BurndownChart.js';
-import { ArrowLeft, Play, CheckCircle2, XCircle } from 'lucide-react';
+import { ArrowLeft, Play, CheckCircle2, XCircle, Pencil } from 'lucide-react';
+
+function SprintEditModal({
+    open,
+    onClose,
+    sprint,
+    onUpdated,
+}: {
+    open: boolean;
+    onClose: () => void;
+    sprint: SprintDetail;
+    onUpdated: () => void;
+}) {
+    const { addToast } = useToast();
+    const [name, setName] = useState(sprint.name);
+    const [goal, setGoal] = useState(sprint.goal ?? '');
+    const [startDate, setStartDate] = useState(sprint.startDate.slice(0, 10));
+    const [endDate, setEndDate] = useState(sprint.endDate.slice(0, 10));
+    const [saving, setSaving] = useState(false);
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    useEffect(() => {
+        if (open) {
+            setName(sprint.name);
+            setGoal(sprint.goal ?? '');
+            setStartDate(sprint.startDate.slice(0, 10));
+            setEndDate(sprint.endDate.slice(0, 10));
+            setErrors({});
+        }
+    }, [open, sprint]);
+
+    const handleSubmit = async () => {
+        const newErrors: Record<string, string> = {};
+        if (!name.trim()) newErrors.name = 'Name is required';
+        if (startDate && endDate && startDate >= endDate) newErrors.endDate = 'End date must be after start date';
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
+        }
+
+        setSaving(true);
+        try {
+            await workApi.updateSprint(sprint.sprintId, {
+                name: name.trim(),
+                goal: goal.trim() || undefined,
+                startDate,
+                endDate,
+            });
+            addToast('success', 'Sprint updated');
+            onUpdated();
+            onClose();
+        } catch (err) {
+            if (err instanceof ApiError) {
+                addToast('error', mapErrorCode(err.errorCode));
+            } else {
+                addToast('error', 'Failed to update sprint');
+            }
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <Modal open={open} onClose={onClose} title="Edit Sprint">
+            <div className="space-y-4">
+                <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">Name</label>
+                    <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => { setName(e.target.value); setErrors((prev) => ({ ...prev, name: '' })); }}
+                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
+                    />
+                    {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">Goal</label>
+                    <textarea
+                        value={goal}
+                        onChange={(e) => setGoal(e.target.value)}
+                        rows={3}
+                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
+                    />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-foreground mb-1">Start Date</label>
+                        <input
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => { setStartDate(e.target.value); setErrors((prev) => ({ ...prev, endDate: '' })); }}
+                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-foreground mb-1">End Date</label>
+                        <input
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => { setEndDate(e.target.value); setErrors((prev) => ({ ...prev, endDate: '' })); }}
+                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
+                        />
+                        {errors.endDate && <p className="mt-1 text-xs text-red-500">{errors.endDate}</p>}
+                    </div>
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                    <button
+                        onClick={onClose}
+                        className="rounded-md border border-input px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleSubmit}
+                        disabled={saving}
+                        className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                    >
+                        {saving ? 'Saving...' : 'Save Changes'}
+                    </button>
+                </div>
+            </div>
+        </Modal>
+    );
+}
 
 export function SprintDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { addToast } = useToast();
+    const { user } = useAuth();
 
     const [sprint, setSprint] = useState<SprintDetail | null>(null);
     const [metrics, setMetrics] = useState<SprintMetrics | null>(null);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
+    const [editOpen, setEditOpen] = useState(false);
+
+    const canEdit = user?.roleName === 'OrgAdmin' || user?.roleName === 'DeptLead';
 
     const fetchSprint = useCallback(async () => {
         if (!id) return;
@@ -114,6 +243,14 @@ export function SprintDetailPage() {
                     )}
                 </div>
                 <div className="flex gap-2 shrink-0">
+                    {canEdit && (
+                        <button
+                            onClick={() => setEditOpen(true)}
+                            className="inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"
+                        >
+                            <Pencil size={14} /> Edit
+                        </button>
+                    )}
                     {sprint.status === SprintStatus.Planning && (
                         <button
                             onClick={() => handleLifecycleAction('start')}
@@ -186,6 +323,16 @@ export function SprintDetailPage() {
                         keyExtractor={(row) => row.storyId}
                     />
                 </section>
+            )}
+
+            {/* Sprint Edit Modal */}
+            {canEdit && sprint && (
+                <SprintEditModal
+                    open={editOpen}
+                    onClose={() => setEditOpen(false)}
+                    sprint={sprint}
+                    onUpdated={fetchSprint}
+                />
             )}
         </div>
     );
