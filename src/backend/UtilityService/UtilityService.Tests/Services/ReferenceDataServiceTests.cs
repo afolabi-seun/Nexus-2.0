@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using StackExchange.Redis;
 using UtilityService.Application.DTOs.ReferenceData;
@@ -7,6 +8,7 @@ using UtilityService.Domain.Interfaces.Repositories.DepartmentTypes;
 using UtilityService.Domain.Interfaces.Repositories.PriorityLevels;
 using UtilityService.Domain.Interfaces.Repositories.TaskTypeRefs;
 using UtilityService.Domain.Interfaces.Repositories.WorkflowStates;
+using UtilityService.Infrastructure.Data;
 using UtilityService.Infrastructure.Services.ReferenceData;
 
 namespace UtilityService.Tests.Services;
@@ -31,10 +33,11 @@ public class ReferenceDataServiceTests
         _dbMock.Setup(d => d.StringSetAsync(It.IsAny<RedisKey>(), It.IsAny<RedisValue>(), It.IsAny<TimeSpan?>(), It.IsAny<bool>(), It.IsAny<When>(), It.IsAny<CommandFlags>()))
             .ReturnsAsync(true);
 
+        var dbContext = new UtilityDbContext(new DbContextOptionsBuilder<UtilityDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
         _sut = new ReferenceDataService(
             _deptRepoMock.Object, _priorityRepoMock.Object,
             _taskTypeRepoMock.Object, _workflowRepoMock.Object,
-            _redisMock.Object);
+            _redisMock.Object, dbContext);
     }
 
     [Fact]

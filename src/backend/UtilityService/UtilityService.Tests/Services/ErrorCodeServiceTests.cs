@@ -1,9 +1,11 @@
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using StackExchange.Redis;
 using UtilityService.Application.DTOs.ErrorCodes;
 using UtilityService.Domain.Entities;
 using UtilityService.Domain.Exceptions;
 using UtilityService.Domain.Interfaces.Repositories.ErrorCodeEntries;
+using UtilityService.Infrastructure.Data;
 using UtilityService.Infrastructure.Services.ErrorCodes;
 
 namespace UtilityService.Tests.Services;
@@ -24,7 +26,8 @@ public class ErrorCodeServiceTests
             .ReturnsAsync(true);
         _dbMock.Setup(d => d.StringSetAsync(It.IsAny<RedisKey>(), It.IsAny<RedisValue>(), It.IsAny<TimeSpan?>(), It.IsAny<bool>(), It.IsAny<When>(), It.IsAny<CommandFlags>()))
             .ReturnsAsync(true);
-        _sut = new ErrorCodeService(_repoMock.Object, _redisMock.Object);
+        var dbContext = new UtilityDbContext(new DbContextOptionsBuilder<UtilityDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        _sut = new ErrorCodeService(_repoMock.Object, _redisMock.Object, dbContext);
     }
 
     [Fact]
