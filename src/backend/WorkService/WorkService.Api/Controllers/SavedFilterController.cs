@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WorkService.Api.Extensions;
 using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.SavedFilters;
 using WorkService.Domain.Entities;
@@ -20,7 +21,7 @@ public class SavedFilterController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<ApiResponse<object>>> Create(
+    public async Task<IActionResult> Create(
         [FromBody] CreateSavedFilterRequest request, CancellationToken ct)
     {
         var orgId = GetOrganizationId();
@@ -42,11 +43,11 @@ public class SavedFilterController : ControllerBase
             Filters = result.Filters,
             DateCreated = result.DateCreated
         };
-        return StatusCode(201, Wrap(response, "Saved filter created."));
+        return ApiResponse<object>.Ok(response, "Saved filter created.").ToActionResult(HttpContext, 201);
     }
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<object>>> List(CancellationToken ct)
+    public async Task<IActionResult> List(CancellationToken ct)
     {
         var orgId = GetOrganizationId();
         var userId = GetUserId();
@@ -58,29 +59,28 @@ public class SavedFilterController : ControllerBase
             Filters = f.Filters,
             DateCreated = f.DateCreated
         });
-        return Ok(Wrap(result, "Saved filters retrieved."));
+        return ApiResponse<object>.Ok(result, "Saved filters retrieved.").ToActionResult(HttpContext);
     }
 
     [HttpDelete("{id:guid}")]
-    public async Task<ActionResult<ApiResponse<object>>> Delete(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
         var filter = await _savedFilterRepository.GetByIdAsync(id, ct);
         if (filter is null)
-            return NotFound(Wrap<object>(null!, "Saved filter not found."));
+        {
+            var notFound = new ApiResponse<object>
+            {
+                Success = false,
+                ErrorCode = "FILTER_NOT_FOUND",
+                Message = "Saved filter not found."
+            };
+            return notFound.ToActionResult(HttpContext);
+        }
 
         await _savedFilterRepository.RemoveAsync(filter, ct);
-        return Ok(Wrap<object>(null!, "Saved filter deleted."));
+        return ApiResponse<object>.Ok(null!, "Saved filter deleted.").ToActionResult(HttpContext);
     }
 
     private Guid GetOrganizationId() => Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
     private Guid GetUserId() => Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
-
-    private ApiResponse<T> Wrap<T>(T data, string? message = null)
-    {
-        var response = ApiResponse<T>.Ok(data, message);
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return response;
-    }
-
-    private ApiResponse<object> Wrap(object data, string? message = null) => Wrap<object>(data, message);
 }

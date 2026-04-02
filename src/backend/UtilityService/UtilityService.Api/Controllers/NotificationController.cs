@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UtilityService.Api.Attributes;
+using UtilityService.Api.Extensions;
 using UtilityService.Application.DTOs;
 using UtilityService.Application.DTOs.Notifications;
 using UtilityService.Domain.Interfaces.Services.Notifications;
@@ -17,28 +18,22 @@ public class NotificationController : ControllerBase
 
     [HttpPost("notifications/dispatch")]
     [ServiceAuth]
-    public async Task<ActionResult<ApiResponse<object>>> Dispatch(
+    public async Task<IActionResult> Dispatch(
         [FromBody] DispatchNotificationRequest request, CancellationToken ct)
     {
         await _notificationService.DispatchAsync(request, ct);
-        return Ok(Wrap(null!, "Notification dispatched."));
+        return ApiResponse<object>.Ok(null!, "Notification dispatched.").ToActionResult(HttpContext);
     }
 
     [HttpGet("notification-logs")]
     [Authorize]
-    public async Task<ActionResult<ApiResponse<object>>> GetUserHistory(
+    public async Task<IActionResult> GetUserHistory(
         [FromQuery] NotificationLogFilterRequest filter,
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
         var userId = Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
         var result = await _notificationService.GetUserHistoryAsync(userId, orgId, filter, page, pageSize, ct);
-        return Ok(Wrap(result, "Notification logs retrieved."));
+        return ApiResponse<object>.Ok(result, "Notification logs retrieved.").ToActionResult(HttpContext);
     }
-
-    private ApiResponse<object> Wrap(object data, string? message = null) => new()
-    {
-        Success = true, Data = data, Message = message,
-        CorrelationId = HttpContext.Items["CorrelationId"]?.ToString()
-    };
 }

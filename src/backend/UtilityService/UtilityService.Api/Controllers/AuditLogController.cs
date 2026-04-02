@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UtilityService.Api.Attributes;
+using UtilityService.Api.Extensions;
 using UtilityService.Application.DTOs;
 using UtilityService.Application.DTOs.AuditLogs;
 using UtilityService.Domain.Exceptions;
@@ -47,11 +48,11 @@ public class AuditLogController : ControllerBase
     [ServiceAuth]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<ApiResponse<object>>> Create(
+    public async Task<IActionResult> Create(
         [FromBody] CreateAuditLogRequest request, CancellationToken ct)
     {
         var result = await _auditLogService.CreateAsync(request, ct);
-        return StatusCode(201, Wrap(result, "Audit log created."));
+        return ApiResponse<object>.Ok(result, "Audit log created.").ToActionResult(HttpContext, 201);
     }
 
     /// <summary>
@@ -66,13 +67,13 @@ public class AuditLogController : ControllerBase
     [HttpGet]
     [Authorize]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> Query(
+    public async Task<IActionResult> Query(
         [FromQuery] AuditLogFilterRequest filter,
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
         var result = await _auditLogService.QueryAsync(orgId, filter, page, pageSize, ct);
-        return Ok(Wrap(result, "Audit logs retrieved."));
+        return ApiResponse<object>.Ok(result, "Audit logs retrieved.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -87,13 +88,13 @@ public class AuditLogController : ControllerBase
     [HttpGet("archive")]
     [Authorize]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> QueryArchive(
+    public async Task<IActionResult> QueryArchive(
         [FromQuery] AuditLogFilterRequest filter,
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
         var result = await _auditLogService.QueryArchiveAsync(orgId, filter, page, pageSize, ct);
-        return Ok(Wrap(result, "Archived audit logs retrieved."));
+        return ApiResponse<object>.Ok(result, "Archived audit logs retrieved.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -116,14 +117,5 @@ public class AuditLogController : ControllerBase
     public ActionResult<ApiResponse<object>> Delete()
     {
         throw new AuditLogImmutableException();
-    }
-
-    private ApiResponse<object> Wrap(object data, string? message = null)
-    {
-        return new ApiResponse<object>
-        {
-            Success = true, Data = data, Message = message,
-            CorrelationId = HttpContext.Items["CorrelationId"]?.ToString()
-        };
     }
 }

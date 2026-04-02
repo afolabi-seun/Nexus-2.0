@@ -11,4 +11,46 @@ public class ApiResponse<T>
     public string? Message { get; set; }
     public string? CorrelationId { get; set; }
     public List<ErrorDetail>? Errors { get; set; }
+
+    public static ApiResponse<T> Ok(T data, string? message = null) => new()
+    {
+        Success = true,
+        Data = data,
+        Message = message,
+        ResponseCode = "00",
+        ResponseDescription = "Request successful"
+    };
+
+    public static ApiResponse<T> Fail(int errorValue, string errorCode, string message) => new()
+    {
+        Success = false,
+        ErrorValue = errorValue,
+        ErrorCode = errorCode,
+        Message = message,
+        ResponseCode = MapErrorToResponseCode(errorCode),
+        ResponseDescription = message
+    };
+
+    public static ApiResponse<T> ValidationFail(string message, List<ErrorDetail> errors) => new()
+    {
+        Success = false,
+        ErrorValue = 1000,
+        ErrorCode = "VALIDATION_ERROR",
+        Message = message,
+        Errors = errors,
+        ResponseCode = "96",
+        ResponseDescription = message
+    };
+
+    private static string MapErrorToResponseCode(string errorCode) => errorCode switch
+    {
+        "ORGANIZATION_MISMATCH" or "INSUFFICIENT_PERMISSIONS" => "03",
+        _ when errorCode.Contains("DUPLICATE") || errorCode.Contains("CONFLICT") => "06",
+        _ when errorCode.Contains("NOT_FOUND") => "07",
+        "RATE_LIMIT_EXCEEDED" => "08",
+        _ when errorCode.StartsWith("INVALID_") => "09",
+        "VALIDATION_ERROR" => "96",
+        "INTERNAL_ERROR" => "98",
+        _ => "99"
+    };
 }

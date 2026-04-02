@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ProfileService.Api.Extensions;
 using ProfileService.Application.DTOs;
 using ProfileService.Domain.Interfaces.Services.Roles;
 
@@ -18,23 +19,16 @@ public class RoleController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<object>>> List(CancellationToken ct)
+    public async Task<IActionResult> List(CancellationToken ct)
     {
         var result = await _roleService.ListAsync(ct);
-        return Ok(Wrap(result, "Roles retrieved."));
+        return ApiResponse<object>.Ok(result, "Roles retrieved.").ToActionResult(HttpContext);
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<ApiResponse<object>>> GetById(Guid id, CancellationToken ct)
+    public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
         var result = await _roleService.GetByIdAsync(id, ct);
-        return Ok(Wrap(result));
-    }
-
-    private ApiResponse<object> Wrap(object data, string? message = null)
-    {
-        var response = ApiResponse<object>.Ok(data, message);
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return response;
+        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
     }
 }

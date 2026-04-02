@@ -1,4 +1,5 @@
 using BillingService.Api.Attributes;
+using BillingService.Api.Extensions;
 using BillingService.Application.DTOs;
 using BillingService.Application.DTOs.Admin;
 using BillingService.Domain.Interfaces.Services.AdminBilling;
@@ -29,10 +30,10 @@ public class AdminPlanController : ControllerBase
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> GetAll(CancellationToken ct)
+    public async Task<IActionResult> GetAll(CancellationToken ct)
     {
         var result = await _adminPlanService.GetAllPlansAsync(ct);
-        return Ok(Wrap(result));
+        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -41,11 +42,11 @@ public class AdminPlanController : ControllerBase
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<ApiResponse<object>>> Create(
+    public async Task<IActionResult> Create(
         [FromBody] AdminCreatePlanRequest request, CancellationToken ct)
     {
         var result = await _adminPlanService.CreatePlanAsync(request, ct);
-        return StatusCode(201, Wrap(result, "Plan created."));
+        return ApiResponse<object>.Ok(result, "Plan created.").ToActionResult(HttpContext, 201);
     }
 
     /// <summary>
@@ -54,13 +55,13 @@ public class AdminPlanController : ControllerBase
     [HttpPut("{planId}")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> Update(
+    public async Task<IActionResult> Update(
         Guid planId,
         [FromBody] AdminUpdatePlanRequest request,
         CancellationToken ct)
     {
         var result = await _adminPlanService.UpdatePlanAsync(planId, request, ct);
-        return Ok(Wrap(result, "Plan updated."));
+        return ApiResponse<object>.Ok(result, "Plan updated.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -69,21 +70,14 @@ public class AdminPlanController : ControllerBase
     [HttpPatch("{planId}/deactivate")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> Deactivate(
+    public async Task<IActionResult> Deactivate(
         Guid planId, CancellationToken ct)
     {
         var adminId = GetAdminId();
         var result = await _adminPlanService.DeactivatePlanAsync(planId, adminId, ct);
-        return Ok(Wrap(result, "Plan deactivated."));
+        return ApiResponse<object>.Ok(result, "Plan deactivated.").ToActionResult(HttpContext);
     }
 
     private Guid GetAdminId() =>
         Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
-
-    private ApiResponse<object> Wrap(object data, string? message = null)
-    {
-        var response = ApiResponse<object>.Ok(data, message);
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return response;
-    }
 }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProfileService.Api.Attributes;
+using ProfileService.Api.Extensions;
 using ProfileService.Application.DTOs;
 using ProfileService.Domain.Interfaces.Services.PlatformAdmins;
 
@@ -20,27 +21,20 @@ public class PlatformAdminController : ControllerBase
 
     [HttpGet("by-username/{username}")]
     [ServiceAuth]
-    public async Task<ActionResult<ApiResponse<object>>> GetByUsername(
+    public async Task<IActionResult> GetByUsername(
         string username, CancellationToken ct)
     {
         var result = await _platformAdminService.GetByUsernameAsync(username, ct);
-        return Ok(Wrap(result));
+        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
     }
 
     [HttpPatch("{id:guid}/password")]
     [ServiceAuth]
-    public async Task<ActionResult<ApiResponse<object>>> UpdatePassword(
+    public async Task<IActionResult> UpdatePassword(
         Guid id, [FromBody] PlatformAdminPasswordRequest request, CancellationToken ct)
     {
         await _platformAdminService.UpdatePasswordAsync(id, request.PasswordHash, ct);
-        return Ok(Wrap(null!, "Password updated."));
-    }
-
-    private ApiResponse<object> Wrap(object data, string? message = null)
-    {
-        var response = ApiResponse<object>.Ok(data, message);
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return response;
+        return ApiResponse<object>.Ok(null!, "Password updated.").ToActionResult(HttpContext);
     }
 }
 

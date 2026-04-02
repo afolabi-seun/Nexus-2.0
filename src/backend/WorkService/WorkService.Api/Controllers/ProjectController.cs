@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkService.Api.Attributes;
+using WorkService.Api.Extensions;
 using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.Projects;
 using WorkService.Domain.Interfaces.Services.CostSnapshots;
@@ -53,13 +54,13 @@ public class ProjectController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<ApiResponse<object>>> Create(
+    public async Task<IActionResult> Create(
         [FromBody] CreateProjectRequest request, CancellationToken ct)
     {
         var orgId = GetOrganizationId();
         var userId = GetUserId();
         var result = await _projectService.CreateAsync(orgId, userId, request, ct);
-        return StatusCode(201, Wrap(result, "Project created successfully."));
+        return ApiResponse<object>.Ok(result, "Project created successfully.").ToActionResult(HttpContext, 201);
     }
 
     /// <summary>
@@ -73,13 +74,13 @@ public class ProjectController : ControllerBase
     /// <response code="200">Projects retrieved</response>
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> List(
+    public async Task<IActionResult> List(
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20,
         [FromQuery] string? status = null, CancellationToken ct = default)
     {
         var orgId = GetOrganizationId();
         var result = await _projectService.ListAsync(orgId, page, pageSize, status, ct);
-        return Ok(Wrap(result, "Projects retrieved."));
+        return ApiResponse<object>.Ok(result, "Projects retrieved.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -93,10 +94,10 @@ public class ProjectController : ControllerBase
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> GetById(Guid id, CancellationToken ct)
+    public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
         var result = await _projectService.GetByIdAsync(id, ct);
-        return Ok(Wrap(result));
+        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -112,11 +113,11 @@ public class ProjectController : ControllerBase
     [DeptLead]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> Update(
+    public async Task<IActionResult> Update(
         Guid id, [FromBody] UpdateProjectRequest request, CancellationToken ct)
     {
         var result = await _projectService.UpdateAsync(id, request, ct);
-        return Ok(Wrap(result, "Project updated."));
+        return ApiResponse<object>.Ok(result, "Project updated.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -132,11 +133,11 @@ public class ProjectController : ControllerBase
     [OrgAdmin]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> UpdateStatus(
+    public async Task<IActionResult> UpdateStatus(
         Guid id, [FromBody] ProjectStatusRequest request, CancellationToken ct)
     {
         await _projectService.UpdateStatusAsync(id, request.Status, ct);
-        return Ok(Wrap<object>(null!, "Project status updated."));
+        return ApiResponse<object>.Ok(null!, "Project status updated.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -144,12 +145,12 @@ public class ProjectController : ControllerBase
     /// </summary>
     [HttpGet("{projectId:guid}/cost-summary")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> GetCostSummary(
+    public async Task<IActionResult> GetCostSummary(
         Guid projectId, [FromQuery] DateTime? dateFrom = null,
         [FromQuery] DateTime? dateTo = null, CancellationToken ct = default)
     {
         var result = await _timeEntryService.GetProjectCostSummaryAsync(projectId, dateFrom, dateTo, ct);
-        return Ok(Wrap(result, "Project cost summary retrieved."));
+        return ApiResponse<object>.Ok(result, "Project cost summary retrieved.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -157,12 +158,12 @@ public class ProjectController : ControllerBase
     /// </summary>
     [HttpGet("{projectId:guid}/utilization")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> GetUtilization(
+    public async Task<IActionResult> GetUtilization(
         Guid projectId, [FromQuery] DateTime? dateFrom = null,
         [FromQuery] DateTime? dateTo = null, CancellationToken ct = default)
     {
         var result = await _timeEntryService.GetProjectUtilizationAsync(projectId, dateFrom, dateTo, ct);
-        return Ok(Wrap(result, "Resource utilization retrieved."));
+        return ApiResponse<object>.Ok(result, "Resource utilization retrieved.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -170,24 +171,15 @@ public class ProjectController : ControllerBase
     /// </summary>
     [HttpGet("{projectId:guid}/cost-snapshots")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> GetCostSnapshots(
+    public async Task<IActionResult> GetCostSnapshots(
         Guid projectId, [FromQuery] DateTime? dateFrom = null,
         [FromQuery] DateTime? dateTo = null, [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
         var result = await _costSnapshotService.ListByProjectAsync(projectId, dateFrom, dateTo, page, pageSize, ct);
-        return Ok(Wrap(result, "Cost snapshots retrieved."));
+        return ApiResponse<object>.Ok(result, "Cost snapshots retrieved.").ToActionResult(HttpContext);
     }
 
     private Guid GetOrganizationId() => Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
     private Guid GetUserId() => Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
-
-    private ApiResponse<T> Wrap<T>(T data, string? message = null)
-    {
-        var response = ApiResponse<T>.Ok(data, message);
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return response;
-    }
-
-    private ApiResponse<object> Wrap(object data, string? message = null) => Wrap<object>(data, message);
 }

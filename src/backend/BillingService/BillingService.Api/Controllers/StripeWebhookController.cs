@@ -1,3 +1,4 @@
+using BillingService.Api.Extensions;
 using BillingService.Application.DTOs;
 using BillingService.Domain.Exceptions;
 using BillingService.Infrastructure.Services.Stripe;
@@ -30,8 +31,6 @@ public class StripeWebhookController : ControllerBase
 
         await _webhookService.ProcessWebhookAsync(payload, signatureHeader, ct);
 
-        var response = ApiResponse<object>.Ok(new { }, "Webhook processed.");
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return Ok(response);
+        return ApiResponse<object>.Ok(new { }, "Webhook processed.").ToActionResult(HttpContext);
     }
 }

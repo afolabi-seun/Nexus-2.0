@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkService.Api.Attributes;
+using WorkService.Api.Extensions;
 using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.Labels;
 using WorkService.Domain.Interfaces.Services.Labels;
@@ -21,47 +22,38 @@ public class LabelController : ControllerBase
 
     [HttpPost]
     [DeptLead]
-    public async Task<ActionResult<ApiResponse<object>>> Create(
+    public async Task<IActionResult> Create(
         [FromBody] CreateLabelRequest request, CancellationToken ct)
     {
         var orgId = GetOrganizationId();
         var result = await _labelService.CreateAsync(orgId, request, ct);
-        return StatusCode(201, Wrap(result, "Label created successfully."));
+        return ApiResponse<object>.Ok(result, "Label created successfully.").ToActionResult(HttpContext, 201);
     }
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<object>>> List(CancellationToken ct)
+    public async Task<IActionResult> List(CancellationToken ct)
     {
         var orgId = GetOrganizationId();
         var result = await _labelService.ListAsync(orgId, ct);
-        return Ok(Wrap(result, "Labels retrieved."));
+        return ApiResponse<object>.Ok(result, "Labels retrieved.").ToActionResult(HttpContext);
     }
 
     [HttpPut("{id:guid}")]
     [DeptLead]
-    public async Task<ActionResult<ApiResponse<object>>> Update(
+    public async Task<IActionResult> Update(
         Guid id, [FromBody] UpdateLabelRequest request, CancellationToken ct)
     {
         var result = await _labelService.UpdateAsync(id, request, ct);
-        return Ok(Wrap(result, "Label updated."));
+        return ApiResponse<object>.Ok(result, "Label updated.").ToActionResult(HttpContext);
     }
 
     [HttpDelete("{id:guid}")]
     [OrgAdmin]
-    public async Task<ActionResult<ApiResponse<object>>> Delete(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
         await _labelService.DeleteAsync(id, ct);
-        return Ok(Wrap<object>(null!, "Label deleted."));
+        return ApiResponse<object>.Ok(null!, "Label deleted.").ToActionResult(HttpContext);
     }
 
     private Guid GetOrganizationId() => Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
-
-    private ApiResponse<T> Wrap<T>(T data, string? message = null)
-    {
-        var response = ApiResponse<T>.Ok(data, message);
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return response;
-    }
-
-    private ApiResponse<object> Wrap(object data, string? message = null) => Wrap<object>(data, message);
 }

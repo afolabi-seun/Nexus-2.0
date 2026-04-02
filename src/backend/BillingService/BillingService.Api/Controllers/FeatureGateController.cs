@@ -1,4 +1,5 @@
 using BillingService.Api.Attributes;
+using BillingService.Api.Extensions;
 using BillingService.Application.DTOs;
 using BillingService.Domain.Interfaces.Services.FeatureGates;
 using Microsoft.AspNetCore.Authorization;
@@ -20,12 +21,10 @@ public class FeatureGateController : ControllerBase
     }
 
     [HttpGet("{feature}")]
-    public async Task<ActionResult<ApiResponse<object>>> CheckFeature(
+    public async Task<IActionResult> CheckFeature(
         string feature, [FromQuery] Guid organizationId, CancellationToken ct)
     {
         var result = await _featureGateService.CheckFeatureAsync(organizationId, feature, ct);
-        var response = ApiResponse<object>.Ok(result);
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return Ok(response);
+        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
     }
 }
