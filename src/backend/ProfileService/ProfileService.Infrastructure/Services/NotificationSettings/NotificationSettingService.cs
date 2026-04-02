@@ -5,6 +5,7 @@ using ProfileService.Domain.Exceptions;
 using ProfileService.Domain.Interfaces.Repositories.NotificationSettings;
 using ProfileService.Domain.Interfaces.Repositories.NotificationTypes;
 using ProfileService.Domain.Interfaces.Services.NotificationSettings;
+using ProfileService.Infrastructure.Data;
 
 namespace ProfileService.Infrastructure.Services.NotificationSettings;
 
@@ -13,15 +14,18 @@ public class NotificationSettingService : INotificationSettingService
     private readonly INotificationSettingRepository _settingRepo;
     private readonly INotificationTypeRepository _typeRepo;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ProfileDbContext _dbContext;
 
     public NotificationSettingService(
         INotificationSettingRepository settingRepo,
         INotificationTypeRepository typeRepo,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        ProfileDbContext dbContext)
     {
         _settingRepo = settingRepo;
         _typeRepo = typeRepo;
         _httpContextAccessor = httpContextAccessor;
+        _dbContext = dbContext;
     }
 
     public async Task<IEnumerable<object>> GetSettingsAsync(Guid memberId, CancellationToken ct = default)
@@ -78,6 +82,7 @@ public class NotificationSettingService : INotificationSettingService
             };
             await _settingRepo.AddAsync(setting, ct);
         }
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     public async Task<IEnumerable<object>> ListTypesAsync(CancellationToken ct = default)

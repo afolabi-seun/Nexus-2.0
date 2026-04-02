@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using SecurityService.Domain.Interfaces.Repositories.PasswordHistory;
+using SecurityService.Domain.Interfaces.Repositories.ServiceTokens;
 using SecurityService.Domain.Interfaces.Services.AnomalyDetection;
 using SecurityService.Domain.Interfaces.Services.Auth;
 using SecurityService.Domain.Interfaces.Services.ErrorCodeResolver;
@@ -14,6 +15,7 @@ using SecurityService.Domain.Interfaces.Services.ServiceToken;
 using SecurityService.Domain.Interfaces.Services.Session;
 using SecurityService.Infrastructure.Data;
 using SecurityService.Infrastructure.Repositories.PasswordHistory;
+using SecurityService.Infrastructure.Repositories.ServiceTokens;
 using SecurityService.Infrastructure.Services.AnomalyDetection;
 using SecurityService.Infrastructure.Services.Auth;
 using SecurityService.Infrastructure.Services.ErrorCodeResolver;
@@ -55,6 +57,7 @@ public static class DependencyInjection
 
         // Repositories
         services.AddScoped<IPasswordHistoryRepository, PasswordHistoryRepository>();
+        services.AddScoped<IServiceTokenRepository, ServiceTokenRepository>();
 
         // Domain services
         services.AddScoped<IJwtService, JwtService>();

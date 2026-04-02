@@ -16,6 +16,7 @@ using ProfileService.Domain.Interfaces.Repositories.TeamMembers;
 using ProfileService.Domain.Interfaces.Services.Invites;
 using ProfileService.Domain.Interfaces.Services.Outbox;
 using ProfileService.Infrastructure.Configuration;
+using ProfileService.Infrastructure.Data;
 using ProfileService.Infrastructure.Services.ServiceClients;
 using StackExchange.Redis;
 
@@ -39,6 +40,7 @@ public class InviteService : IInviteService
     private readonly ISecurityServiceClient _securityClient;
     private readonly IConnectionMultiplexer _redis;
     private readonly AppSettings _appSettings;
+    private readonly ProfileDbContext _dbContext;
     private readonly ILogger<InviteService> _logger;
 
     public InviteService(
@@ -52,6 +54,7 @@ public class InviteService : IInviteService
         ISecurityServiceClient securityClient,
         IConnectionMultiplexer redis,
         AppSettings appSettings,
+        ProfileDbContext dbContext,
         ILogger<InviteService> logger)
     {
         _inviteRepo = inviteRepo;
@@ -64,6 +67,7 @@ public class InviteService : IInviteService
         _securityClient = securityClient;
         _redis = redis;
         _appSettings = appSettings;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
@@ -104,6 +108,7 @@ public class InviteService : IInviteService
         };
 
         await _inviteRepo.AddAsync(invite, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         // Publish notification
         await _outbox.PublishAsync(new OutboxMessage
@@ -233,12 +238,14 @@ public class InviteService : IInviteService
         };
         await _deptMemberRepo.AddAsync(deptMember, ct);
 
-        // Call SecurityService to generate credentials
-        await _securityClient.GenerateCredentialsAsync(member.TeamMemberId, invite.Email, ct);
-
         // Update invite status to Used
         invite.FlgStatus = InviteStatuses.Used;
         await _inviteRepo.UpdateAsync(invite, ct);
+
+        await _dbContext.SaveChangesAsync(ct);
+
+        // Call SecurityService to generate credentials
+        await _securityClient.GenerateCredentialsAsync(member.TeamMemberId, invite.Email, ct);
 
         // Invalidate caches
         var db = _redis.GetDatabase();
@@ -264,5 +271,6 @@ public class InviteService : IInviteService
 
         invite.FlgStatus = InviteStatuses.Expired;
         await _inviteRepo.UpdateAsync(invite, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 }

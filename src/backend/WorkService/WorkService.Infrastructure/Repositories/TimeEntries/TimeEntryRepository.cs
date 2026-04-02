@@ -2,30 +2,18 @@ using Microsoft.EntityFrameworkCore;
 using WorkService.Domain.Entities;
 using WorkService.Domain.Interfaces.Repositories.TimeEntries;
 using WorkService.Infrastructure.Data;
+using WorkService.Infrastructure.Repositories.Generics;
 using Task = System.Threading.Tasks.Task;
 
 namespace WorkService.Infrastructure.Repositories.TimeEntries;
 
-public class TimeEntryRepository : ITimeEntryRepository
+public class TimeEntryRepository : GenericRepository<TimeEntry>, ITimeEntryRepository
 {
     private readonly WorkDbContext _db;
 
-    public TimeEntryRepository(WorkDbContext db) => _db = db;
-
-    public async Task<TimeEntry?> GetByIdAsync(Guid timeEntryId, CancellationToken ct = default)
-        => await _db.TimeEntries.FirstOrDefaultAsync(e => e.TimeEntryId == timeEntryId, ct);
-
-    public async Task<TimeEntry> AddAsync(TimeEntry entry, CancellationToken ct = default)
+    public TimeEntryRepository(WorkDbContext db) : base(db)
     {
-        _db.TimeEntries.Add(entry);
-        await _db.SaveChangesAsync(ct);
-        return entry;
-    }
-
-    public async Task UpdateAsync(TimeEntry entry, CancellationToken ct = default)
-    {
-        _db.TimeEntries.Update(entry);
-        await _db.SaveChangesAsync(ct);
+        _db = db;
     }
 
     public async Task<(IEnumerable<TimeEntry> Items, int TotalCount)> ListAsync(

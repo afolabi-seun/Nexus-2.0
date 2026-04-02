@@ -8,6 +8,7 @@ using BillingService.Domain.Interfaces.Repositories.StripeEvents;
 using BillingService.Domain.Interfaces.Repositories.Subscriptions;
 using BillingService.Domain.Interfaces.Services.Outbox;
 using BillingService.Domain.Interfaces.Services.Stripe;
+using BillingService.Infrastructure.Data;
 using BillingService.Infrastructure.Services.ServiceClients;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
@@ -16,6 +17,7 @@ namespace BillingService.Infrastructure.Services.Stripe;
 
 public class StripeWebhookService
 {
+    private readonly BillingDbContext _dbContext;
     private readonly IStripePaymentService _stripePaymentService;
     private readonly IStripeEventRepository _stripeEventRepo;
     private readonly ISubscriptionRepository _subscriptionRepo;
@@ -26,6 +28,7 @@ public class StripeWebhookService
     private readonly ILogger<StripeWebhookService> _logger;
 
     public StripeWebhookService(
+        BillingDbContext dbContext,
         IStripePaymentService stripePaymentService,
         IStripeEventRepository stripeEventRepo,
         ISubscriptionRepository subscriptionRepo,
@@ -35,6 +38,7 @@ public class StripeWebhookService
         IConnectionMultiplexer redis,
         ILogger<StripeWebhookService> logger)
     {
+        _dbContext = dbContext;
         _stripePaymentService = stripePaymentService;
         _stripeEventRepo = stripeEventRepo;
         _subscriptionRepo = subscriptionRepo;
@@ -80,12 +84,13 @@ public class StripeWebhookService
         }
 
         // Record processed event
-        await _stripeEventRepo.CreateAsync(new StripeEvent
+        await _stripeEventRepo.AddAsync(new StripeEvent
         {
             StripeEventId = stripeEvent.Id,
             EventType = stripeEvent.Type,
             ProcessedAt = DateTime.UtcNow
         }, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         await _outboxService.PublishAsync(new OutboxMessage
         {
@@ -112,6 +117,7 @@ public class StripeWebhookService
             subscription.CurrentPeriodEnd = invoice.PeriodEnd;
 
         await _subscriptionRepo.UpdateAsync(subscription, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     private async Task HandlePaymentFailed(global::Stripe.Event evt, CancellationToken ct)
@@ -122,6 +128,7 @@ public class StripeWebhookService
 
         subscription.Status = SubscriptionStatus.PastDue;
         await _subscriptionRepo.UpdateAsync(subscription, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         await _outboxService.PublishAsync(new OutboxMessage
         {
@@ -143,6 +150,7 @@ public class StripeWebhookService
         subscription.CurrentPeriodEnd = stripeSub.CurrentPeriodEnd;
 
         await _subscriptionRepo.UpdateAsync(subscription, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     private async Task HandleSubscriptionDeleted(global::Stripe.Event evt, CancellationToken ct)
@@ -188,6 +196,7 @@ public class StripeWebhookService
         }
 
         await _subscriptionRepo.UpdateAsync(subscription, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     private Task<Domain.Entities.Subscription?> FindSubscriptionByExternalId(string? externalSubId, CancellationToken ct)

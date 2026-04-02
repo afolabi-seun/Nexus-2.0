@@ -1,6 +1,7 @@
 using BillingService.Domain.Entities;
 using BillingService.Domain.Enums;
 using BillingService.Domain.Interfaces.Repositories.UsageRecords;
+using BillingService.Infrastructure.Data;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -41,6 +42,7 @@ public class UsagePersistenceHostedService : BackgroundService
         using var scope = _scopeFactory.CreateScope();
         var redis = scope.ServiceProvider.GetRequiredService<IConnectionMultiplexer>();
         var usageRecordRepo = scope.ServiceProvider.GetRequiredService<IUsageRecordRepository>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<BillingDbContext>();
         var server = redis.GetServer(redis.GetEndPoints().First());
         var db = redis.GetDatabase();
 
@@ -75,6 +77,7 @@ public class UsagePersistenceHostedService : BackgroundService
                     PeriodStart = periodStart,
                     PeriodEnd = periodEnd
                 }, ct);
+                await dbContext.SaveChangesAsync(ct);
             }
             catch (Exception ex)
             {

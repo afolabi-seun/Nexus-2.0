@@ -3,6 +3,7 @@ using BillingService.Application.DTOs.Plans;
 using BillingService.Domain.Entities;
 using BillingService.Domain.Interfaces.Repositories.Plans;
 using BillingService.Domain.Interfaces.Services.Plans;
+using BillingService.Infrastructure.Data;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 
@@ -10,12 +11,14 @@ namespace BillingService.Infrastructure.Services.Plans;
 
 public class PlanService : IPlanService
 {
+    private readonly BillingDbContext _dbContext;
     private readonly IPlanRepository _planRepository;
     private readonly IConnectionMultiplexer _redis;
     private readonly ILogger<PlanService> _logger;
 
-    public PlanService(IPlanRepository planRepository, IConnectionMultiplexer redis, ILogger<PlanService> logger)
+    public PlanService(BillingDbContext dbContext, IPlanRepository planRepository, IConnectionMultiplexer redis, ILogger<PlanService> logger)
     {
+        _dbContext = dbContext;
         _planRepository = planRepository;
         _redis = redis;
         _logger = logger;
@@ -37,7 +40,8 @@ public class PlanService : IPlanService
         {
             if (!await _planRepository.ExistsByCodeAsync(plan.PlanCode, ct))
             {
-                await _planRepository.CreateAsync(plan, ct);
+                await _planRepository.AddAsync(plan, ct);
+                await _dbContext.SaveChangesAsync(ct);
                 _logger.LogInformation("Seeded plan: {PlanCode}", plan.PlanCode);
             }
         }

@@ -2,29 +2,23 @@ using Microsoft.EntityFrameworkCore;
 using UtilityService.Domain.Entities;
 using UtilityService.Domain.Interfaces.Repositories.AuditLogs;
 using UtilityService.Infrastructure.Data;
+using UtilityService.Infrastructure.Repositories.Generics;
 
 namespace UtilityService.Infrastructure.Repositories.AuditLogs;
 
-public class AuditLogRepository : IAuditLogRepository
+public class AuditLogRepository : GenericRepository<AuditLog>, IAuditLogRepository
 {
-    private readonly UtilityDbContext _context;
+    private readonly UtilityDbContext _db;
 
-    public AuditLogRepository(UtilityDbContext context) => _context = context;
-
-    public async Task<AuditLog> AddAsync(AuditLog auditLog, CancellationToken ct = default)
-    {
-        _context.AuditLogs.Add(auditLog);
-        await _context.SaveChangesAsync(ct);
-        return auditLog;
-    }
+    public AuditLogRepository(UtilityDbContext db) : base(db) => _db = db;
 
     public async Task<(IEnumerable<AuditLog> Items, int TotalCount)> QueryAsync(
         Guid organizationId, string? serviceName, string? action, string? entityType,
         string? userId, DateTime? dateFrom, DateTime? dateTo, int page, int pageSize,
         CancellationToken ct = default)
     {
-        _context.OrganizationId = organizationId;
-        var query = _context.AuditLogs.AsNoTracking();
+        _db.OrganizationId = organizationId;
+        var query = _db.AuditLogs.AsNoTracking();
 
         if (!string.IsNullOrEmpty(serviceName))
             query = query.Where(e => e.ServiceName == serviceName);

@@ -2,26 +2,22 @@ using Microsoft.EntityFrameworkCore;
 using ProfileService.Domain.Entities;
 using ProfileService.Domain.Interfaces.Repositories.Devices;
 using ProfileService.Infrastructure.Data;
+using ProfileService.Infrastructure.Repositories.Generics;
 
 namespace ProfileService.Infrastructure.Repositories.Devices;
 
-public class DeviceRepository : IDeviceRepository
+public class DeviceRepository : GenericRepository<Device>, IDeviceRepository
 {
-    private readonly ProfileDbContext _context;
+    private readonly ProfileDbContext _db;
 
-    public DeviceRepository(ProfileDbContext context)
+    public DeviceRepository(ProfileDbContext db) : base(db)
     {
-        _context = context;
-    }
-
-    public async Task<Device?> GetByIdAsync(Guid deviceId, CancellationToken ct = default)
-    {
-        return await _context.Devices.FirstOrDefaultAsync(d => d.DeviceId == deviceId, ct);
+        _db = db;
     }
 
     public async Task<IEnumerable<Device>> ListByMemberAsync(Guid memberId, CancellationToken ct = default)
     {
-        return await _context.Devices
+        return await _db.Devices
             .Where(d => d.TeamMemberId == memberId)
             .OrderByDescending(d => d.LastActiveDate)
             .ToListAsync(ct);
@@ -29,31 +25,12 @@ public class DeviceRepository : IDeviceRepository
 
     public async Task<int> CountByMemberAsync(Guid memberId, CancellationToken ct = default)
     {
-        return await _context.Devices.CountAsync(d => d.TeamMemberId == memberId, ct);
-    }
-
-    public async Task<Device> AddAsync(Device device, CancellationToken ct = default)
-    {
-        await _context.Devices.AddAsync(device, ct);
-        await _context.SaveChangesAsync(ct);
-        return device;
-    }
-
-    public async Task UpdateAsync(Device device, CancellationToken ct = default)
-    {
-        _context.Devices.Update(device);
-        await _context.SaveChangesAsync(ct);
-    }
-
-    public async Task RemoveAsync(Device device, CancellationToken ct = default)
-    {
-        _context.Devices.Remove(device);
-        await _context.SaveChangesAsync(ct);
+        return await _db.Devices.CountAsync(d => d.TeamMemberId == memberId, ct);
     }
 
     public async Task ClearPrimaryAsync(Guid memberId, CancellationToken ct = default)
     {
-        var devices = await _context.Devices
+        var devices = await _db.Devices
             .Where(d => d.TeamMemberId == memberId && d.IsPrimary)
             .ToListAsync(ct);
 
@@ -61,7 +38,5 @@ public class DeviceRepository : IDeviceRepository
         {
             device.IsPrimary = false;
         }
-
-        await _context.SaveChangesAsync(ct);
     }
 }

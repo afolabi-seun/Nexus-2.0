@@ -2,30 +2,18 @@ using Microsoft.EntityFrameworkCore;
 using WorkService.Domain.Entities;
 using WorkService.Domain.Interfaces.Repositories.SavedFilters;
 using WorkService.Infrastructure.Data;
+using WorkService.Infrastructure.Repositories.Generics;
 using Task = System.Threading.Tasks.Task;
 
 namespace WorkService.Infrastructure.Repositories.SavedFilters;
 
-public class SavedFilterRepository : ISavedFilterRepository
+public class SavedFilterRepository : GenericRepository<SavedFilter>, ISavedFilterRepository
 {
     private readonly WorkDbContext _db;
 
-    public SavedFilterRepository(WorkDbContext db) => _db = db;
-
-    public async Task<SavedFilter?> GetByIdAsync(Guid filterId, CancellationToken ct = default)
-        => await _db.SavedFilters.FirstOrDefaultAsync(f => f.SavedFilterId == filterId, ct);
-
-    public async Task<SavedFilter> AddAsync(SavedFilter filter, CancellationToken ct = default)
+    public SavedFilterRepository(WorkDbContext db) : base(db)
     {
-        _db.SavedFilters.Add(filter);
-        await _db.SaveChangesAsync(ct);
-        return filter;
-    }
-
-    public async Task RemoveAsync(SavedFilter filter, CancellationToken ct = default)
-    {
-        _db.SavedFilters.Remove(filter);
-        await _db.SaveChangesAsync(ct);
+        _db = db;
     }
 
     public async Task<IEnumerable<SavedFilter>> ListByMemberAsync(Guid organizationId, Guid memberId, CancellationToken ct = default)

@@ -1,15 +1,12 @@
 using ProfileService.Domain.Entities;
+using ProfileService.Domain.Interfaces.Repositories.Generics;
 
 namespace ProfileService.Domain.Interfaces.Repositories.Departments;
 
-public interface IDepartmentRepository
+public interface IDepartmentRepository : IGenericRepository<Department>
 {
-    Task<Department?> GetByIdAsync(Guid departmentId, CancellationToken ct = default);
     Task<Department?> GetByNameAsync(Guid organizationId, string name, CancellationToken ct = default);
     Task<Department?> GetByCodeAsync(Guid organizationId, string code, CancellationToken ct = default);
-    Task<Department> AddAsync(Department department, CancellationToken ct = default);
-    Task AddRangeAsync(IEnumerable<Department> departments, CancellationToken ct = default);
-    Task UpdateAsync(Department department, CancellationToken ct = default);
     Task<(IEnumerable<Department> Items, int TotalCount)> ListByOrganizationAsync(Guid organizationId, int page, int pageSize, CancellationToken ct = default);
     Task<int> GetActiveMemberCountAsync(Guid departmentId, CancellationToken ct = default);
 }

@@ -2,41 +2,31 @@ using Microsoft.EntityFrameworkCore;
 using ProfileService.Domain.Entities;
 using ProfileService.Domain.Interfaces.Repositories.Roles;
 using ProfileService.Infrastructure.Data;
+using ProfileService.Infrastructure.Repositories.Generics;
 
 namespace ProfileService.Infrastructure.Repositories.Roles;
 
-public class RoleRepository : IRoleRepository
+public class RoleRepository : GenericRepository<Role>, IRoleRepository
 {
-    private readonly ProfileDbContext _context;
+    private readonly ProfileDbContext _db;
 
-    public RoleRepository(ProfileDbContext context)
+    public RoleRepository(ProfileDbContext db) : base(db)
     {
-        _context = context;
-    }
-
-    public async Task<Role?> GetByIdAsync(Guid roleId, CancellationToken ct = default)
-    {
-        return await _context.Roles.FirstOrDefaultAsync(r => r.RoleId == roleId, ct);
+        _db = db;
     }
 
     public async Task<Role?> GetByNameAsync(string roleName, CancellationToken ct = default)
     {
-        return await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == roleName, ct);
+        return await _db.Roles.FirstOrDefaultAsync(r => r.RoleName == roleName, ct);
     }
 
     public async Task<IEnumerable<Role>> ListAsync(CancellationToken ct = default)
     {
-        return await _context.Roles.OrderByDescending(r => r.PermissionLevel).ToListAsync(ct);
-    }
-
-    public async Task AddRangeAsync(IEnumerable<Role> roles, CancellationToken ct = default)
-    {
-        await _context.Roles.AddRangeAsync(roles, ct);
-        await _context.SaveChangesAsync(ct);
+        return await _db.Roles.OrderByDescending(r => r.PermissionLevel).ToListAsync(ct);
     }
 
     public async Task<bool> ExistsAsync(string roleName, CancellationToken ct = default)
     {
-        return await _context.Roles.AnyAsync(r => r.RoleName == roleName, ct);
+        return await _db.Roles.AnyAsync(r => r.RoleName == roleName, ct);
     }
 }

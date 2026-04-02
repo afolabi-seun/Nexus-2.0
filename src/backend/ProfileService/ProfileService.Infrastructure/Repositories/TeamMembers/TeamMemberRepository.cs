@@ -3,54 +3,32 @@ using ProfileService.Domain.Entities;
 using ProfileService.Domain.Helpers;
 using ProfileService.Domain.Interfaces.Repositories.TeamMembers;
 using ProfileService.Infrastructure.Data;
+using ProfileService.Infrastructure.Repositories.Generics;
 
 namespace ProfileService.Infrastructure.Repositories.TeamMembers;
 
-public class TeamMemberRepository : ITeamMemberRepository
+public class TeamMemberRepository : GenericRepository<TeamMember>, ITeamMemberRepository
 {
-    private readonly ProfileDbContext _context;
+    private readonly ProfileDbContext _db;
 
-    public TeamMemberRepository(ProfileDbContext context)
+    public TeamMemberRepository(ProfileDbContext db) : base(db)
     {
-        _context = context;
-    }
-
-    public async Task<TeamMember?> GetByIdAsync(Guid memberId, CancellationToken ct = default)
-    {
-        return await _context.TeamMembers
-            .Include(t => t.DepartmentMemberships)
-                .ThenInclude(dm => dm.Department)
-            .Include(t => t.DepartmentMemberships)
-                .ThenInclude(dm => dm.Role)
-            .FirstOrDefaultAsync(t => t.TeamMemberId == memberId, ct);
+        _db = db;
     }
 
     public async Task<TeamMember?> GetByEmailAsync(Guid organizationId, string email, CancellationToken ct = default)
     {
-        return await _context.TeamMembers
+        return await _db.TeamMembers
             .FirstOrDefaultAsync(t => t.OrganizationId == organizationId && t.Email == email, ct);
     }
 
     public async Task<TeamMember?> GetByEmailGlobalAsync(string email, CancellationToken ct = default)
     {
-        return await _context.TeamMembers
+        return await _db.TeamMembers
             .IgnoreQueryFilters()
             .Include(t => t.DepartmentMemberships)
                 .ThenInclude(dm => dm.Role)
             .FirstOrDefaultAsync(t => t.Email == email, ct);
-    }
-
-    public async Task<TeamMember> AddAsync(TeamMember member, CancellationToken ct = default)
-    {
-        await _context.TeamMembers.AddAsync(member, ct);
-        await _context.SaveChangesAsync(ct);
-        return member;
-    }
-
-    public async Task UpdateAsync(TeamMember member, CancellationToken ct = default)
-    {
-        _context.TeamMembers.Update(member);
-        await _context.SaveChangesAsync(ct);
     }
 
     public async Task<(IEnumerable<TeamMember> Items, int TotalCount)> ListAsync(
@@ -58,12 +36,12 @@ public class TeamMemberRepository : ITeamMemberRepository
         Guid? departmentId, string? role, string? status, string? availability,
         CancellationToken ct = default)
     {
-        var query = _context.TeamMembers
+        var query = _db.TeamMembers
             .Where(t => t.OrganizationId == organizationId);
 
         if (departmentId.HasValue)
         {
-            var memberIds = _context.DepartmentMembers
+            var memberIds = _db.DepartmentMembers
                 .Where(dm => dm.DepartmentId == departmentId.Value)
                 .Select(dm => dm.TeamMemberId);
             query = query.Where(t => memberIds.Contains(t.TeamMemberId));
@@ -71,8 +49,8 @@ public class TeamMemberRepository : ITeamMemberRepository
 
         if (!string.IsNullOrEmpty(role))
         {
-            var memberIdsForRole = _context.DepartmentMembers
-                .Join(_context.Roles,
+            var memberIdsForRole = _db.DepartmentMembers
+                .Join(_db.Roles,
                     dm => dm.RoleId,
                     r => r.RoleId,
                     (dm, r) => new { dm.TeamMemberId, r.RoleName })
@@ -103,16 +81,16 @@ public class TeamMemberRepository : ITeamMemberRepository
 
     public async Task<int> CountOrgAdminsAsync(Guid organizationId, CancellationToken ct = default)
     {
-        return await _context.DepartmentMembers
+        return await _db.DepartmentMembers
             .Where(dm => dm.OrganizationId == organizationId)
-            .Join(_context.Roles,
+            .Join(_db.Roles,
                 dm => dm.RoleId,
                 r => r.RoleId,
                 (dm, r) => new { dm.TeamMemberId, r.RoleName })
             .Where(x => x.RoleName == RoleNames.OrgAdmin)
             .Select(x => x.TeamMemberId)
             .Distinct()
-            .Join(_context.TeamMembers.Where(t => t.FlgStatus == EntityStatuses.Active),
+            .Join(_db.TeamMembers.Where(t => t.FlgStatus == EntityStatuses.Active),
                 id => id,
                 t => t.TeamMemberId,
                 (id, t) => id)
@@ -122,7 +100,7 @@ public class TeamMemberRepository : ITeamMemberRepository
     public async Task<int> GetNextSequentialNumberAsync(Guid organizationId, string departmentCode, CancellationToken ct = default)
     {
         var prefix = $"NXS-{departmentCode}-";
-        var count = await _context.TeamMembers
+        var count = await _db.TeamMembers
             .IgnoreQueryFilters()
             .Where(t => t.OrganizationId == organizationId && t.ProfessionalId.StartsWith(prefix))
             .CountAsync(ct);

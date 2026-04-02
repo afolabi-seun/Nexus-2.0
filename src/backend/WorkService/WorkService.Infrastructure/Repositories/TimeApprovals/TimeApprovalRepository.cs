@@ -2,20 +2,17 @@ using Microsoft.EntityFrameworkCore;
 using WorkService.Domain.Entities;
 using WorkService.Domain.Interfaces.Repositories.TimeApprovals;
 using WorkService.Infrastructure.Data;
+using WorkService.Infrastructure.Repositories.Generics;
 
 namespace WorkService.Infrastructure.Repositories.TimeApprovals;
 
-public class TimeApprovalRepository : ITimeApprovalRepository
+public class TimeApprovalRepository : GenericRepository<TimeApproval>, ITimeApprovalRepository
 {
     private readonly WorkDbContext _db;
 
-    public TimeApprovalRepository(WorkDbContext db) => _db = db;
-
-    public async Task<TimeApproval> AddAsync(TimeApproval approval, CancellationToken ct = default)
+    public TimeApprovalRepository(WorkDbContext db) : base(db)
     {
-        _db.TimeApprovals.Add(approval);
-        await _db.SaveChangesAsync(ct);
-        return approval;
+        _db = db;
     }
 
     public async Task<IEnumerable<TimeApproval>> GetByTimeEntryAsync(Guid timeEntryId, CancellationToken ct = default)

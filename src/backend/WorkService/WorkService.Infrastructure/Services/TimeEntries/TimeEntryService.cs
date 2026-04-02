@@ -13,6 +13,7 @@ using WorkService.Domain.Interfaces.Repositories.TimePolicies;
 using WorkService.Domain.Interfaces.Services.CostRates;
 using WorkService.Domain.Interfaces.Services.Outbox;
 using WorkService.Domain.Interfaces.Services.TimeEntries;
+using WorkService.Infrastructure.Data;
 
 namespace WorkService.Infrastructure.Services.TimeEntries;
 
@@ -27,6 +28,7 @@ public class TimeEntryService : ITimeEntryService
     private readonly IProjectRepository _projectRepo;
     private readonly ISprintStoryRepository _sprintStoryRepo;
     private readonly IOutboxService _outbox;
+    private readonly WorkDbContext _dbContext;
     private readonly ILogger<TimeEntryService> _logger;
 
     public TimeEntryService(
@@ -39,6 +41,7 @@ public class TimeEntryService : ITimeEntryService
         IProjectRepository projectRepo,
         ISprintStoryRepository sprintStoryRepo,
         IOutboxService outbox,
+        WorkDbContext dbContext,
         ILogger<TimeEntryService> logger)
     {
         _timeEntryRepo = timeEntryRepo;
@@ -50,6 +53,7 @@ public class TimeEntryService : ITimeEntryService
         _projectRepo = projectRepo;
         _sprintStoryRepo = sprintStoryRepo;
         _outbox = outbox;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
@@ -94,6 +98,7 @@ public class TimeEntryService : ITimeEntryService
         };
 
         await _timeEntryRepo.AddAsync(entry, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         // Publish activity log to outbox
         await _outbox.PublishAsync(new
@@ -132,6 +137,7 @@ public class TimeEntryService : ITimeEntryService
 
         entry.DateUpdated = DateTime.UtcNow;
         await _timeEntryRepo.UpdateAsync(entry, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         return MapToResponse(entry);
     }
@@ -148,6 +154,7 @@ public class TimeEntryService : ITimeEntryService
         entry.FlgStatus = "D";
         entry.DateUpdated = DateTime.UtcNow;
         await _timeEntryRepo.UpdateAsync(entry, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     public async Task<object> ListAsync(Guid orgId, Guid? storyId, Guid? projectId, Guid? sprintId,
@@ -195,6 +202,7 @@ public class TimeEntryService : ITimeEntryService
             Action = "Approved"
         };
         await _timeApprovalRepo.AddAsync(approval, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         // Publish notification to outbox
         await _outbox.PublishAsync(new
@@ -235,6 +243,7 @@ public class TimeEntryService : ITimeEntryService
             Reason = reason
         };
         await _timeApprovalRepo.AddAsync(approval, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         // Publish notification to outbox
         await _outbox.PublishAsync(new

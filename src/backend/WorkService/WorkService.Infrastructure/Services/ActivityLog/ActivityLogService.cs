@@ -2,14 +2,20 @@ using WorkService.Application.DTOs.Activity;
 using WorkService.Domain.Entities;
 using WorkService.Domain.Interfaces.Repositories.ActivityLogs;
 using WorkService.Domain.Interfaces.Services.ActivityLog;
+using WorkService.Infrastructure.Data;
 
 namespace WorkService.Infrastructure.Services.ActivityLog;
 
 public class ActivityLogService : IActivityLogService
 {
     private readonly IActivityLogRepository _activityLogRepo;
+    private readonly WorkDbContext _dbContext;
 
-    public ActivityLogService(IActivityLogRepository activityLogRepo) => _activityLogRepo = activityLogRepo;
+    public ActivityLogService(IActivityLogRepository activityLogRepo, WorkDbContext dbContext)
+    {
+        _activityLogRepo = activityLogRepo;
+        _dbContext = dbContext;
+    }
 
     public async System.Threading.Tasks.Task LogAsync(
         Guid organizationId, string entityType, Guid entityId, string storyKey,
@@ -22,6 +28,7 @@ public class ActivityLogService : IActivityLogService
             StoryKey = storyKey, Action = action, ActorId = actorId, ActorName = actorName,
             OldValue = oldValue, NewValue = newValue, Description = description
         }, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     public async Task<object> GetByEntityAsync(string entityType, Guid entityId, CancellationToken ct = default)

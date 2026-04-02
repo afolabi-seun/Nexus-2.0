@@ -2,30 +2,18 @@ using Microsoft.EntityFrameworkCore;
 using WorkService.Domain.Entities;
 using WorkService.Domain.Interfaces.Repositories.RiskRegisters;
 using WorkService.Infrastructure.Data;
+using WorkService.Infrastructure.Repositories.Generics;
 using Task = System.Threading.Tasks.Task;
 
 namespace WorkService.Infrastructure.Repositories.RiskRegisters;
 
-public class RiskRegisterRepository : IRiskRegisterRepository
+public class RiskRegisterRepository : GenericRepository<RiskRegister>, IRiskRegisterRepository
 {
     private readonly WorkDbContext _db;
 
-    public RiskRegisterRepository(WorkDbContext db) => _db = db;
-
-    public async Task<RiskRegister?> GetByIdAsync(Guid riskRegisterId, CancellationToken ct = default)
-        => await _db.RiskRegisters.FirstOrDefaultAsync(r => r.RiskRegisterId == riskRegisterId, ct);
-
-    public async Task<RiskRegister> AddAsync(RiskRegister risk, CancellationToken ct = default)
+    public RiskRegisterRepository(WorkDbContext db) : base(db)
     {
-        _db.RiskRegisters.Add(risk);
-        await _db.SaveChangesAsync(ct);
-        return risk;
-    }
-
-    public async Task UpdateAsync(RiskRegister risk, CancellationToken ct = default)
-    {
-        _db.RiskRegisters.Update(risk);
-        await _db.SaveChangesAsync(ct);
+        _db = db;
     }
 
     public async Task<(IEnumerable<RiskRegister> Items, int TotalCount)> ListAsync(

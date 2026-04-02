@@ -1,13 +1,11 @@
 using ProfileService.Domain.Entities;
+using ProfileService.Domain.Interfaces.Repositories.Generics;
 
 namespace ProfileService.Domain.Interfaces.Repositories.Organizations;
 
-public interface IOrganizationRepository
+public interface IOrganizationRepository : IGenericRepository<Organization>
 {
-    Task<Organization?> GetByIdAsync(Guid organizationId, CancellationToken ct = default);
     Task<Organization?> GetByNameAsync(string name, CancellationToken ct = default);
     Task<Organization?> GetByStoryIdPrefixAsync(string prefix, CancellationToken ct = default);
-    Task<Organization> AddAsync(Organization organization, CancellationToken ct = default);
-    Task UpdateAsync(Organization organization, CancellationToken ct = default);
     Task<(IEnumerable<Organization> Items, int TotalCount)> ListAllAsync(int page, int pageSize, CancellationToken ct = default);
 }

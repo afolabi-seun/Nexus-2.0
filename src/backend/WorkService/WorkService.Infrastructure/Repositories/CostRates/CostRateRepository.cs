@@ -2,30 +2,18 @@ using Microsoft.EntityFrameworkCore;
 using WorkService.Domain.Entities;
 using WorkService.Domain.Interfaces.Repositories.CostRates;
 using WorkService.Infrastructure.Data;
+using WorkService.Infrastructure.Repositories.Generics;
 using Task = System.Threading.Tasks.Task;
 
 namespace WorkService.Infrastructure.Repositories.CostRates;
 
-public class CostRateRepository : ICostRateRepository
+public class CostRateRepository : GenericRepository<CostRate>, ICostRateRepository
 {
     private readonly WorkDbContext _db;
 
-    public CostRateRepository(WorkDbContext db) => _db = db;
-
-    public async Task<CostRate?> GetByIdAsync(Guid costRateId, CancellationToken ct = default)
-        => await _db.CostRates.FirstOrDefaultAsync(r => r.CostRateId == costRateId, ct);
-
-    public async Task<CostRate> AddAsync(CostRate rate, CancellationToken ct = default)
+    public CostRateRepository(WorkDbContext db) : base(db)
     {
-        _db.CostRates.Add(rate);
-        await _db.SaveChangesAsync(ct);
-        return rate;
-    }
-
-    public async Task UpdateAsync(CostRate rate, CancellationToken ct = default)
-    {
-        _db.CostRates.Update(rate);
-        await _db.SaveChangesAsync(ct);
+        _db = db;
     }
 
     public async Task<(IEnumerable<CostRate> Items, int TotalCount)> ListAsync(

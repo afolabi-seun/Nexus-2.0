@@ -1,32 +1,26 @@
 using Microsoft.EntityFrameworkCore;
-using SecurityService.Domain.Entities;
 using SecurityService.Domain.Interfaces.Repositories.PasswordHistory;
 using SecurityService.Infrastructure.Data;
+using SecurityService.Infrastructure.Repositories.Generics;
 using PasswordHistoryEntity = SecurityService.Domain.Entities.PasswordHistory;
 
 namespace SecurityService.Infrastructure.Repositories.PasswordHistory;
 
-public class PasswordHistoryRepository : IPasswordHistoryRepository
+public class PasswordHistoryRepository : GenericRepository<PasswordHistoryEntity>, IPasswordHistoryRepository
 {
-    private readonly SecurityDbContext _context;
+    private readonly SecurityDbContext _db;
 
-    public PasswordHistoryRepository(SecurityDbContext context)
+    public PasswordHistoryRepository(SecurityDbContext db) : base(db)
     {
-        _context = context;
+        _db = db;
     }
 
     public async Task<IEnumerable<PasswordHistoryEntity>> GetLastNByUserIdAsync(Guid userId, int count, CancellationToken ct = default)
     {
-        return await _context.PasswordHistories
+        return await _db.PasswordHistories
             .Where(ph => ph.UserId == userId)
             .OrderByDescending(ph => ph.DateCreated)
             .Take(count)
             .ToListAsync(ct);
-    }
-
-    public async Task AddAsync(PasswordHistoryEntity entry, CancellationToken ct = default)
-    {
-        await _context.PasswordHistories.AddAsync(entry, ct);
-        await _context.SaveChangesAsync(ct);
     }
 }

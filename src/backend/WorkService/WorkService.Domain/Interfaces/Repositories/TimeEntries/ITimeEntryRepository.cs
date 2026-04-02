@@ -1,13 +1,11 @@
 using WorkService.Domain.Entities;
+using WorkService.Domain.Interfaces.Repositories.Generics;
 using Task = System.Threading.Tasks.Task;
 
 namespace WorkService.Domain.Interfaces.Repositories.TimeEntries;
 
-public interface ITimeEntryRepository
+public interface ITimeEntryRepository : IGenericRepository<TimeEntry>
 {
-    Task<TimeEntry?> GetByIdAsync(Guid timeEntryId, CancellationToken ct = default);
-    Task<TimeEntry> AddAsync(TimeEntry entry, CancellationToken ct = default);
-    Task UpdateAsync(TimeEntry entry, CancellationToken ct = default);
     Task<(IEnumerable<TimeEntry> Items, int TotalCount)> ListAsync(
         Guid organizationId, Guid? storyId, Guid? projectId, Guid? sprintId,
         Guid? memberId, DateTime? dateFrom, DateTime? dateTo,

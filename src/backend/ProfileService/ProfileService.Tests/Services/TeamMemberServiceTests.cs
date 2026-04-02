@@ -9,6 +9,7 @@ using ProfileService.Domain.Interfaces.Repositories.Departments;
 using ProfileService.Domain.Interfaces.Repositories.Roles;
 using ProfileService.Domain.Interfaces.Repositories.TeamMembers;
 using ProfileService.Infrastructure.Services.TeamMembers;
+using ProfileService.Tests.Helpers;
 using StackExchange.Redis;
 
 namespace ProfileService.Tests.Services;
@@ -33,6 +34,7 @@ public class TeamMemberServiceTests
             _deptRepo.Object,
             _roleRepo.Object,
             _redis.Object,
+            TestDbContextFactory.Create(),
             Mock.Of<ILogger<TeamMemberService>>());
     }
 

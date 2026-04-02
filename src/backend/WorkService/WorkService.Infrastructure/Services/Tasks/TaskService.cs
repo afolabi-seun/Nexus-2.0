@@ -8,6 +8,7 @@ using WorkService.Domain.Interfaces.Repositories.Stories;
 using WorkService.Domain.Interfaces.Repositories.Tasks;
 using WorkService.Domain.Interfaces.Services.Outbox;
 using WorkService.Domain.Interfaces.Services.Tasks;
+using WorkService.Infrastructure.Data;
 using WorkService.Infrastructure.Services.ServiceClients;
 
 namespace WorkService.Infrastructure.Services.Tasks;
@@ -21,14 +22,15 @@ public class TaskService : ITaskService
     private readonly IActivityLogRepository _activityLogRepo;
     private readonly IOutboxService _outbox;
     private readonly IProfileServiceClient? _profileClient;
+    private readonly WorkDbContext _dbContext;
     private readonly ILogger<TaskService> _logger;    public TaskService(
         ITaskRepository taskRepo, IStoryRepository storyRepo,
         IActivityLogRepository activityLogRepo, IOutboxService outbox,
-        ILogger<TaskService> logger, IProfileServiceClient? profileClient = null)
+        WorkDbContext dbContext, ILogger<TaskService> logger, IProfileServiceClient? profileClient = null)
     {
         _taskRepo = taskRepo; _storyRepo = storyRepo;
         _activityLogRepo = activityLogRepo; _outbox = outbox;
-        _logger = logger; _profileClient = profileClient;
+        _dbContext = dbContext; _logger = logger; _profileClient = profileClient;
     }
 
     public async Task<object> CreateAsync(Guid organizationId, Guid creatorId, object request, CancellationToken ct = default)
@@ -67,6 +69,7 @@ public class TaskService : ITaskService
             StoryKey = story.StoryKey, Action = "Created", ActorId = creatorId, ActorName = "System",
             Description = $"Task '{task.Title}' created"
         }, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         return BuildTaskResponse(task, story.StoryKey);
     }
@@ -104,6 +107,7 @@ public class TaskService : ITaskService
         task.DateUpdated = DateTime.UtcNow;
 
         await _taskRepo.UpdateAsync(task, ct);
+        await _dbContext.SaveChangesAsync(ct);
         var story = await _storyRepo.GetByIdAsync(task.StoryId, ct);
         return BuildTaskResponse(task, story?.StoryKey ?? "");
     }
@@ -117,6 +121,7 @@ public class TaskService : ITaskService
         task.FlgStatus = "D";
         task.DateUpdated = DateTime.UtcNow;
         await _taskRepo.UpdateAsync(task, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     public async Task<object> TransitionStatusAsync(Guid taskId, Guid actorId, string newStatus, CancellationToken ct = default)
@@ -145,6 +150,7 @@ public class TaskService : ITaskService
             OldValue = oldStatus, NewValue = newStatus,
             Description = $"Task status changed from {oldStatus} to {newStatus}"
         }, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         await _outbox.PublishAsync(new { MessageType = "NotificationRequest", Action = "TaskStatusChanged", EntityType = "Task", EntityId = taskId.ToString() }, ct);
 
@@ -174,6 +180,7 @@ public class TaskService : ITaskService
         task.AssigneeId = assigneeId;
         task.DateUpdated = DateTime.UtcNow;
         await _taskRepo.UpdateAsync(task, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         var story = await _storyRepo.GetByIdAsync(task.StoryId, ct);
         return BuildTaskResponse(task, story?.StoryKey ?? "");
@@ -187,6 +194,7 @@ public class TaskService : ITaskService
         task.AssigneeId = userId;
         task.DateUpdated = DateTime.UtcNow;
         await _taskRepo.UpdateAsync(task, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         await _outbox.PublishAsync(new { MessageType = "NotificationRequest", Action = "TaskAssigned", EntityType = "Task", EntityId = taskId.ToString() }, ct);
 
@@ -207,6 +215,7 @@ public class TaskService : ITaskService
             OrganizationId = task.OrganizationId, EntityType = "Task", EntityId = task.TaskId,
             Action = "Unassigned", ActorId = actorId, ActorName = "System", Description = "Task unassigned"
         }, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     public async System.Threading.Tasks.Task LogHoursAsync(Guid taskId, Guid actorId, decimal hours, string? description, CancellationToken ct = default)
@@ -219,6 +228,7 @@ public class TaskService : ITaskService
         task.ActualHours = (task.ActualHours ?? 0) + hours;
         task.DateUpdated = DateTime.UtcNow;
         await _taskRepo.UpdateAsync(task, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     public async Task<object> SuggestAssigneeAsync(string taskType, Guid organizationId, CancellationToken ct = default)

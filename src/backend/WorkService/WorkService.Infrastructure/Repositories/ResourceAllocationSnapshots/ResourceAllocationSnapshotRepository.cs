@@ -2,14 +2,18 @@ using Microsoft.EntityFrameworkCore;
 using WorkService.Domain.Entities;
 using WorkService.Domain.Interfaces.Repositories.ResourceAllocationSnapshots;
 using WorkService.Infrastructure.Data;
+using WorkService.Infrastructure.Repositories.Generics;
 
 namespace WorkService.Infrastructure.Repositories.ResourceAllocationSnapshots;
 
-public class ResourceAllocationSnapshotRepository : IResourceAllocationSnapshotRepository
+public class ResourceAllocationSnapshotRepository : GenericRepository<ResourceAllocationSnapshot>, IResourceAllocationSnapshotRepository
 {
     private readonly WorkDbContext _db;
 
-    public ResourceAllocationSnapshotRepository(WorkDbContext db) => _db = db;
+    public ResourceAllocationSnapshotRepository(WorkDbContext db) : base(db)
+    {
+        _db = db;
+    }
 
     public async Task<ResourceAllocationSnapshot> AddOrUpdateAsync(
         ResourceAllocationSnapshot snapshot, CancellationToken ct = default)
@@ -30,12 +34,10 @@ public class ResourceAllocationSnapshotRepository : IResourceAllocationSnapshotR
             existing.OvertimeHours = snapshot.OvertimeHours;
             existing.SnapshotDate = snapshot.SnapshotDate;
             _db.ResourceAllocationSnapshots.Update(existing);
-            await _db.SaveChangesAsync(ct);
             return existing;
         }
 
         _db.ResourceAllocationSnapshots.Add(snapshot);
-        await _db.SaveChangesAsync(ct);
         return snapshot;
     }
 

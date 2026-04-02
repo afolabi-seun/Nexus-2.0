@@ -97,6 +97,7 @@ public class OrganizationService : IOrganizationService
         };
 
         await _orgRepo.AddAsync(org, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         // Seed 5 default departments
         await SeedData.SeedDefaultDepartmentsAsync(_dbContext, org.OrganizationId);
@@ -144,6 +145,7 @@ public class OrganizationService : IOrganizationService
 
         org.DateUpdated = DateTime.UtcNow;
         await _orgRepo.UpdateAsync(org, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         return MapToResponse(org);
     }
@@ -171,6 +173,7 @@ public class OrganizationService : IOrganizationService
         org.FlgStatus = newStatus;
         org.DateUpdated = DateTime.UtcNow;
         await _orgRepo.UpdateAsync(org, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     public async Task<object> UpdateSettingsAsync(Guid organizationId, object request, CancellationToken ct = default)
@@ -222,6 +225,7 @@ public class OrganizationService : IOrganizationService
         org.SettingsJson = JsonSerializer.Serialize(settings, JsonOptions);
         org.DateUpdated = DateTime.UtcNow;
         await _orgRepo.UpdateAsync(org, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         // Invalidate cache
         var db = _redis.GetDatabase();
@@ -291,6 +295,7 @@ public class OrganizationService : IOrganizationService
             RoleId = orgAdminRole.RoleId
         };
         await _deptMemberRepo.AddAsync(deptMember, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         // Call SecurityService to generate credentials
         await _securityClient.GenerateCredentialsAsync(member.TeamMemberId, req.Email, ct);

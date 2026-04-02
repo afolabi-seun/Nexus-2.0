@@ -4,6 +4,7 @@ using ProfileService.Domain.Exceptions;
 using ProfileService.Domain.Interfaces.Repositories.TeamMembers;
 using ProfileService.Domain.Interfaces.Repositories.UserPreferenceSettings;
 using ProfileService.Domain.Interfaces.Services.Preferences;
+using ProfileService.Infrastructure.Data;
 using StackExchange.Redis;
 
 namespace ProfileService.Infrastructure.Services.Preferences;
@@ -13,15 +14,18 @@ public class PreferenceService : IPreferenceService
     private readonly IUserPreferencesRepository _prefsRepo;
     private readonly ITeamMemberRepository _memberRepo;
     private readonly IConnectionMultiplexer _redis;
+    private readonly ProfileDbContext _dbContext;
 
     public PreferenceService(
         IUserPreferencesRepository prefsRepo,
         ITeamMemberRepository memberRepo,
-        IConnectionMultiplexer redis)
+        IConnectionMultiplexer redis,
+        ProfileDbContext dbContext)
     {
         _prefsRepo = prefsRepo;
         _memberRepo = memberRepo;
         _redis = redis;
+        _dbContext = dbContext;
     }
 
     public async Task<object> GetAsync(Guid memberId, CancellationToken ct = default)
@@ -66,6 +70,8 @@ public class PreferenceService : IPreferenceService
             prefs.DateUpdated = DateTime.UtcNow;
             await _prefsRepo.UpdateAsync(prefs, ct);
         }
+
+        await _dbContext.SaveChangesAsync(ct);
 
         // Invalidate cache
         var db = _redis.GetDatabase();

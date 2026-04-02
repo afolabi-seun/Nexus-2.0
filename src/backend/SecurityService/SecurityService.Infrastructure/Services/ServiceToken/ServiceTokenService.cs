@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SecurityService.Domain.Exceptions;
+using SecurityService.Domain.Interfaces.Repositories.ServiceTokens;
 using SecurityService.Domain.Interfaces.Services.Jwt;
 using SecurityService.Domain.Interfaces.Services.ServiceToken;
 using SecurityService.Infrastructure.Configuration;
@@ -11,6 +12,7 @@ namespace SecurityService.Infrastructure.Services.ServiceToken;
 public class ServiceTokenService : IServiceTokenService
 {
     private readonly IJwtService _jwtService;
+    private readonly IServiceTokenRepository _serviceTokenRepository;
     private readonly SecurityDbContext _dbContext;
     private readonly IConnectionMultiplexer _redis;
     private readonly AppSettings _appSettings;
@@ -26,11 +28,13 @@ public class ServiceTokenService : IServiceTokenService
 
     public ServiceTokenService(
         IJwtService jwtService,
+        IServiceTokenRepository serviceTokenRepository,
         SecurityDbContext dbContext,
         IConnectionMultiplexer redis,
         AppSettings appSettings)
     {
         _jwtService = jwtService;
+        _serviceTokenRepository = serviceTokenRepository;
         _dbContext = dbContext;
         _redis = redis;
         _appSettings = appSettings;
@@ -53,7 +57,7 @@ public class ServiceTokenService : IServiceTokenService
             IsRevoked = false
         };
 
-        await _dbContext.ServiceTokens.AddAsync(entity, ct);
+        await _serviceTokenRepository.AddAsync(entity, ct);
         await _dbContext.SaveChangesAsync(ct);
 
         // Cache raw token in Redis with 23-hour TTL

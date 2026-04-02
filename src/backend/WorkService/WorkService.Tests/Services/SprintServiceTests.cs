@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using StackExchange.Redis;
@@ -10,6 +11,8 @@ using WorkService.Domain.Interfaces.Repositories.Sprints;
 using WorkService.Domain.Interfaces.Repositories.Stories;
 using WorkService.Domain.Interfaces.Repositories.Tasks;
 using WorkService.Domain.Interfaces.Services.Outbox;
+using WorkService.Infrastructure.Data;
+using WorkService.Tests.Helpers;
 using WorkService.Infrastructure.Services.Sprints;
 using Task = System.Threading.Tasks.Task;
 
@@ -44,10 +47,11 @@ public class SprintServiceTests
         _projectRepo.Setup(r => r.GetByIdAsync(_projectId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(project);
 
+        var dbContext = TestWorkDbContextFactory.Create();
         _sut = new SprintService(
             _sprintRepo.Object, _sprintStoryRepo.Object,
             _storyRepo.Object, _taskRepo.Object, _projectRepo.Object,
-            _outbox.Object, _redis.Object, _logger.Object);
+            _outbox.Object, _redis.Object, dbContext, _logger.Object);
     }
 
     [Fact]

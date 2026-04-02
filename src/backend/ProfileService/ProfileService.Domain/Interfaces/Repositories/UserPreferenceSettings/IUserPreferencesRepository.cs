@@ -1,10 +1,9 @@
 using ProfileService.Domain.Entities;
+using ProfileService.Domain.Interfaces.Repositories.Generics;
 
 namespace ProfileService.Domain.Interfaces.Repositories.UserPreferenceSettings;
 
-public interface IUserPreferencesRepository
+public interface IUserPreferencesRepository : IGenericRepository<UserPreferences>
 {
     Task<UserPreferences?> GetByMemberIdAsync(Guid memberId, CancellationToken ct = default);
-    Task<UserPreferences> AddAsync(UserPreferences preferences, CancellationToken ct = default);
-    Task UpdateAsync(UserPreferences preferences, CancellationToken ct = default);
 }

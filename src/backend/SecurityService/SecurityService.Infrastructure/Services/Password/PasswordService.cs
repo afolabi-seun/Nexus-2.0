@@ -8,6 +8,7 @@ using SecurityService.Domain.Interfaces.Services.Otp;
 using SecurityService.Domain.Interfaces.Services.Outbox;
 using SecurityService.Domain.Interfaces.Services.Password;
 using SecurityService.Infrastructure.Configuration;
+using SecurityService.Infrastructure.Data;
 using SecurityService.Infrastructure.Services.ServiceClients;
 
 namespace SecurityService.Infrastructure.Services.Password;
@@ -15,6 +16,7 @@ namespace SecurityService.Infrastructure.Services.Password;
 public class PasswordService : IPasswordService
 {
     private readonly IPasswordHistoryRepository _passwordHistoryRepository;
+    private readonly SecurityDbContext _dbContext;
     private readonly IOtpService _otpService;
     private readonly IOutboxService _outboxService;
     private readonly IProfileServiceClient _profileServiceClient;
@@ -24,12 +26,14 @@ public class PasswordService : IPasswordService
 
     public PasswordService(
         IPasswordHistoryRepository passwordHistoryRepository,
+        SecurityDbContext dbContext,
         IOtpService otpService,
         IOutboxService outboxService,
         IProfileServiceClient profileServiceClient,
         AppSettings appSettings)
     {
         _passwordHistoryRepository = passwordHistoryRepository;
+        _dbContext = dbContext;
         _otpService = otpService;
         _outboxService = outboxService;
         _profileServiceClient = profileServiceClient;
@@ -89,6 +93,7 @@ public class PasswordService : IPasswordService
             PasswordHash = currentPasswordHash,
             DateCreated = DateTime.UtcNow
         }, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     public async Task ResetRequestAsync(string email, CancellationToken ct = default)
@@ -135,6 +140,7 @@ public class PasswordService : IPasswordService
             PasswordHash = currentPasswordHash,
             DateCreated = DateTime.UtcNow
         }, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         var newHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
         await _profileServiceClient.UpdatePlatformAdminPasswordAsync(platformAdminId, newHash, ct);

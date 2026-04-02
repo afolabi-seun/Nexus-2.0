@@ -2,48 +2,30 @@ using Microsoft.EntityFrameworkCore;
 using ProfileService.Domain.Entities;
 using ProfileService.Domain.Interfaces.Repositories.DepartmentMembers;
 using ProfileService.Infrastructure.Data;
+using ProfileService.Infrastructure.Repositories.Generics;
 
 namespace ProfileService.Infrastructure.Repositories.DepartmentMembers;
 
-public class DepartmentMemberRepository : IDepartmentMemberRepository
+public class DepartmentMemberRepository : GenericRepository<DepartmentMember>, IDepartmentMemberRepository
 {
-    private readonly ProfileDbContext _context;
+    private readonly ProfileDbContext _db;
 
-    public DepartmentMemberRepository(ProfileDbContext context)
+    public DepartmentMemberRepository(ProfileDbContext db) : base(db)
     {
-        _context = context;
+        _db = db;
     }
 
     public async Task<DepartmentMember?> GetAsync(Guid memberId, Guid departmentId, CancellationToken ct = default)
     {
-        return await _context.DepartmentMembers
+        return await _db.DepartmentMembers
             .Include(dm => dm.Role)
             .Include(dm => dm.Department)
             .FirstOrDefaultAsync(dm => dm.TeamMemberId == memberId && dm.DepartmentId == departmentId, ct);
     }
 
-    public async Task<DepartmentMember> AddAsync(DepartmentMember departmentMember, CancellationToken ct = default)
-    {
-        await _context.DepartmentMembers.AddAsync(departmentMember, ct);
-        await _context.SaveChangesAsync(ct);
-        return departmentMember;
-    }
-
-    public async Task RemoveAsync(DepartmentMember departmentMember, CancellationToken ct = default)
-    {
-        _context.DepartmentMembers.Remove(departmentMember);
-        await _context.SaveChangesAsync(ct);
-    }
-
-    public async Task UpdateAsync(DepartmentMember departmentMember, CancellationToken ct = default)
-    {
-        _context.DepartmentMembers.Update(departmentMember);
-        await _context.SaveChangesAsync(ct);
-    }
-
     public async Task<IEnumerable<DepartmentMember>> GetByMemberIdAsync(Guid memberId, CancellationToken ct = default)
     {
-        return await _context.DepartmentMembers
+        return await _db.DepartmentMembers
             .Include(dm => dm.Department)
             .Include(dm => dm.Role)
             .Where(dm => dm.TeamMemberId == memberId)
@@ -52,7 +34,7 @@ public class DepartmentMemberRepository : IDepartmentMemberRepository
 
     public async Task<(IEnumerable<DepartmentMember> Items, int TotalCount)> ListByDepartmentAsync(Guid departmentId, int page, int pageSize, CancellationToken ct = default)
     {
-        var query = _context.DepartmentMembers
+        var query = _db.DepartmentMembers
             .Include(dm => dm.TeamMember)
             .Include(dm => dm.Role)
             .Where(dm => dm.DepartmentId == departmentId);

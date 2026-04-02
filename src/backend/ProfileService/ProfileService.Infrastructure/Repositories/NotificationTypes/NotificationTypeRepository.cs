@@ -2,31 +2,26 @@ using Microsoft.EntityFrameworkCore;
 using ProfileService.Domain.Entities;
 using ProfileService.Domain.Interfaces.Repositories.NotificationTypes;
 using ProfileService.Infrastructure.Data;
+using ProfileService.Infrastructure.Repositories.Generics;
 
 namespace ProfileService.Infrastructure.Repositories.NotificationTypes;
 
-public class NotificationTypeRepository : INotificationTypeRepository
+public class NotificationTypeRepository : GenericRepository<NotificationType>, INotificationTypeRepository
 {
-    private readonly ProfileDbContext _context;
+    private readonly ProfileDbContext _db;
 
-    public NotificationTypeRepository(ProfileDbContext context)
+    public NotificationTypeRepository(ProfileDbContext db) : base(db)
     {
-        _context = context;
+        _db = db;
     }
 
     public async Task<IEnumerable<NotificationType>> ListAsync(CancellationToken ct = default)
     {
-        return await _context.NotificationTypes.OrderBy(nt => nt.TypeName).ToListAsync(ct);
-    }
-
-    public async Task AddRangeAsync(IEnumerable<NotificationType> types, CancellationToken ct = default)
-    {
-        await _context.NotificationTypes.AddRangeAsync(types, ct);
-        await _context.SaveChangesAsync(ct);
+        return await _db.NotificationTypes.OrderBy(nt => nt.TypeName).ToListAsync(ct);
     }
 
     public async Task<bool> ExistsAsync(string typeName, CancellationToken ct = default)
     {
-        return await _context.NotificationTypes.AnyAsync(nt => nt.TypeName == typeName, ct);
+        return await _db.NotificationTypes.AnyAsync(nt => nt.TypeName == typeName, ct);
     }
 }

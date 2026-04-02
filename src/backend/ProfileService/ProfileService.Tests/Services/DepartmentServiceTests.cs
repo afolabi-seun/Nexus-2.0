@@ -6,7 +6,9 @@ using ProfileService.Domain.Helpers;
 using ProfileService.Domain.Interfaces.Repositories.DepartmentMembers;
 using ProfileService.Domain.Interfaces.Repositories.Departments;
 using ProfileService.Domain.Interfaces.Repositories.TeamMembers;
+using ProfileService.Infrastructure.Data;
 using ProfileService.Infrastructure.Services.Departments;
+using ProfileService.Tests.Helpers;
 using StackExchange.Redis;
 
 namespace ProfileService.Tests.Services;
@@ -29,6 +31,7 @@ public class DepartmentServiceTests
             _deptMemberRepo.Object,
             _memberRepo.Object,
             _redis.Object,
+            TestDbContextFactory.Create(),
             Mock.Of<ILogger<DepartmentService>>());
     }
 

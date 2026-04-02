@@ -3,35 +3,23 @@ using UtilityService.Domain.Entities;
 using UtilityService.Domain.Helpers;
 using UtilityService.Domain.Interfaces.Repositories.NotificationLogs;
 using UtilityService.Infrastructure.Data;
+using UtilityService.Infrastructure.Repositories.Generics;
 
 namespace UtilityService.Infrastructure.Repositories.NotificationLogs;
 
-public class NotificationLogRepository : INotificationLogRepository
+public class NotificationLogRepository : GenericRepository<NotificationLog>, INotificationLogRepository
 {
-    private readonly UtilityDbContext _context;
+    private readonly UtilityDbContext _db;
 
-    public NotificationLogRepository(UtilityDbContext context) => _context = context;
-
-    public async Task<NotificationLog> AddAsync(NotificationLog log, CancellationToken ct = default)
-    {
-        _context.NotificationLogs.Add(log);
-        await _context.SaveChangesAsync(ct);
-        return log;
-    }
-
-    public async Task UpdateAsync(NotificationLog log, CancellationToken ct = default)
-    {
-        _context.NotificationLogs.Update(log);
-        await _context.SaveChangesAsync(ct);
-    }
+    public NotificationLogRepository(UtilityDbContext db) : base(db) => _db = db;
 
     public async Task<(IEnumerable<NotificationLog> Items, int TotalCount)> QueryByUserAsync(
         Guid userId, Guid organizationId, string? notificationType, string? channel,
         string? status, DateTime? dateFrom, DateTime? dateTo, int page, int pageSize,
         CancellationToken ct = default)
     {
-        _context.OrganizationId = organizationId;
-        var query = _context.NotificationLogs.AsNoTracking()
+        _db.OrganizationId = organizationId;
+        var query = _db.NotificationLogs.AsNoTracking()
             .Where(e => e.UserId == userId);
 
         if (!string.IsNullOrEmpty(notificationType))
@@ -53,7 +41,7 @@ public class NotificationLogRepository : INotificationLogRepository
     }
 
     public async Task<IEnumerable<NotificationLog>> GetFailedForRetryAsync(int maxRetryCount, CancellationToken ct = default)
-        => await _context.NotificationLogs.IgnoreQueryFilters()
+        => await _db.NotificationLogs.IgnoreQueryFilters()
             .Where(e => e.Status == NotificationStatuses.Failed && e.RetryCount < maxRetryCount)
             .ToListAsync(ct);
 }

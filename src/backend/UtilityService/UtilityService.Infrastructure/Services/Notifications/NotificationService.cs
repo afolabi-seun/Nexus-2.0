@@ -7,6 +7,7 @@ using UtilityService.Domain.Helpers;
 using UtilityService.Domain.Interfaces.Repositories.NotificationLogs;
 using UtilityService.Domain.Interfaces.Services.Notifications;
 using UtilityService.Infrastructure.Configuration;
+using UtilityService.Infrastructure.Data;
 
 namespace UtilityService.Infrastructure.Services.Notifications;
 
@@ -18,11 +19,13 @@ public class NotificationService : INotificationService
     private readonly IConnectionMultiplexer _redis;
     private readonly AppSettings _appSettings;
     private readonly ILogger<NotificationService> _logger;
+    private readonly UtilityDbContext _dbContext;
 
     public NotificationService(
         INotificationLogRepository repo, INotificationDispatcher dispatcher,
         ITemplateRenderer templateRenderer, IConnectionMultiplexer redis,
-        AppSettings appSettings, ILogger<NotificationService> logger)
+        AppSettings appSettings, ILogger<NotificationService> logger,
+        UtilityDbContext dbContext)
     {
         _repo = repo;
         _dispatcher = dispatcher;
@@ -30,6 +33,7 @@ public class NotificationService : INotificationService
         _redis = redis;
         _appSettings = appSettings;
         _logger = logger;
+        _dbContext = dbContext;
     }
 
     public async Task DispatchAsync(object request, CancellationToken ct = default)
@@ -52,6 +56,7 @@ public class NotificationService : INotificationService
             };
 
             await _repo.AddAsync(log, ct);
+            await _dbContext.SaveChangesAsync(ct);
 
             try
             {
@@ -73,6 +78,7 @@ public class NotificationService : INotificationService
             }
 
             await _repo.UpdateAsync(log, ct);
+            await _dbContext.SaveChangesAsync(ct);
         }
     }
 
@@ -121,6 +127,7 @@ public class NotificationService : INotificationService
                 log.Status = NotificationStatuses.PermanentlyFailed;
 
             await _repo.UpdateAsync(log, ct);
+            await _dbContext.SaveChangesAsync(ct);
         }
     }
 

@@ -2,20 +2,17 @@ using Microsoft.EntityFrameworkCore;
 using WorkService.Domain.Entities;
 using WorkService.Domain.Interfaces.Repositories.ProjectHealthSnapshots;
 using WorkService.Infrastructure.Data;
+using WorkService.Infrastructure.Repositories.Generics;
 
 namespace WorkService.Infrastructure.Repositories.ProjectHealthSnapshots;
 
-public class ProjectHealthSnapshotRepository : IProjectHealthSnapshotRepository
+public class ProjectHealthSnapshotRepository : GenericRepository<ProjectHealthSnapshot>, IProjectHealthSnapshotRepository
 {
     private readonly WorkDbContext _db;
 
-    public ProjectHealthSnapshotRepository(WorkDbContext db) => _db = db;
-
-    public async Task<ProjectHealthSnapshot> AddAsync(ProjectHealthSnapshot snapshot, CancellationToken ct = default)
+    public ProjectHealthSnapshotRepository(WorkDbContext db) : base(db)
     {
-        _db.ProjectHealthSnapshots.Add(snapshot);
-        await _db.SaveChangesAsync(ct);
-        return snapshot;
+        _db = db;
     }
 
     public async Task<ProjectHealthSnapshot?> GetLatestByProjectAsync(Guid projectId, CancellationToken ct = default)

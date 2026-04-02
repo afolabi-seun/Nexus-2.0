@@ -2,30 +2,18 @@ using Microsoft.EntityFrameworkCore;
 using WorkService.Domain.Entities;
 using WorkService.Domain.Interfaces.Repositories.Sprints;
 using WorkService.Infrastructure.Data;
+using WorkService.Infrastructure.Repositories.Generics;
 using Task = System.Threading.Tasks.Task;
 
 namespace WorkService.Infrastructure.Repositories.Sprints;
 
-public class SprintRepository : ISprintRepository
+public class SprintRepository : GenericRepository<Sprint>, ISprintRepository
 {
     private readonly WorkDbContext _db;
 
-    public SprintRepository(WorkDbContext db) => _db = db;
-
-    public async Task<Sprint?> GetByIdAsync(Guid sprintId, CancellationToken ct = default)
-        => await _db.Sprints.FirstOrDefaultAsync(s => s.SprintId == sprintId, ct);
-
-    public async Task<Sprint> AddAsync(Sprint sprint, CancellationToken ct = default)
+    public SprintRepository(WorkDbContext db) : base(db)
     {
-        _db.Sprints.Add(sprint);
-        await _db.SaveChangesAsync(ct);
-        return sprint;
-    }
-
-    public async Task UpdateAsync(Sprint sprint, CancellationToken ct = default)
-    {
-        _db.Sprints.Update(sprint);
-        await _db.SaveChangesAsync(ct);
+        _db = db;
     }
 
     public async Task<(IEnumerable<Sprint> Items, int TotalCount)> ListAsync(

@@ -1,8 +1,9 @@
 using WorkService.Domain.Entities;
+using WorkService.Domain.Interfaces.Repositories.Generics;
 
 namespace WorkService.Domain.Interfaces.Repositories.VelocitySnapshots;
 
-public interface IVelocitySnapshotRepository
+public interface IVelocitySnapshotRepository : IGenericRepository<VelocitySnapshot>
 {
     Task<VelocitySnapshot> AddOrUpdateAsync(VelocitySnapshot snapshot, CancellationToken ct = default);
     Task<IEnumerable<VelocitySnapshot>> GetByProjectAsync(

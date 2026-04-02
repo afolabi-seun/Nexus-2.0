@@ -8,9 +8,11 @@ using BillingService.Domain.Interfaces.Repositories.Subscriptions;
 using BillingService.Domain.Interfaces.Services.Outbox;
 using BillingService.Domain.Interfaces.Services.Stripe;
 using BillingService.Domain.Interfaces.Services.Usage;
+using BillingService.Infrastructure.Data;
 using BillingService.Infrastructure.Services.ServiceClients;
 using BillingService.Infrastructure.Services.Subscriptions;
 using BillingService.Tests.Property.Generators;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using StackExchange.Redis;
@@ -32,7 +34,9 @@ public class SubscriptionServiceTests
     private SubscriptionService CreateService()
     {
         _redis.Setup(r => r.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(_redisDb.Object);
+        var dbContext = new BillingDbContext(new DbContextOptionsBuilder<BillingDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
         return new SubscriptionService(
+            dbContext,
             _subRepo.Object, _planRepo.Object, _stripeSvc.Object,
             _usageSvc.Object, _outboxSvc.Object, _profileClient.Object,
             _redis.Object, _logger.Object);
@@ -108,7 +112,7 @@ public class SubscriptionServiceTests
             () => service.CreateAsync(orgId, new CreateSubscriptionRequest(starter.PlanId, "pm_test"), CancellationToken.None));
 
         Assert.Contains("Card declined", ex.Message);
-        _subRepo.Verify(r => r.CreateAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()), Times.Never);
+        _subRepo.Verify(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]

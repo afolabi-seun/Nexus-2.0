@@ -5,8 +5,10 @@ using BillingService.Domain.Interfaces.Repositories.StripeEvents;
 using BillingService.Domain.Interfaces.Repositories.Subscriptions;
 using BillingService.Domain.Interfaces.Services.Outbox;
 using BillingService.Domain.Interfaces.Services.Stripe;
+using BillingService.Infrastructure.Data;
 using BillingService.Infrastructure.Services.ServiceClients;
 using BillingService.Infrastructure.Services.Stripe;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using StackExchange.Redis;
@@ -28,7 +30,9 @@ public class StripeWebhookServiceTests
     {
         var mockDb = new Mock<IDatabase>();
         _redis.Setup(r => r.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(mockDb.Object);
+        var dbContext = new BillingDbContext(new DbContextOptionsBuilder<BillingDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
         return new StripeWebhookService(
+            dbContext,
             _stripeSvc.Object, _eventRepo.Object, _subRepo.Object,
             _planRepo.Object, _outboxSvc.Object, _profileClient.Object,
             _redis.Object, _logger.Object);
@@ -73,7 +77,7 @@ public class StripeWebhookServiceTests
         var service = CreateService();
         await service.ProcessWebhookAsync("payload", "sig", CancellationToken.None);
 
-        _eventRepo.Verify(r => r.CreateAsync(It.IsAny<StripeEvent>(), It.IsAny<CancellationToken>()), Times.Never);
+        _eventRepo.Verify(r => r.AddAsync(It.IsAny<StripeEvent>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -95,7 +99,7 @@ public class StripeWebhookServiceTests
         var service = CreateService();
         await service.ProcessWebhookAsync("payload", "sig", CancellationToken.None);
 
-        _eventRepo.Verify(r => r.CreateAsync(
+        _eventRepo.Verify(r => r.AddAsync(
             It.Is<StripeEvent>(e => e.StripeEventId == "evt_new"),
             It.IsAny<CancellationToken>()), Times.Once);
         _outboxSvc.Verify(o => o.PublishAsync(It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Once);

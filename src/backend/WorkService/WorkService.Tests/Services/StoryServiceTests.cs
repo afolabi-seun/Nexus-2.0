@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using WorkService.Application.DTOs.Stories;
@@ -14,6 +15,8 @@ using WorkService.Domain.Interfaces.Repositories.StoryLinks;
 using WorkService.Domain.Interfaces.Repositories.Tasks;
 using WorkService.Domain.Interfaces.Services.Outbox;
 using WorkService.Domain.Interfaces.Services.Stories;
+using WorkService.Infrastructure.Data;
+using WorkService.Tests.Helpers;
 using WorkService.Infrastructure.Services.Stories;
 using Task = System.Threading.Tasks.Task;
 
@@ -65,12 +68,13 @@ public class StoryServiceTests
         _storyIdGen.Setup(g => g.GenerateNextIdAsync(_projectId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(("NEXUS-1", 1L));
 
+        var dbContext = TestWorkDbContextFactory.Create();
         _sut = new StoryService(
             _storyRepo.Object, _projectRepo.Object, _taskRepo.Object,
             _commentRepo.Object, _storyLabelRepo.Object, _labelRepo.Object,
             _storyLinkRepo.Object, _sprintRepo.Object,
             _activityLogRepo.Object, _storyIdGen.Object,
-            _outbox.Object, _logger.Object);
+            _outbox.Object, dbContext, _logger.Object);
     }
 
     [Fact]

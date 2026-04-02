@@ -10,6 +10,7 @@ using ProfileService.Domain.Interfaces.Repositories.DepartmentMembers;
 using ProfileService.Domain.Interfaces.Repositories.Departments;
 using ProfileService.Domain.Interfaces.Repositories.TeamMembers;
 using ProfileService.Domain.Interfaces.Services.Departments;
+using ProfileService.Infrastructure.Data;
 using StackExchange.Redis;
 
 namespace ProfileService.Infrastructure.Services.Departments;
@@ -29,6 +30,7 @@ public class DepartmentService : IDepartmentService
     private readonly IDepartmentMemberRepository _deptMemberRepo;
     private readonly ITeamMemberRepository _memberRepo;
     private readonly IConnectionMultiplexer _redis;
+    private readonly ProfileDbContext _dbContext;
     private readonly ILogger<DepartmentService> _logger;
 
     public DepartmentService(
@@ -36,12 +38,14 @@ public class DepartmentService : IDepartmentService
         IDepartmentMemberRepository deptMemberRepo,
         ITeamMemberRepository memberRepo,
         IConnectionMultiplexer redis,
+        ProfileDbContext dbContext,
         ILogger<DepartmentService> logger)
     {
         _deptRepo = deptRepo;
         _deptMemberRepo = deptMemberRepo;
         _memberRepo = memberRepo;
         _redis = redis;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
@@ -70,6 +74,7 @@ public class DepartmentService : IDepartmentService
         };
 
         await _deptRepo.AddAsync(dept, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         // Invalidate cache
         var db = _redis.GetDatabase();
@@ -142,6 +147,7 @@ public class DepartmentService : IDepartmentService
 
         dept.DateUpdated = DateTime.UtcNow;
         await _deptRepo.UpdateAsync(dept, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         // Invalidate cache
         var db = _redis.GetDatabase();
@@ -171,6 +177,7 @@ public class DepartmentService : IDepartmentService
         dept.FlgStatus = newStatus;
         dept.DateUpdated = DateTime.UtcNow;
         await _deptRepo.UpdateAsync(dept, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         // Invalidate cache
         var db = _redis.GetDatabase();
@@ -248,6 +255,7 @@ public class DepartmentService : IDepartmentService
         dept.PreferencesJson = JsonSerializer.Serialize(prefs, JsonOptions);
         dept.DateUpdated = DateTime.UtcNow;
         await _deptRepo.UpdateAsync(dept, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         // Invalidate cache
         var db = _redis.GetDatabase();

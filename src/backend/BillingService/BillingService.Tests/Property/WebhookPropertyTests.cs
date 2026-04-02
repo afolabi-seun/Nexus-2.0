@@ -5,9 +5,11 @@ using BillingService.Domain.Interfaces.Repositories.StripeEvents;
 using BillingService.Domain.Interfaces.Repositories.Subscriptions;
 using BillingService.Domain.Interfaces.Services.Outbox;
 using BillingService.Domain.Interfaces.Services.Stripe;
+using BillingService.Infrastructure.Data;
 using BillingService.Infrastructure.Services.ServiceClients;
 using BillingService.Infrastructure.Services.Stripe;
 using FsCheck.Xunit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using StackExchange.Redis;
@@ -32,7 +34,9 @@ public class WebhookPropertyTests
     private StripeWebhookService CreateService()
     {
         _redis.Setup(r => r.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(_redisDb.Object);
+        var dbContext = new BillingDbContext(new DbContextOptionsBuilder<BillingDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
         return new StripeWebhookService(
+            dbContext,
             _stripeSvc.Object, _eventRepo.Object, _subRepo.Object,
             _planRepo.Object, _outboxSvc.Object, _profileClient.Object,
             _redis.Object, _logger.Object);
@@ -57,7 +61,7 @@ public class WebhookPropertyTests
 
         // No state changes should have occurred
         _subRepo.Verify(r => r.UpdateAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()), Times.Never);
-        _eventRepo.Verify(r => r.CreateAsync(It.IsAny<StripeEvent>(), It.IsAny<CancellationToken>()), Times.Never);
+        _eventRepo.Verify(r => r.AddAsync(It.IsAny<StripeEvent>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     /// <summary>
@@ -82,7 +86,7 @@ public class WebhookPropertyTests
 
         // No subscription updates, no new event record
         _subRepo.Verify(r => r.UpdateAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()), Times.Never);
-        _eventRepo.Verify(r => r.CreateAsync(It.IsAny<StripeEvent>(), It.IsAny<CancellationToken>()), Times.Never);
+        _eventRepo.Verify(r => r.AddAsync(It.IsAny<StripeEvent>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     /// <summary>
@@ -112,7 +116,7 @@ public class WebhookPropertyTests
         await service.ProcessWebhookAsync("payload", "valid_sig", CancellationToken.None);
 
         // Event should be recorded
-        _eventRepo.Verify(r => r.CreateAsync(
+        _eventRepo.Verify(r => r.AddAsync(
             It.Is<StripeEvent>(e => e.StripeEventId == eventId && e.EventType == "invoice.payment_succeeded"),
             It.IsAny<CancellationToken>()), Times.Once);
 

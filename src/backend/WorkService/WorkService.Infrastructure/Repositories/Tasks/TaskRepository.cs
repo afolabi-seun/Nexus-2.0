@@ -1,29 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 using WorkService.Domain.Interfaces.Repositories.Tasks;
 using WorkService.Infrastructure.Data;
+using WorkService.Infrastructure.Repositories.Generics;
 
 namespace WorkService.Infrastructure.Repositories.Tasks;
 
-public class TaskRepository : ITaskRepository
+public class TaskRepository : GenericRepository<Domain.Entities.Task>, ITaskRepository
 {
     private readonly WorkDbContext _db;
 
-    public TaskRepository(WorkDbContext db) => _db = db;
-
-    public async Task<Domain.Entities.Task?> GetByIdAsync(Guid taskId, CancellationToken ct = default)
-        => await _db.Tasks.FirstOrDefaultAsync(t => t.TaskId == taskId, ct);
-
-    public async Task<Domain.Entities.Task> AddAsync(Domain.Entities.Task task, CancellationToken ct = default)
+    public TaskRepository(WorkDbContext db) : base(db)
     {
-        _db.Tasks.Add(task);
-        await _db.SaveChangesAsync(ct);
-        return task;
-    }
-
-    public async System.Threading.Tasks.Task UpdateAsync(Domain.Entities.Task task, CancellationToken ct = default)
-    {
-        _db.Tasks.Update(task);
-        await _db.SaveChangesAsync(ct);
+        _db = db;
     }
 
     public async Task<IEnumerable<Domain.Entities.Task>> ListByStoryAsync(Guid storyId, CancellationToken ct = default)

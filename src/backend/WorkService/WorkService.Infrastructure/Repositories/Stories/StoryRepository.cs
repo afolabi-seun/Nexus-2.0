@@ -2,35 +2,23 @@ using Microsoft.EntityFrameworkCore;
 using WorkService.Domain.Entities;
 using WorkService.Domain.Interfaces.Repositories.Stories;
 using WorkService.Infrastructure.Data;
+using WorkService.Infrastructure.Repositories.Generics;
 using Task = System.Threading.Tasks.Task;
 
 namespace WorkService.Infrastructure.Repositories.Stories;
 
-public class StoryRepository : IStoryRepository
+public class StoryRepository : GenericRepository<Story>, IStoryRepository
 {
     private readonly WorkDbContext _db;
 
-    public StoryRepository(WorkDbContext db) => _db = db;
-
-    public async Task<Story?> GetByIdAsync(Guid storyId, CancellationToken ct = default)
-        => await _db.Stories.FirstOrDefaultAsync(s => s.StoryId == storyId, ct);
+    public StoryRepository(WorkDbContext db) : base(db)
+    {
+        _db = db;
+    }
 
     public async Task<Story?> GetByKeyAsync(Guid organizationId, string storyKey, CancellationToken ct = default)
         => await _db.Stories
             .FirstOrDefaultAsync(s => s.OrganizationId == organizationId && s.StoryKey == storyKey, ct);
-
-    public async Task<Story> AddAsync(Story story, CancellationToken ct = default)
-    {
-        _db.Stories.Add(story);
-        await _db.SaveChangesAsync(ct);
-        return story;
-    }
-
-    public async Task UpdateAsync(Story story, CancellationToken ct = default)
-    {
-        _db.Stories.Update(story);
-        await _db.SaveChangesAsync(ct);
-    }
 
     public async Task<(IEnumerable<Story> Items, int TotalCount)> ListAsync(
         Guid organizationId, int page, int pageSize, Guid? projectId, string? status,
