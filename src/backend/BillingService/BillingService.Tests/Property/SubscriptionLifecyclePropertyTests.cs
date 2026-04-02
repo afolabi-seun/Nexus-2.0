@@ -9,11 +9,13 @@ using BillingService.Domain.Interfaces.Repositories.Subscriptions;
 using BillingService.Domain.Interfaces.Services.Outbox;
 using BillingService.Domain.Interfaces.Services.Stripe;
 using BillingService.Domain.Interfaces.Services.Usage;
+using BillingService.Infrastructure.Data;
 using BillingService.Infrastructure.Services.ServiceClients;
 using BillingService.Infrastructure.Services.Subscriptions;
 using BillingService.Tests.Property.Generators;
 using FsCheck;
 using FsCheck.Xunit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using StackExchange.Redis;
@@ -38,7 +40,9 @@ public class SubscriptionLifecyclePropertyTests
     private SubscriptionService CreateService()
     {
         _redis.Setup(r => r.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(_redisDb.Object);
+        var dbContext = new BillingDbContext(new DbContextOptionsBuilder<BillingDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
         return new SubscriptionService(
+            dbContext,
             _subRepo.Object, _planRepo.Object, _stripeSvc.Object,
             _usageSvc.Object, _outboxSvc.Object, _profileClient.Object,
             _redis.Object, _logger.Object);
@@ -64,7 +68,7 @@ public class SubscriptionLifecyclePropertyTests
                 .ReturnsAsync(("cus_test", "sub_test"));
 
             Subscription? captured = null;
-            _subRepo.Setup(r => r.CreateAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
+            _subRepo.Setup(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
                 .Callback<Subscription, CancellationToken>((s, _) => captured = s)
                 .ReturnsAsync((Subscription s, CancellationToken _) => s);
 
@@ -118,7 +122,7 @@ public class SubscriptionLifecyclePropertyTests
             .ReturnsAsync(freePlan);
 
         Subscription? captured = null;
-        _subRepo.Setup(r => r.CreateAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
+        _subRepo.Setup(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
             .Callback<Subscription, CancellationToken>((s, _) => captured = s)
             .ReturnsAsync((Subscription s, CancellationToken _) => s);
 
@@ -318,7 +322,7 @@ public class SubscriptionLifecyclePropertyTests
             .ReturnsAsync((Subscription?)null);
         _planRepo.Setup(r => r.GetByIdAsync(freePlan.PlanId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(freePlan);
-        _subRepo.Setup(r => r.CreateAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
+        _subRepo.Setup(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Subscription s, CancellationToken _) => s);
 
         var service = CreateService();
@@ -347,7 +351,7 @@ public class SubscriptionLifecyclePropertyTests
             .ReturnsAsync((Subscription?)null);
         _planRepo.Setup(r => r.GetByIdAsync(freePlan.PlanId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(freePlan);
-        _subRepo.Setup(r => r.CreateAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
+        _subRepo.Setup(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Subscription s, CancellationToken _) => s);
 
         var service = CreateService();
@@ -377,7 +381,7 @@ public class SubscriptionLifecyclePropertyTests
             .ReturnsAsync((expectedCustomerId, "sub_test"));
 
         Subscription? captured = null;
-        _subRepo.Setup(r => r.CreateAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
+        _subRepo.Setup(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
             .Callback<Subscription, CancellationToken>((s, _) => captured = s)
             .ReturnsAsync((Subscription s, CancellationToken _) => s);
 

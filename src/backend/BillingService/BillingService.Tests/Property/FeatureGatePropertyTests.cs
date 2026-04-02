@@ -7,11 +7,13 @@ using BillingService.Domain.Interfaces.Repositories.Subscriptions;
 using BillingService.Domain.Interfaces.Services.Outbox;
 using BillingService.Domain.Interfaces.Services.Stripe;
 using BillingService.Domain.Interfaces.Services.Usage;
+using BillingService.Infrastructure.Data;
 using BillingService.Infrastructure.Services.FeatureGates;
 using BillingService.Infrastructure.Services.ServiceClients;
 using BillingService.Infrastructure.Services.Subscriptions;
 using BillingService.Tests.Property.Generators;
 using FsCheck.Xunit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using StackExchange.Redis;
@@ -129,7 +131,7 @@ public class FeatureGatePropertyTests
         var mockSubRepo = new Mock<ISubscriptionRepository>();
         mockSubRepo.Setup(r => r.GetByOrganizationIdAsync(orgId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Subscription?)null);
-        mockSubRepo.Setup(r => r.CreateAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
+        mockSubRepo.Setup(r => r.AddAsync(It.IsAny<Subscription>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Subscription s, CancellationToken _) => s);
 
         var mockPlanRepo = new Mock<IPlanRepository>();
@@ -150,7 +152,9 @@ public class FeatureGatePropertyTests
         mockRedis.Setup(r => r.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(mockDb.Object);
 
         var mockLogger = new Mock<ILogger<SubscriptionService>>();
+        var dbContext = new BillingDbContext(new DbContextOptionsBuilder<BillingDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
         var service = new SubscriptionService(
+            dbContext,
             mockSubRepo.Object, mockPlanRepo.Object, mockStripe.Object,
             mockUsage.Object, mockOutbox.Object, mockProfile.Object,
             mockRedis.Object, mockLogger.Object);

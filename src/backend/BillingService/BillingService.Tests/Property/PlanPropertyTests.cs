@@ -2,10 +2,12 @@ using System.Text.Json;
 using BillingService.Application.DTOs.Plans;
 using BillingService.Domain.Entities;
 using BillingService.Domain.Interfaces.Repositories.Plans;
+using BillingService.Infrastructure.Data;
 using BillingService.Infrastructure.Services.Plans;
 using BillingService.Tests.Property.Generators;
 using FsCheck;
 using FsCheck.Xunit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using StackExchange.Redis;
@@ -49,7 +51,8 @@ public class PlanPropertyTests
 
         var mockRedis = new Mock<IConnectionMultiplexer>();
         var mockLogger = new Mock<ILogger<PlanService>>();
-        var service = new PlanService(mockRepo.Object, mockRedis.Object, mockLogger.Object);
+        var dbContext = new BillingDbContext(new DbContextOptionsBuilder<BillingDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        var service = new PlanService(dbContext, mockRepo.Object, mockRedis.Object, mockLogger.Object);
 
         // Act
         var result = await service.GetAllActiveAsync(CancellationToken.None);
@@ -96,17 +99,18 @@ public class PlanPropertyTests
         var mockRepo = new Mock<IPlanRepository>();
         mockRepo.Setup(r => r.ExistsByCodeAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((string code, CancellationToken _) => existingCodes.Contains(code));
-        mockRepo.Setup(r => r.CreateAsync(It.IsAny<Plan>(), It.IsAny<CancellationToken>()))
+        mockRepo.Setup(r => r.AddAsync(It.IsAny<Plan>(), It.IsAny<CancellationToken>()))
             .Callback<Plan, CancellationToken>((p, _) =>
             {
                 createdPlans.Add(p);
                 existingCodes.Add(p.PlanCode);
             })
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync((Plan p, CancellationToken _) => p);
 
         var mockRedis = new Mock<IConnectionMultiplexer>();
         var mockLogger = new Mock<ILogger<PlanService>>();
-        var service = new PlanService(mockRepo.Object, mockRedis.Object, mockLogger.Object);
+        var dbContext = new BillingDbContext(new DbContextOptionsBuilder<BillingDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        var service = new PlanService(dbContext, mockRepo.Object, mockRedis.Object, mockLogger.Object);
 
         // Seed first time
         await service.SeedPlansAsync(CancellationToken.None);
