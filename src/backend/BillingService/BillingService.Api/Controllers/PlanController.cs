@@ -1,3 +1,4 @@
+using BillingService.Api.Extensions;
 using BillingService.Application.DTOs;
 using BillingService.Domain.Interfaces.Services.Plans;
 using Microsoft.AspNetCore.Authorization;
@@ -28,11 +29,9 @@ public class PlanController : ControllerBase
     /// <response code="200">Plans retrieved</response>
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> GetAll(CancellationToken ct)
+    public async Task<IActionResult> GetAll(CancellationToken ct)
     {
         var result = await _planService.GetAllActiveAsync(ct);
-        var response = ApiResponse<object>.Ok(result);
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return Ok(response);
+        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
     }
 }

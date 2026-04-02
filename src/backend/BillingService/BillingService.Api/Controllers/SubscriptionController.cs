@@ -1,4 +1,5 @@
 using BillingService.Api.Attributes;
+using BillingService.Api.Extensions;
 using BillingService.Application.DTOs;
 using BillingService.Application.DTOs.Subscriptions;
 using BillingService.Domain.Interfaces.Services.Subscriptions;
@@ -33,11 +34,11 @@ public class SubscriptionController : ControllerBase
     [HttpGet("current")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> GetCurrent(CancellationToken ct)
+    public async Task<IActionResult> GetCurrent(CancellationToken ct)
     {
         var orgId = GetOrganizationId();
         var result = await _subscriptionService.GetCurrentAsync(orgId, ct);
-        return Ok(Wrap(result));
+        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -67,12 +68,12 @@ public class SubscriptionController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status502BadGateway)]
-    public async Task<ActionResult<ApiResponse<object>>> Create(
+    public async Task<IActionResult> Create(
         [FromBody] CreateSubscriptionRequest request, CancellationToken ct)
     {
         var orgId = GetOrganizationId();
         var result = await _subscriptionService.CreateAsync(orgId, request, ct);
-        return StatusCode(201, Wrap(result, "Subscription created."));
+        return ApiResponse<object>.Ok(result, "Subscription created.").ToActionResult(HttpContext, 201);
     }
 
     /// <summary>
@@ -98,12 +99,12 @@ public class SubscriptionController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status502BadGateway)]
-    public async Task<ActionResult<ApiResponse<object>>> Upgrade(
+    public async Task<IActionResult> Upgrade(
         [FromBody] UpgradeSubscriptionRequest request, CancellationToken ct)
     {
         var orgId = GetOrganizationId();
         var result = await _subscriptionService.UpgradeAsync(orgId, request, ct);
-        return Ok(Wrap(result, "Subscription upgraded."));
+        return ApiResponse<object>.Ok(result, "Subscription upgraded.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -127,12 +128,12 @@ public class SubscriptionController : ControllerBase
     [HttpPatch("downgrade")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResponse<object>>> Downgrade(
+    public async Task<IActionResult> Downgrade(
         [FromBody] DowngradeSubscriptionRequest request, CancellationToken ct)
     {
         var orgId = GetOrganizationId();
         var result = await _subscriptionService.DowngradeAsync(orgId, request, ct);
-        return Ok(Wrap(result, "Downgrade scheduled."));
+        return ApiResponse<object>.Ok(result, "Downgrade scheduled.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -145,20 +146,13 @@ public class SubscriptionController : ControllerBase
     [HttpPost("cancel")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResponse<object>>> Cancel(CancellationToken ct)
+    public async Task<IActionResult> Cancel(CancellationToken ct)
     {
         var orgId = GetOrganizationId();
         var result = await _subscriptionService.CancelAsync(orgId, ct);
-        return Ok(Wrap(result, "Subscription cancelled."));
+        return ApiResponse<object>.Ok(result, "Subscription cancelled.").ToActionResult(HttpContext);
     }
 
     private Guid GetOrganizationId() =>
         Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
-
-    private ApiResponse<object> Wrap(object data, string? message = null)
-    {
-        var response = ApiResponse<object>.Ok(data, message);
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return response;
-    }
 }

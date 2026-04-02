@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkService.Api.Attributes;
+using WorkService.Api.Extensions;
 using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.TimeEntries;
 using WorkService.Domain.Interfaces.Services.TimeEntries;
@@ -32,13 +33,13 @@ public class TimeEntryController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> Create(
+    public async Task<IActionResult> Create(
         [FromBody] CreateTimeEntryRequest request, CancellationToken ct)
     {
         var orgId = GetOrganizationId();
         var userId = GetUserId();
         var result = await _timeEntryService.CreateAsync(orgId, userId, request, ct);
-        return StatusCode(201, Wrap(result, "Time entry created successfully."));
+        return ApiResponse<object>.Ok(result, "Time entry created successfully.").ToActionResult(HttpContext, 201);
     }
 
     /// <summary>
@@ -46,7 +47,7 @@ public class TimeEntryController : ControllerBase
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> List(
+    public async Task<IActionResult> List(
         [FromQuery] Guid? storyId = null, [FromQuery] Guid? projectId = null,
         [FromQuery] Guid? sprintId = null, [FromQuery] Guid? memberId = null,
         [FromQuery] DateTime? dateFrom = null, [FromQuery] DateTime? dateTo = null,
@@ -57,7 +58,7 @@ public class TimeEntryController : ControllerBase
         var orgId = GetOrganizationId();
         var result = await _timeEntryService.ListAsync(orgId, storyId, projectId, sprintId,
             memberId, dateFrom, dateTo, isBillable, status, page, pageSize, ct);
-        return Ok(Wrap(result, "Time entries retrieved."));
+        return ApiResponse<object>.Ok(result, "Time entries retrieved.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -67,12 +68,12 @@ public class TimeEntryController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> Update(
+    public async Task<IActionResult> Update(
         Guid timeEntryId, [FromBody] UpdateTimeEntryRequest request, CancellationToken ct)
     {
         var userId = GetUserId();
         var result = await _timeEntryService.UpdateAsync(timeEntryId, userId, request, ct);
-        return Ok(Wrap(result, "Time entry updated."));
+        return ApiResponse<object>.Ok(result, "Time entry updated.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -82,11 +83,11 @@ public class TimeEntryController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> Delete(Guid timeEntryId, CancellationToken ct)
+    public async Task<IActionResult> Delete(Guid timeEntryId, CancellationToken ct)
     {
         var userId = GetUserId();
         await _timeEntryService.DeleteAsync(timeEntryId, userId, ct);
-        return Ok(Wrap<object>(null!, "Time entry deleted."));
+        return ApiResponse<object>.Ok(null!, "Time entry deleted.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -96,13 +97,13 @@ public class TimeEntryController : ControllerBase
     [DeptLead]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<ApiResponse<object>>> Approve(Guid timeEntryId, CancellationToken ct)
+    public async Task<IActionResult> Approve(Guid timeEntryId, CancellationToken ct)
     {
         var approverId = GetUserId();
         var approverRole = GetRole();
         var approverDeptId = GetDepartmentId();
         var result = await _timeEntryService.ApproveAsync(timeEntryId, approverId, approverRole, approverDeptId, ct);
-        return Ok(Wrap(result, "Time entry approved."));
+        return ApiResponse<object>.Ok(result, "Time entry approved.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -112,14 +113,14 @@ public class TimeEntryController : ControllerBase
     [DeptLead]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<ApiResponse<object>>> Reject(
+    public async Task<IActionResult> Reject(
         Guid timeEntryId, [FromBody] RejectTimeEntryRequest request, CancellationToken ct)
     {
         var approverId = GetUserId();
         var approverRole = GetRole();
         var approverDeptId = GetDepartmentId();
         var result = await _timeEntryService.RejectAsync(timeEntryId, approverId, approverRole, approverDeptId, request.Reason, ct);
-        return Ok(Wrap(result, "Time entry rejected."));
+        return ApiResponse<object>.Ok(result, "Time entry rejected.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -128,13 +129,13 @@ public class TimeEntryController : ControllerBase
     [HttpPost("timer/start")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<ApiResponse<object>>> StartTimer(
+    public async Task<IActionResult> StartTimer(
         [FromBody] TimerStartRequest request, CancellationToken ct)
     {
         var userId = GetUserId();
         var orgId = GetOrganizationId();
         var result = await _timerSessionService.StartAsync(userId, request.StoryId, orgId, ct);
-        return Ok(Wrap(result, "Timer started."));
+        return ApiResponse<object>.Ok(result, "Timer started.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -143,12 +144,12 @@ public class TimeEntryController : ControllerBase
     [HttpPost("timer/stop")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResponse<object>>> StopTimer(CancellationToken ct)
+    public async Task<IActionResult> StopTimer(CancellationToken ct)
     {
         var userId = GetUserId();
         var orgId = GetOrganizationId();
         var result = await _timerSessionService.StopAsync(userId, orgId, ct);
-        return Ok(Wrap(result, "Timer stopped."));
+        return ApiResponse<object>.Ok(result, "Timer stopped.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -157,26 +158,17 @@ public class TimeEntryController : ControllerBase
     [HttpGet("timer/status")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<ActionResult<ApiResponse<object>>> GetTimerStatus(CancellationToken ct)
+    public async Task<IActionResult> GetTimerStatus(CancellationToken ct)
     {
         var userId = GetUserId();
         var result = await _timerSessionService.GetStatusAsync(userId, ct);
         if (result == null)
             return NoContent();
-        return Ok(Wrap(result, "Timer status retrieved."));
+        return ApiResponse<object>.Ok(result, "Timer status retrieved.").ToActionResult(HttpContext);
     }
 
     private Guid GetOrganizationId() => Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
     private Guid GetUserId() => Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
     private string GetRole() => HttpContext.Items["roleName"]?.ToString() ?? string.Empty;
     private Guid GetDepartmentId() => Guid.TryParse(HttpContext.Items["departmentId"]?.ToString(), out var id) ? id : Guid.Empty;
-
-    private ApiResponse<T> Wrap<T>(T data, string? message = null)
-    {
-        var response = ApiResponse<T>.Ok(data, message);
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return response;
-    }
-
-    private ApiResponse<object> Wrap(object data, string? message = null) => Wrap<object>(data, message);
 }

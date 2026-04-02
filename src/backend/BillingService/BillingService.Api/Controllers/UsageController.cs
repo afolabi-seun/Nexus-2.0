@@ -1,4 +1,5 @@
 using BillingService.Api.Attributes;
+using BillingService.Api.Extensions;
 using BillingService.Application.DTOs;
 using BillingService.Application.DTOs.Usage;
 using BillingService.Domain.Interfaces.Services.Usage;
@@ -21,18 +22,16 @@ public class UsageController : ControllerBase
 
     [HttpGet]
     [OrgAdmin]
-    public async Task<ActionResult<ApiResponse<object>>> GetUsage(CancellationToken ct)
+    public async Task<IActionResult> GetUsage(CancellationToken ct)
     {
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
         var result = await _usageService.GetUsageAsync(orgId, ct);
-        var response = ApiResponse<object>.Ok(result);
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return Ok(response);
+        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
     }
 
     [HttpPost("increment")]
     [ServiceAuth]
-    public async Task<ActionResult<ApiResponse<object>>> Increment(
+    public async Task<IActionResult> Increment(
         [FromBody] IncrementUsageRequest request, CancellationToken ct)
     {
         // For service-to-service calls, organizationId comes from query or body
@@ -41,12 +40,10 @@ public class UsageController : ControllerBase
 
         if (string.IsNullOrEmpty(orgIdStr) || !Guid.TryParse(orgIdStr, out var orgId))
         {
-            return BadRequest(ApiResponse<object>.Fail(1000, "VALIDATION_ERROR", "organizationId is required."));
+            return ApiResponseExtensions.ToBadRequest("organizationId is required.", HttpContext);
         }
 
         await _usageService.IncrementAsync(orgId, request.MetricName, request.Value, ct);
-        var response = ApiResponse<object>.Ok(new { }, "Usage incremented.");
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return Ok(response);
+        return ApiResponse<object>.Ok(new { }, "Usage incremented.").ToActionResult(HttpContext);
     }
 }

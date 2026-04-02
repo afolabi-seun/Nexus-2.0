@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkService.Api.Attributes;
+using WorkService.Api.Extensions;
 using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.Labels;
 using WorkService.Application.DTOs.Stories;
@@ -56,13 +57,13 @@ public class StoryController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> Create(
+    public async Task<IActionResult> Create(
         [FromBody] CreateStoryRequest request, CancellationToken ct)
     {
         var orgId = GetOrganizationId();
         var userId = GetUserId();
         var result = await _storyService.CreateAsync(orgId, userId, request, ct);
-        return StatusCode(201, Wrap(result, "Story created successfully."));
+        return ApiResponse<object>.Ok(result, "Story created successfully.").ToActionResult(HttpContext, 201);
     }
 
     /// <summary>
@@ -84,7 +85,7 @@ public class StoryController : ControllerBase
     /// <response code="200">Stories retrieved</response>
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> List(
+    public async Task<IActionResult> List(
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20,
         [FromQuery] Guid? projectId = null, [FromQuery] string? status = null,
         [FromQuery] string? priority = null, [FromQuery] Guid? departmentId = null,
@@ -95,7 +96,7 @@ public class StoryController : ControllerBase
     {
         var orgId = GetOrganizationId();
         var result = await _storyService.ListAsync(orgId, page, pageSize, projectId, status, priority, departmentId, assigneeId, sprintId, labels, dateFrom, dateTo, ct);
-        return Ok(Wrap(result, "Stories retrieved."));
+        return ApiResponse<object>.Ok(result, "Stories retrieved.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -109,10 +110,10 @@ public class StoryController : ControllerBase
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> GetById(Guid id, CancellationToken ct)
+    public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
         var result = await _storyService.GetByIdAsync(id, ct);
-        return Ok(Wrap(result));
+        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -126,10 +127,10 @@ public class StoryController : ControllerBase
     [HttpGet("by-key/{storyKey}")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> GetByKey(string storyKey, CancellationToken ct)
+    public async Task<IActionResult> GetByKey(string storyKey, CancellationToken ct)
     {
         var result = await _storyService.GetByKeyAsync(storyKey, ct);
-        return Ok(Wrap(result));
+        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -144,12 +145,12 @@ public class StoryController : ControllerBase
     [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> Update(
+    public async Task<IActionResult> Update(
         Guid id, [FromBody] UpdateStoryRequest request, CancellationToken ct)
     {
         var userId = GetUserId();
         var result = await _storyService.UpdateAsync(id, userId, request, ct);
-        return Ok(Wrap(result, "Story updated."));
+        return ApiResponse<object>.Ok(result, "Story updated.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -166,10 +167,10 @@ public class StoryController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> Delete(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
         await _storyService.DeleteAsync(id, ct);
-        return Ok(Wrap<object>(null!, "Story deleted."));
+        return ApiResponse<object>.Ok(null!, "Story deleted.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -193,12 +194,12 @@ public class StoryController : ControllerBase
     [HttpPatch("{id:guid}/status")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResponse<object>>> TransitionStatus(
+    public async Task<IActionResult> TransitionStatus(
         Guid id, [FromBody] StoryStatusRequest request, CancellationToken ct)
     {
         var userId = GetUserId();
         var result = await _storyService.TransitionStatusAsync(id, userId, request.Status, ct);
-        return Ok(Wrap(result, "Story status updated."));
+        return ApiResponse<object>.Ok(result, "Story status updated.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -214,14 +215,14 @@ public class StoryController : ControllerBase
     [DeptLead]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> Assign(
+    public async Task<IActionResult> Assign(
         Guid id, [FromBody] StoryAssignRequest request, CancellationToken ct)
     {
         var userId = GetUserId();
         var role = GetRole();
         var deptId = GetDepartmentId();
         var result = await _storyService.AssignAsync(id, userId, request.AssigneeId, role, deptId, ct);
-        return Ok(Wrap(result, "Story assigned."));
+        return ApiResponse<object>.Ok(result, "Story assigned.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -230,11 +231,11 @@ public class StoryController : ControllerBase
     [HttpPatch("{id:guid}/unassign")]
     [DeptLead]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> Unassign(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Unassign(Guid id, CancellationToken ct)
     {
         var userId = GetUserId();
         await _storyService.UnassignAsync(id, userId, ct);
-        return Ok(Wrap<object>(null!, "Story unassigned."));
+        return ApiResponse<object>.Ok(null!, "Story unassigned.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -242,11 +243,11 @@ public class StoryController : ControllerBase
     /// </summary>
     [HttpPost("{id:guid}/links")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status201Created)]
-    public async Task<ActionResult<ApiResponse<object>>> CreateLink(
+    public async Task<IActionResult> CreateLink(
         Guid id, [FromBody] CreateStoryLinkRequest request, CancellationToken ct)
     {
         await _storyService.CreateLinkAsync(id, request.TargetStoryId, request.LinkType, ct);
-        return StatusCode(201, Wrap<object>(null!, "Story link created."));
+        return ApiResponse<object>.Ok(null!, "Story link created.").ToActionResult(HttpContext, 201);
     }
 
     /// <summary>
@@ -254,10 +255,10 @@ public class StoryController : ControllerBase
     /// </summary>
     [HttpDelete("{id:guid}/links/{linkId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> DeleteLink(Guid id, Guid linkId, CancellationToken ct)
+    public async Task<IActionResult> DeleteLink(Guid id, Guid linkId, CancellationToken ct)
     {
         await _storyService.DeleteLinkAsync(id, linkId, ct);
-        return Ok(Wrap<object>(null!, "Story link deleted."));
+        return ApiResponse<object>.Ok(null!, "Story link deleted.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -265,11 +266,11 @@ public class StoryController : ControllerBase
     /// </summary>
     [HttpPost("{id:guid}/labels")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> ApplyLabel(
+    public async Task<IActionResult> ApplyLabel(
         Guid id, [FromBody] ApplyLabelRequest request, CancellationToken ct)
     {
         await _storyService.ApplyLabelAsync(id, request.LabelId, ct);
-        return Ok(Wrap<object>(null!, "Label applied."));
+        return ApiResponse<object>.Ok(null!, "Label applied.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -277,10 +278,10 @@ public class StoryController : ControllerBase
     /// </summary>
     [HttpDelete("{id:guid}/labels/{labelId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> RemoveLabel(Guid id, Guid labelId, CancellationToken ct)
+    public async Task<IActionResult> RemoveLabel(Guid id, Guid labelId, CancellationToken ct)
     {
         await _storyService.RemoveLabelAsync(id, labelId, ct);
-        return Ok(Wrap<object>(null!, "Label removed."));
+        return ApiResponse<object>.Ok(null!, "Label removed.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -288,10 +289,10 @@ public class StoryController : ControllerBase
     /// </summary>
     [HttpGet("{id:guid}/comments")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> ListComments(Guid id, CancellationToken ct)
+    public async Task<IActionResult> ListComments(Guid id, CancellationToken ct)
     {
         var result = await _commentService.ListByEntityAsync("Story", id, ct);
-        return Ok(Wrap(result, "Comments retrieved."));
+        return ApiResponse<object>.Ok(result, "Comments retrieved.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -299,23 +300,14 @@ public class StoryController : ControllerBase
     /// </summary>
     [HttpGet("{id:guid}/activity")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> ListActivity(Guid id, CancellationToken ct)
+    public async Task<IActionResult> ListActivity(Guid id, CancellationToken ct)
     {
         var result = await _activityLogService.GetByEntityAsync("Story", id, ct);
-        return Ok(Wrap(result, "Activity log retrieved."));
+        return ApiResponse<object>.Ok(result, "Activity log retrieved.").ToActionResult(HttpContext);
     }
 
     private Guid GetOrganizationId() => Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
     private Guid GetUserId() => Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
     private string GetRole() => HttpContext.Items["roleName"]?.ToString() ?? string.Empty;
     private Guid GetDepartmentId() => Guid.TryParse(HttpContext.Items["departmentId"]?.ToString(), out var id) ? id : Guid.Empty;
-
-    private ApiResponse<T> Wrap<T>(T data, string? message = null)
-    {
-        var response = ApiResponse<T>.Ok(data, message);
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return response;
-    }
-
-    private ApiResponse<object> Wrap(object data, string? message = null) => Wrap<object>(data, message);
 }

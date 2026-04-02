@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkService.Api.Attributes;
+using WorkService.Api.Extensions;
 using WorkService.Application.DTOs;
 using WorkService.Domain.Interfaces.Repositories.Stories;
 using WorkService.Domain.Interfaces.Repositories.StoryLinks;
@@ -35,56 +36,56 @@ public class AnalyticsController : ControllerBase
 
     [HttpGet("velocity")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> GetVelocityTrends(
+    public async Task<IActionResult> GetVelocityTrends(
         [FromQuery] Guid projectId, [FromQuery] int sprintCount = 10, CancellationToken ct = default)
     {
         var result = await _analyticsService.GetVelocityTrendsAsync(projectId, sprintCount, ct);
-        return Ok(Wrap(result, "Velocity trends retrieved."));
+        return ApiResponse<object>.Ok(result, "Velocity trends retrieved.").ToActionResult(HttpContext);
     }
 
     [HttpGet("resource-management")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> GetResourceManagement(
+    public async Task<IActionResult> GetResourceManagement(
         [FromQuery] DateTime? dateFrom = null, [FromQuery] DateTime? dateTo = null,
         [FromQuery] Guid? departmentId = null, CancellationToken ct = default)
     {
         var orgId = GetOrganizationId();
         var result = await _analyticsService.GetResourceManagementAsync(orgId, dateFrom, dateTo, departmentId, ct);
-        return Ok(Wrap(result, "Resource management data retrieved."));
+        return ApiResponse<object>.Ok(result, "Resource management data retrieved.").ToActionResult(HttpContext);
     }
 
     [HttpGet("resource-utilization")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> GetResourceUtilization(
+    public async Task<IActionResult> GetResourceUtilization(
         [FromQuery] Guid projectId, [FromQuery] DateTime? dateFrom = null,
         [FromQuery] DateTime? dateTo = null, CancellationToken ct = default)
     {
         var result = await _analyticsService.GetResourceUtilizationAsync(projectId, dateFrom, dateTo, ct);
-        return Ok(Wrap(result, "Resource utilization data retrieved."));
+        return ApiResponse<object>.Ok(result, "Resource utilization data retrieved.").ToActionResult(HttpContext);
     }
 
     [HttpGet("project-cost")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> GetProjectCost(
+    public async Task<IActionResult> GetProjectCost(
         [FromQuery] Guid projectId, [FromQuery] DateTime? dateFrom = null,
         [FromQuery] DateTime? dateTo = null, CancellationToken ct = default)
     {
         var result = await _analyticsService.GetProjectCostAnalyticsAsync(projectId, dateFrom, dateTo, ct);
-        return Ok(Wrap(result, "Project cost analytics retrieved."));
+        return ApiResponse<object>.Ok(result, "Project cost analytics retrieved.").ToActionResult(HttpContext);
     }
 
     [HttpGet("project-health")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> GetProjectHealth(
+    public async Task<IActionResult> GetProjectHealth(
         [FromQuery] Guid projectId, [FromQuery] bool history = false, CancellationToken ct = default)
     {
         var result = await _analyticsService.GetProjectHealthAsync(projectId, history, ct);
-        return Ok(Wrap(result, "Project health data retrieved."));
+        return ApiResponse<object>.Ok(result, "Project health data retrieved.").ToActionResult(HttpContext);
     }
 
     [HttpGet("dependencies")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> GetDependencies(
+    public async Task<IActionResult> GetDependencies(
         [FromQuery] Guid projectId, [FromQuery] Guid? sprintId = null, CancellationToken ct = default)
     {
         var orgId = GetOrganizationId();
@@ -106,44 +107,35 @@ public class AnalyticsController : ControllerBase
         var uniqueLinks = allLinks.DistinctBy(l => l.StoryLinkId).ToList();
 
         var result = _dependencyAnalyzer.Analyze(uniqueLinks, storyList, sprintId);
-        return Ok(Wrap(result, "Dependency analysis retrieved."));
+        return ApiResponse<object>.Ok(result, "Dependency analysis retrieved.").ToActionResult(HttpContext);
     }
 
     [HttpGet("bugs")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> GetBugMetrics(
+    public async Task<IActionResult> GetBugMetrics(
         [FromQuery] Guid projectId, [FromQuery] Guid? sprintId = null, CancellationToken ct = default)
     {
         var result = await _analyticsService.GetBugMetricsAsync(projectId, sprintId, ct);
-        return Ok(Wrap(result, "Bug metrics retrieved."));
+        return ApiResponse<object>.Ok(result, "Bug metrics retrieved.").ToActionResult(HttpContext);
     }
 
     [HttpGet("dashboard")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> GetDashboard(
+    public async Task<IActionResult> GetDashboard(
         [FromQuery] Guid projectId, CancellationToken ct = default)
     {
         var result = await _analyticsService.GetDashboardAsync(projectId, ct);
-        return Ok(Wrap(result, "Dashboard summary retrieved."));
+        return ApiResponse<object>.Ok(result, "Dashboard summary retrieved.").ToActionResult(HttpContext);
     }
 
     [HttpGet("snapshot-status")]
     [DeptLead]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> GetSnapshotStatus(CancellationToken ct = default)
+    public async Task<IActionResult> GetSnapshotStatus(CancellationToken ct = default)
     {
         var result = await _analyticsService.GetSnapshotStatusAsync(ct);
-        return Ok(Wrap(result, "Snapshot status retrieved."));
+        return ApiResponse<object>.Ok(result, "Snapshot status retrieved.").ToActionResult(HttpContext);
     }
 
     private Guid GetOrganizationId() => Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
-
-    private ApiResponse<T> Wrap<T>(T data, string? message = null)
-    {
-        var response = ApiResponse<T>.Ok(data, message);
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return response;
-    }
-
-    private ApiResponse<object> Wrap(object data, string? message = null) => Wrap<object>(data, message);
 }

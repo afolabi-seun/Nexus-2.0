@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SecurityService.Api.Extensions;
 using SecurityService.Application.DTOs;
 using SecurityService.Application.DTOs.Session;
 using SecurityService.Domain.Interfaces.Services.Session;
@@ -19,7 +20,7 @@ public class SessionController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<PaginatedResponse<SessionResponse>>>> GetSessions(
+    public async Task<IActionResult> GetSessions(
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
         pageSize = Math.Min(pageSize, 100);
@@ -45,33 +46,27 @@ public class SessionController : ControllerBase
             TotalPages = 1
         };
 
-        var apiResponse = ApiResponse<PaginatedResponse<SessionResponse>>.Ok(paginated);
-        apiResponse.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return Ok(apiResponse);
+        return ApiResponse<PaginatedResponse<SessionResponse>>.Ok(paginated).ToActionResult(HttpContext);
     }
 
     [HttpDelete("{sessionId}")]
-    public async Task<ActionResult<ApiResponse<object>>> RevokeSession(
+    public async Task<IActionResult> RevokeSession(
         string sessionId, CancellationToken ct)
     {
         var userId = Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
         await _sessionService.RevokeSessionAsync(userId, sessionId, ct);
 
-        var apiResponse = ApiResponse<object>.Ok(null!, "Session revoked.");
-        apiResponse.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return Ok(apiResponse);
+        return ApiResponse<object>.Ok(null!, "Session revoked.").ToActionResult(HttpContext);
     }
 
     [HttpDelete("all")]
-    public async Task<ActionResult<ApiResponse<object>>> RevokeAllSessions(CancellationToken ct)
+    public async Task<IActionResult> RevokeAllSessions(CancellationToken ct)
     {
         var userId = Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
         var currentDeviceId = HttpContext.Items["deviceId"]?.ToString() ?? string.Empty;
 
         await _sessionService.RevokeAllSessionsExceptCurrentAsync(userId, currentDeviceId, ct);
 
-        var apiResponse = ApiResponse<object>.Ok(null!, "All other sessions revoked.");
-        apiResponse.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return Ok(apiResponse);
+        return ApiResponse<object>.Ok(null!, "All other sessions revoked.").ToActionResult(HttpContext);
     }
 }

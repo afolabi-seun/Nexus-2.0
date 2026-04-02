@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using UtilityService.Api.Attributes;
+using UtilityService.Api.Extensions;
 using UtilityService.Application.DTOs;
 using UtilityService.Application.DTOs.ReferenceData;
 using UtilityService.Domain.Interfaces.Services.ReferenceData;
@@ -15,54 +16,48 @@ public class ReferenceDataController : ControllerBase
     public ReferenceDataController(IReferenceDataService referenceDataService) => _referenceDataService = referenceDataService;
 
     [HttpGet("department-types")]
-    public async Task<ActionResult<ApiResponse<object>>> GetDepartmentTypes(CancellationToken ct)
+    public async Task<IActionResult> GetDepartmentTypes(CancellationToken ct)
     {
         var result = await _referenceDataService.GetDepartmentTypesAsync(ct);
-        return Ok(Wrap(result, "Department types retrieved."));
+        return ApiResponse<object>.Ok(result, "Department types retrieved.").ToActionResult(HttpContext);
     }
 
     [HttpGet("priority-levels")]
-    public async Task<ActionResult<ApiResponse<object>>> GetPriorityLevels(CancellationToken ct)
+    public async Task<IActionResult> GetPriorityLevels(CancellationToken ct)
     {
         var result = await _referenceDataService.GetPriorityLevelsAsync(ct);
-        return Ok(Wrap(result, "Priority levels retrieved."));
+        return ApiResponse<object>.Ok(result, "Priority levels retrieved.").ToActionResult(HttpContext);
     }
 
     [HttpGet("task-types")]
-    public async Task<ActionResult<ApiResponse<object>>> GetTaskTypes(CancellationToken ct)
+    public async Task<IActionResult> GetTaskTypes(CancellationToken ct)
     {
         var result = await _referenceDataService.GetTaskTypesAsync(ct);
-        return Ok(Wrap(result, "Task types retrieved."));
+        return ApiResponse<object>.Ok(result, "Task types retrieved.").ToActionResult(HttpContext);
     }
 
     [HttpGet("workflow-states")]
-    public async Task<ActionResult<ApiResponse<object>>> GetWorkflowStates(CancellationToken ct)
+    public async Task<IActionResult> GetWorkflowStates(CancellationToken ct)
     {
         var result = await _referenceDataService.GetWorkflowStatesAsync(ct);
-        return Ok(Wrap(result, "Workflow states retrieved."));
+        return ApiResponse<object>.Ok(result, "Workflow states retrieved.").ToActionResult(HttpContext);
     }
 
     [HttpPost("department-types")]
     [OrgAdmin]
-    public async Task<ActionResult<ApiResponse<object>>> CreateDepartmentType(
+    public async Task<IActionResult> CreateDepartmentType(
         [FromBody] CreateDepartmentTypeRequest request, CancellationToken ct)
     {
         var result = await _referenceDataService.CreateDepartmentTypeAsync(request, ct);
-        return StatusCode(201, Wrap(result, "Department type created."));
+        return ApiResponse<object>.Ok(result, "Department type created.").ToActionResult(HttpContext, 201);
     }
 
     [HttpPost("priority-levels")]
     [OrgAdmin]
-    public async Task<ActionResult<ApiResponse<object>>> CreatePriorityLevel(
+    public async Task<IActionResult> CreatePriorityLevel(
         [FromBody] CreatePriorityLevelRequest request, CancellationToken ct)
     {
         var result = await _referenceDataService.CreatePriorityLevelAsync(request, ct);
-        return StatusCode(201, Wrap(result, "Priority level created."));
+        return ApiResponse<object>.Ok(result, "Priority level created.").ToActionResult(HttpContext, 201);
     }
-
-    private ApiResponse<object> Wrap(object data, string? message = null) => new()
-    {
-        Success = true, Data = data, Message = message,
-        CorrelationId = HttpContext.Items["CorrelationId"]?.ToString()
-    };
 }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkService.Api.Attributes;
+using WorkService.Api.Extensions;
 using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.TimePolicies;
 using WorkService.Domain.Interfaces.Services.TimePolicies;
@@ -27,11 +28,11 @@ public class TimePolicyController : ControllerBase
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> Get(CancellationToken ct)
+    public async Task<IActionResult> Get(CancellationToken ct)
     {
         var orgId = GetOrganizationId();
         var result = await _timePolicyService.GetPolicyAsync(orgId, ct);
-        return Ok(Wrap(result, "Time policy retrieved."));
+        return ApiResponse<object>.Ok(result, "Time policy retrieved.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -41,26 +42,17 @@ public class TimePolicyController : ControllerBase
     [OrgAdmin]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResponse<object>>> Upsert(
+    public async Task<IActionResult> Upsert(
         [FromBody] UpdateTimePolicyRequest request, CancellationToken ct)
     {
         var orgId = GetOrganizationId();
         var userId = GetUserId();
         var userRole = GetRole();
         var result = await _timePolicyService.UpsertAsync(orgId, userId, userRole, request, ct);
-        return Ok(Wrap(result, "Time policy updated."));
+        return ApiResponse<object>.Ok(result, "Time policy updated.").ToActionResult(HttpContext);
     }
 
     private Guid GetOrganizationId() => Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
     private Guid GetUserId() => Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
     private string GetRole() => HttpContext.Items["roleName"]?.ToString() ?? string.Empty;
-
-    private ApiResponse<T> Wrap<T>(T data, string? message = null)
-    {
-        var response = ApiResponse<T>.Ok(data, message);
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return response;
-    }
-
-    private ApiResponse<object> Wrap(object data, string? message = null) => Wrap<object>(data, message);
 }

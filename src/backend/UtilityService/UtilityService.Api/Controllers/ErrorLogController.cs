@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UtilityService.Api.Attributes;
+using UtilityService.Api.Extensions;
 using UtilityService.Application.DTOs;
 using UtilityService.Application.DTOs.ErrorLogs;
 using UtilityService.Domain.Interfaces.Services.ErrorLogs;
@@ -17,27 +18,21 @@ public class ErrorLogController : ControllerBase
 
     [HttpPost]
     [ServiceAuth]
-    public async Task<ActionResult<ApiResponse<object>>> Create(
+    public async Task<IActionResult> Create(
         [FromBody] CreateErrorLogRequest request, CancellationToken ct)
     {
         var result = await _errorLogService.CreateAsync(request, ct);
-        return StatusCode(201, Wrap(result, "Error log created."));
+        return ApiResponse<object>.Ok(result, "Error log created.").ToActionResult(HttpContext, 201);
     }
 
     [HttpGet]
     [OrgAdmin]
-    public async Task<ActionResult<ApiResponse<object>>> Query(
+    public async Task<IActionResult> Query(
         [FromQuery] ErrorLogFilterRequest filter,
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
         var result = await _errorLogService.QueryAsync(orgId, filter, page, pageSize, ct);
-        return Ok(Wrap(result, "Error logs retrieved."));
+        return ApiResponse<object>.Ok(result, "Error logs retrieved.").ToActionResult(HttpContext);
     }
-
-    private ApiResponse<object> Wrap(object data, string? message = null) => new()
-    {
-        Success = true, Data = data, Message = message,
-        CorrelationId = HttpContext.Items["CorrelationId"]?.ToString()
-    };
 }

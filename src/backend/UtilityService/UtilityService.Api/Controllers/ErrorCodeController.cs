@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UtilityService.Api.Attributes;
+using UtilityService.Api.Extensions;
 using UtilityService.Application.DTOs;
 using UtilityService.Application.DTOs.ErrorCodes;
 using UtilityService.Domain.Interfaces.Services.ErrorCodes;
@@ -17,41 +18,35 @@ public class ErrorCodeController : ControllerBase
 
     [HttpPost]
     [OrgAdmin]
-    public async Task<ActionResult<ApiResponse<object>>> Create(
+    public async Task<IActionResult> Create(
         [FromBody] CreateErrorCodeRequest request, CancellationToken ct)
     {
         var result = await _errorCodeService.CreateAsync(request, ct);
-        return StatusCode(201, Wrap(result, "Error code created."));
+        return ApiResponse<object>.Ok(result, "Error code created.").ToActionResult(HttpContext, 201);
     }
 
     [HttpGet]
     [Authorize]
-    public async Task<ActionResult<ApiResponse<object>>> List(CancellationToken ct)
+    public async Task<IActionResult> List(CancellationToken ct)
     {
         var result = await _errorCodeService.ListAsync(ct);
-        return Ok(Wrap(result, "Error codes retrieved."));
+        return ApiResponse<object>.Ok(result, "Error codes retrieved.").ToActionResult(HttpContext);
     }
 
     [HttpPut("{code}")]
     [OrgAdmin]
-    public async Task<ActionResult<ApiResponse<object>>> Update(
+    public async Task<IActionResult> Update(
         string code, [FromBody] UpdateErrorCodeRequest request, CancellationToken ct)
     {
         var result = await _errorCodeService.UpdateAsync(code, request, ct);
-        return Ok(Wrap(result, "Error code updated."));
+        return ApiResponse<object>.Ok(result, "Error code updated.").ToActionResult(HttpContext);
     }
 
     [HttpDelete("{code}")]
     [OrgAdmin]
-    public async Task<ActionResult<ApiResponse<object>>> Delete(string code, CancellationToken ct)
+    public async Task<IActionResult> Delete(string code, CancellationToken ct)
     {
         await _errorCodeService.DeleteAsync(code, ct);
         return NoContent();
     }
-
-    private ApiResponse<object> Wrap(object data, string? message = null) => new()
-    {
-        Success = true, Data = data, Message = message,
-        CorrelationId = HttpContext.Items["CorrelationId"]?.ToString()
-    };
 }

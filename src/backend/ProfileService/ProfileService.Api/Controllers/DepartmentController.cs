@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ProfileService.Api.Extensions;
 using ProfileService.Application.DTOs;
 using ProfileService.Application.DTOs.Departments;
 using ProfileService.Application.DTOs.Organizations;
@@ -20,73 +21,66 @@ public class DepartmentController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<ApiResponse<object>>> Create(
+    public async Task<IActionResult> Create(
         [FromBody] CreateDepartmentRequest request, CancellationToken ct)
     {
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
         var result = await _departmentService.CreateAsync(orgId, request, ct);
-        return StatusCode(201, Wrap(result, "Department created successfully."));
+        return ApiResponse<object>.Ok(result, "Department created successfully.").ToActionResult(HttpContext, 201);
     }
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<object>>> List(
+    public async Task<IActionResult> List(
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
         var result = await _departmentService.ListAsync(orgId, page, pageSize, ct);
-        return Ok(Wrap(result, "Departments retrieved."));
+        return ApiResponse<object>.Ok(result, "Departments retrieved.").ToActionResult(HttpContext);
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<ApiResponse<object>>> GetById(Guid id, CancellationToken ct)
+    public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
         var result = await _departmentService.GetByIdAsync(id, ct);
-        return Ok(Wrap(result));
+        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<ApiResponse<object>>> Update(
+    public async Task<IActionResult> Update(
         Guid id, [FromBody] UpdateDepartmentRequest request, CancellationToken ct)
     {
         var result = await _departmentService.UpdateAsync(id, request, ct);
-        return Ok(Wrap(result, "Department updated."));
+        return ApiResponse<object>.Ok(result, "Department updated.").ToActionResult(HttpContext);
     }
 
     [HttpPatch("{id:guid}/status")]
-    public async Task<ActionResult<ApiResponse<object>>> UpdateStatus(
+    public async Task<IActionResult> UpdateStatus(
         Guid id, [FromBody] StatusChangeRequest request, CancellationToken ct)
     {
         await _departmentService.UpdateStatusAsync(id, request.Status, ct);
-        return Ok(Wrap(null!, "Department status updated."));
+        return ApiResponse<object>.Ok(null!, "Department status updated.").ToActionResult(HttpContext);
     }
 
     [HttpGet("{id:guid}/members")]
-    public async Task<ActionResult<ApiResponse<object>>> ListMembers(
+    public async Task<IActionResult> ListMembers(
         Guid id, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
         var result = await _departmentService.ListMembersAsync(id, page, pageSize, ct);
-        return Ok(Wrap(result, "Department members retrieved."));
+        return ApiResponse<object>.Ok(result, "Department members retrieved.").ToActionResult(HttpContext);
     }
 
     [HttpGet("{id:guid}/preferences")]
-    public async Task<ActionResult<ApiResponse<object>>> GetPreferences(Guid id, CancellationToken ct)
+    public async Task<IActionResult> GetPreferences(Guid id, CancellationToken ct)
     {
         var result = await _departmentService.GetPreferencesAsync(id, ct);
-        return Ok(Wrap(result));
+        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
     }
 
     [HttpPut("{id:guid}/preferences")]
-    public async Task<ActionResult<ApiResponse<object>>> UpdatePreferences(
+    public async Task<IActionResult> UpdatePreferences(
         Guid id, [FromBody] DepartmentPreferencesRequest request, CancellationToken ct)
     {
         var result = await _departmentService.UpdatePreferencesAsync(id, request, ct);
-        return Ok(Wrap(result, "Department preferences updated."));
-    }
-
-    private ApiResponse<object> Wrap(object data, string? message = null)
-    {
-        var response = ApiResponse<object>.Ok(data, message);
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return response;
+        return ApiResponse<object>.Ok(result, "Department preferences updated.").ToActionResult(HttpContext);
     }
 }

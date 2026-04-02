@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SecurityService.Api.Extensions;
 using SecurityService.Application.DTOs;
 using SecurityService.Application.DTOs.Password;
 using SecurityService.Domain.Helpers;
@@ -48,7 +49,7 @@ public class PasswordController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<ApiResponse<object>>> ForcedChange(
+    public async Task<IActionResult> ForcedChange(
         [FromBody] ForcedPasswordChangeRequest request, CancellationToken ct)
     {
         var userId = Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
@@ -67,9 +68,7 @@ public class PasswordController : ControllerBase
             await _profileServiceClient.SetIsFirstTimeUserAsync(userId, false, ct);
         }
 
-        var apiResponse = ApiResponse<object>.Ok(null!, "Password changed successfully.");
-        apiResponse.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return Ok(apiResponse);
+        return ApiResponse<object>.Ok(null!, "Password changed successfully.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -91,14 +90,12 @@ public class PasswordController : ControllerBase
     [HttpPost("reset/request")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> ResetRequest(
+    public async Task<IActionResult> ResetRequest(
         [FromBody] PasswordResetRequest request, CancellationToken ct)
     {
         await _passwordService.ResetRequestAsync(request.Email, ct);
 
-        var apiResponse = ApiResponse<object>.Ok(null!, "Password reset OTP sent.");
-        apiResponse.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return Ok(apiResponse);
+        return ApiResponse<object>.Ok(null!, "Password reset OTP sent.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -124,13 +121,11 @@ public class PasswordController : ControllerBase
     [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResponse<object>>> ResetConfirm(
+    public async Task<IActionResult> ResetConfirm(
         [FromBody] PasswordResetConfirmRequest request, CancellationToken ct)
     {
         await _passwordService.ResetConfirmAsync(request.Email, request.OtpCode, request.NewPassword, ct);
 
-        var apiResponse = ApiResponse<object>.Ok(null!, "Password reset successful.");
-        apiResponse.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return Ok(apiResponse);
+        return ApiResponse<object>.Ok(null!, "Password reset successful.").ToActionResult(HttpContext);
     }
 }

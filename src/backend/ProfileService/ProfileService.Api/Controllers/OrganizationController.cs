@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProfileService.Api.Attributes;
+using ProfileService.Api.Extensions;
 using ProfileService.Application.DTOs;
 using ProfileService.Application.DTOs.Organizations;
 using ProfileService.Domain.Interfaces.Services.Organizations;
@@ -43,12 +44,11 @@ public class OrganizationController : ControllerBase
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<ApiResponse<object>>> Create(
+    public async Task<IActionResult> Create(
         [FromBody] CreateOrganizationRequest request, CancellationToken ct)
     {
         var result = await _organizationService.CreateAsync(request, ct);
-        var response = Wrap(result, "Organization created successfully.");
-        return StatusCode(201, response);
+        return ApiResponse<object>.Ok(result, "Organization created successfully.").ToActionResult(HttpContext, 201);
     }
 
     /// <summary>
@@ -64,11 +64,11 @@ public class OrganizationController : ControllerBase
     [PlatformAdmin]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<ApiResponse<object>>> List(
+    public async Task<IActionResult> List(
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
         var result = await _organizationService.ListAllAsync(page, pageSize, ct);
-        return Ok(Wrap(result, "Organizations retrieved."));
+        return ApiResponse<object>.Ok(result, "Organizations retrieved.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -82,10 +82,10 @@ public class OrganizationController : ControllerBase
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> GetById(Guid id, CancellationToken ct)
+    public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
         var result = await _organizationService.GetByIdAsync(id, ct);
-        return Ok(Wrap(result));
+        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -100,11 +100,11 @@ public class OrganizationController : ControllerBase
     [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> Update(
+    public async Task<IActionResult> Update(
         Guid id, [FromBody] UpdateOrganizationRequest request, CancellationToken ct)
     {
         var result = await _organizationService.UpdateAsync(id, request, ct);
-        return Ok(Wrap(result, "Organization updated."));
+        return ApiResponse<object>.Ok(result, "Organization updated.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -119,11 +119,11 @@ public class OrganizationController : ControllerBase
     [HttpPatch("{id:guid}/status")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> UpdateStatus(
+    public async Task<IActionResult> UpdateStatus(
         Guid id, [FromBody] StatusChangeRequest request, CancellationToken ct)
     {
         await _organizationService.UpdateStatusAsync(id, request.Status, ct);
-        return Ok(Wrap(null!, "Organization status updated."));
+        return ApiResponse<object>.Ok(null!, "Organization status updated.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -149,11 +149,11 @@ public class OrganizationController : ControllerBase
     [HttpPut("{id:guid}/settings")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> UpdateSettings(
+    public async Task<IActionResult> UpdateSettings(
         Guid id, [FromBody] OrganizationSettingsRequest request, CancellationToken ct)
     {
         var result = await _organizationService.UpdateSettingsAsync(id, request, ct);
-        return Ok(Wrap(result, "Organization settings updated."));
+        return ApiResponse<object>.Ok(result, "Organization settings updated.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -182,17 +182,10 @@ public class OrganizationController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<ApiResponse<object>>> ProvisionAdmin(
+    public async Task<IActionResult> ProvisionAdmin(
         Guid id, [FromBody] ProvisionAdminRequest request, CancellationToken ct)
     {
         var result = await _organizationService.ProvisionAdminAsync(id, request, ct);
-        return StatusCode(201, Wrap(result, "Admin provisioned successfully."));
-    }
-
-    private ApiResponse<object> Wrap(object data, string? message = null)
-    {
-        var response = ApiResponse<object>.Ok(data, message);
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return response;
+        return ApiResponse<object>.Ok(result, "Admin provisioned successfully.").ToActionResult(HttpContext, 201);
     }
 }

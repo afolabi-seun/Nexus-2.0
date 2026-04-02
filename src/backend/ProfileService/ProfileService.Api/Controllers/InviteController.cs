@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ProfileService.Api.Extensions;
 using ProfileService.Application.DTOs;
 using ProfileService.Application.DTOs.Invites;
 using ProfileService.Domain.Interfaces.Services.Invites;
@@ -45,7 +46,7 @@ public class InviteController : ControllerBase
     [Authorize]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<ApiResponse<object>>> Create(
+    public async Task<IActionResult> Create(
         [FromBody] CreateInviteRequest request, CancellationToken ct)
     {
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
@@ -54,7 +55,7 @@ public class InviteController : ControllerBase
         var roleName = HttpContext.Items["roleName"]?.ToString() ?? string.Empty;
 
         var result = await _inviteService.CreateAsync(orgId, memberId, departmentId, roleName, request, ct);
-        return StatusCode(201, Wrap(result, "Invite created successfully."));
+        return ApiResponse<object>.Ok(result, "Invite created successfully.").ToActionResult(HttpContext, 201);
     }
 
     /// <summary>
@@ -69,7 +70,7 @@ public class InviteController : ControllerBase
     [HttpGet]
     [Authorize]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> List(
+    public async Task<IActionResult> List(
         [FromQuery] Guid? departmentId = null,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
@@ -79,7 +80,7 @@ public class InviteController : ControllerBase
         var roleName = HttpContext.Items["roleName"]?.ToString() ?? string.Empty;
 
         var result = await _inviteService.ListAsync(orgId, departmentId, roleName, page, pageSize, ct);
-        return Ok(Wrap(result, "Invites retrieved."));
+        return ApiResponse<object>.Ok(result, "Invites retrieved.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -94,11 +95,11 @@ public class InviteController : ControllerBase
     [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status410Gone)]
-    public async Task<ActionResult<ApiResponse<object>>> Validate(
+    public async Task<IActionResult> Validate(
         string token, CancellationToken ct)
     {
         var result = await _inviteService.ValidateTokenAsync(token, ct);
-        return Ok(Wrap(result));
+        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -116,11 +117,11 @@ public class InviteController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status410Gone)]
-    public async Task<ActionResult<ApiResponse<object>>> Accept(
+    public async Task<IActionResult> Accept(
         string token, [FromBody] AcceptInviteRequest request, CancellationToken ct)
     {
         await _inviteService.AcceptAsync(token, request, ct);
-        return Ok(Wrap(null!, "Invite accepted successfully."));
+        return ApiResponse<object>.Ok(null!, "Invite accepted successfully.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -135,16 +136,9 @@ public class InviteController : ControllerBase
     [Authorize]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> Cancel(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Cancel(Guid id, CancellationToken ct)
     {
         await _inviteService.CancelAsync(id, ct);
-        return Ok(Wrap(null!, "Invite cancelled."));
-    }
-
-    private ApiResponse<object> Wrap(object data, string? message = null)
-    {
-        var response = ApiResponse<object>.Ok(data, message);
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return response;
+        return ApiResponse<object>.Ok(null!, "Invite cancelled.").ToActionResult(HttpContext);
     }
 }

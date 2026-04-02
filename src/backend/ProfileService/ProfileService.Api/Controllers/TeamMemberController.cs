@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProfileService.Api.Attributes;
+using ProfileService.Api.Extensions;
 using ProfileService.Application.DTOs;
 using ProfileService.Application.DTOs.Organizations;
 using ProfileService.Application.DTOs.TeamMembers;
@@ -37,7 +38,7 @@ public class TeamMemberController : ControllerBase
     /// <response code="200">Team members retrieved</response>
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> List(
+    public async Task<IActionResult> List(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         [FromQuery] string? departmentId = null,
@@ -48,7 +49,7 @@ public class TeamMemberController : ControllerBase
     {
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
         var result = await _teamMemberService.ListAsync(orgId, page, pageSize, departmentId, role, status, availability, ct);
-        return Ok(Wrap(result, "Team members retrieved."));
+        return ApiResponse<object>.Ok(result, "Team members retrieved.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -62,10 +63,10 @@ public class TeamMemberController : ControllerBase
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> GetById(Guid id, CancellationToken ct)
+    public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
         var result = await _teamMemberService.GetByIdAsync(id, ct);
-        return Ok(Wrap(result));
+        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -91,11 +92,11 @@ public class TeamMemberController : ControllerBase
     [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> Update(
+    public async Task<IActionResult> Update(
         Guid id, [FromBody] UpdateTeamMemberRequest request, CancellationToken ct)
     {
         var result = await _teamMemberService.UpdateAsync(id, request, ct);
-        return Ok(Wrap(result, "Team member updated."));
+        return ApiResponse<object>.Ok(result, "Team member updated.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -110,11 +111,11 @@ public class TeamMemberController : ControllerBase
     [HttpPatch("{id:guid}/status")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResponse<object>>> UpdateStatus(
+    public async Task<IActionResult> UpdateStatus(
         Guid id, [FromBody] StatusChangeRequest request, CancellationToken ct)
     {
         await _teamMemberService.UpdateStatusAsync(id, request.Status, ct);
-        return Ok(Wrap(null!, "Team member status updated."));
+        return ApiResponse<object>.Ok(null!, "Team member status updated.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -127,11 +128,11 @@ public class TeamMemberController : ControllerBase
     /// <response code="200">Availability updated</response>
     [HttpPatch("{id:guid}/availability")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> UpdateAvailability(
+    public async Task<IActionResult> UpdateAvailability(
         Guid id, [FromBody] AvailabilityRequest request, CancellationToken ct)
     {
         await _teamMemberService.UpdateAvailabilityAsync(id, request.Availability, ct);
-        return Ok(Wrap(null!, "Availability updated."));
+        return ApiResponse<object>.Ok(null!, "Availability updated.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -146,11 +147,11 @@ public class TeamMemberController : ControllerBase
     [HttpPost("{id:guid}/departments")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<ApiResponse<object>>> AddToDepartment(
+    public async Task<IActionResult> AddToDepartment(
         Guid id, [FromBody] AddDepartmentRequest request, CancellationToken ct)
     {
         await _teamMemberService.AddToDepartmentAsync(id, request, ct);
-        return Ok(Wrap(null!, "Member added to department."));
+        return ApiResponse<object>.Ok(null!, "Member added to department.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -165,11 +166,11 @@ public class TeamMemberController : ControllerBase
     [HttpDelete("{id:guid}/departments/{deptId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResponse<object>>> RemoveFromDepartment(
+    public async Task<IActionResult> RemoveFromDepartment(
         Guid id, Guid deptId, CancellationToken ct)
     {
         await _teamMemberService.RemoveFromDepartmentAsync(id, deptId, ct);
-        return Ok(Wrap(null!, "Member removed from department."));
+        return ApiResponse<object>.Ok(null!, "Member removed from department.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -183,11 +184,11 @@ public class TeamMemberController : ControllerBase
     /// <response code="200">Department role updated</response>
     [HttpPatch("{id:guid}/departments/{deptId:guid}/role")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> ChangeDepartmentRole(
+    public async Task<IActionResult> ChangeDepartmentRole(
         Guid id, Guid deptId, [FromBody] ChangeRoleRequest request, CancellationToken ct)
     {
         await _teamMemberService.ChangeDepartmentRoleAsync(id, deptId, request, ct);
-        return Ok(Wrap(null!, "Department role updated."));
+        return ApiResponse<object>.Ok(null!, "Department role updated.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -202,11 +203,11 @@ public class TeamMemberController : ControllerBase
     [ServiceAuth]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> GetByEmail(
+    public async Task<IActionResult> GetByEmail(
         string email, CancellationToken ct)
     {
         var result = await _teamMemberService.GetByEmailAsync(email, ct);
-        return Ok(Wrap(result));
+        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -220,18 +221,11 @@ public class TeamMemberController : ControllerBase
     [HttpPatch("{id:guid}/password")]
     [ServiceAuth]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> UpdatePassword(
+    public async Task<IActionResult> UpdatePassword(
         Guid id, [FromBody] PasswordUpdateRequest request, CancellationToken ct)
     {
         await _teamMemberService.UpdatePasswordAsync(id, request.PasswordHash, ct);
-        return Ok(Wrap(null!, "Password updated."));
-    }
-
-    private ApiResponse<object> Wrap(object data, string? message = null)
-    {
-        var response = ApiResponse<object>.Ok(data, message);
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return response;
+        return ApiResponse<object>.Ok(null!, "Password updated.").ToActionResult(HttpContext);
     }
 }
 

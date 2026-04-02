@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ProfileService.Api.Extensions;
 using ProfileService.Application.DTOs;
 using ProfileService.Domain.Interfaces.Services.Devices;
 
@@ -18,33 +19,26 @@ public class DeviceController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<object>>> List(CancellationToken ct)
+    public async Task<IActionResult> List(CancellationToken ct)
     {
         var memberId = Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
         var result = await _deviceService.ListAsync(memberId, ct);
-        return Ok(Wrap(result, "Devices retrieved."));
+        return ApiResponse<object>.Ok(result, "Devices retrieved.").ToActionResult(HttpContext);
     }
 
     [HttpPatch("{id:guid}/primary")]
-    public async Task<ActionResult<ApiResponse<object>>> SetPrimary(Guid id, CancellationToken ct)
+    public async Task<IActionResult> SetPrimary(Guid id, CancellationToken ct)
     {
         var memberId = Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
         await _deviceService.SetPrimaryAsync(memberId, id, ct);
-        return Ok(Wrap(null!, "Primary device updated."));
+        return ApiResponse<object>.Ok(null!, "Primary device updated.").ToActionResult(HttpContext);
     }
 
     [HttpDelete("{id:guid}")]
-    public async Task<ActionResult<ApiResponse<object>>> Remove(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Remove(Guid id, CancellationToken ct)
     {
         var memberId = Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
         await _deviceService.RemoveAsync(memberId, id, ct);
-        return Ok(Wrap(null!, "Device removed."));
-    }
-
-    private ApiResponse<object> Wrap(object data, string? message = null)
-    {
-        var response = ApiResponse<object>.Ok(data, message);
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return response;
+        return ApiResponse<object>.Ok(null!, "Device removed.").ToActionResult(HttpContext);
     }
 }

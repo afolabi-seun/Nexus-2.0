@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkService.Api.Attributes;
+using WorkService.Api.Extensions;
 using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.Sprints;
 using WorkService.Domain.Interfaces.Services.Sprints;
@@ -53,12 +54,12 @@ public class SprintController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> Create(
+    public async Task<IActionResult> Create(
         Guid projectId, [FromBody] CreateSprintRequest request, CancellationToken ct)
     {
         var orgId = GetOrganizationId();
         var result = await _sprintService.CreateAsync(orgId, projectId, request, ct);
-        return StatusCode(201, Wrap(result, "Sprint created successfully."));
+        return ApiResponse<object>.Ok(result, "Sprint created successfully.").ToActionResult(HttpContext, 201);
     }
 
     /// <summary>
@@ -73,14 +74,14 @@ public class SprintController : ControllerBase
     /// <response code="200">Sprints retrieved</response>
     [HttpGet("sprints")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> List(
+    public async Task<IActionResult> List(
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20,
         [FromQuery] string? status = null, [FromQuery] Guid? projectId = null,
         CancellationToken ct = default)
     {
         var orgId = GetOrganizationId();
         var result = await _sprintService.ListAsync(orgId, page, pageSize, status, projectId, ct);
-        return Ok(Wrap(result, "Sprints retrieved."));
+        return ApiResponse<object>.Ok(result, "Sprints retrieved.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -94,10 +95,10 @@ public class SprintController : ControllerBase
     [HttpGet("sprints/{id:guid}")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> GetById(Guid id, CancellationToken ct)
+    public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
         var result = await _sprintService.GetByIdAsync(id, ct);
-        return Ok(Wrap(result));
+        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -113,11 +114,11 @@ public class SprintController : ControllerBase
     [DeptLead]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> Update(
+    public async Task<IActionResult> Update(
         Guid id, [FromBody] UpdateSprintRequest request, CancellationToken ct)
     {
         var result = await _sprintService.UpdateAsync(id, request, ct);
-        return Ok(Wrap(result, "Sprint updated."));
+        return ApiResponse<object>.Ok(result, "Sprint updated.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -132,10 +133,10 @@ public class SprintController : ControllerBase
     [DeptLead]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResponse<object>>> Start(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Start(Guid id, CancellationToken ct)
     {
         var result = await _sprintService.StartAsync(id, ct);
-        return Ok(Wrap(result, "Sprint started."));
+        return ApiResponse<object>.Ok(result, "Sprint started.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -150,10 +151,10 @@ public class SprintController : ControllerBase
     [DeptLead]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResponse<object>>> Complete(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Complete(Guid id, CancellationToken ct)
     {
         var result = await _sprintService.CompleteAsync(id, ct);
-        return Ok(Wrap(result, "Sprint completed."));
+        return ApiResponse<object>.Ok(result, "Sprint completed.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -166,10 +167,10 @@ public class SprintController : ControllerBase
     [HttpPatch("sprints/{id:guid}/cancel")]
     [DeptLead]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> Cancel(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Cancel(Guid id, CancellationToken ct)
     {
         var result = await _sprintService.CancelAsync(id, ct);
-        return Ok(Wrap(result, "Sprint cancelled."));
+        return ApiResponse<object>.Ok(result, "Sprint cancelled.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -185,11 +186,11 @@ public class SprintController : ControllerBase
     [DeptLead]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResponse<object>>> AddStory(
+    public async Task<IActionResult> AddStory(
         Guid sprintId, [FromBody] AddStoryToSprintRequest request, CancellationToken ct)
     {
         await _sprintService.AddStoryAsync(sprintId, request.StoryId, ct);
-        return Ok(Wrap<object>(null!, "Story added to sprint."));
+        return ApiResponse<object>.Ok(null!, "Story added to sprint.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -198,11 +199,11 @@ public class SprintController : ControllerBase
     [HttpDelete("sprints/{sprintId:guid}/stories/{storyId:guid}")]
     [DeptLead]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> RemoveStory(
+    public async Task<IActionResult> RemoveStory(
         Guid sprintId, Guid storyId, CancellationToken ct)
     {
         await _sprintService.RemoveStoryAsync(sprintId, storyId, ct);
-        return Ok(Wrap<object>(null!, "Story removed from sprint."));
+        return ApiResponse<object>.Ok(null!, "Story removed from sprint.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -210,10 +211,10 @@ public class SprintController : ControllerBase
     /// </summary>
     [HttpGet("sprints/{id:guid}/metrics")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> GetMetrics(Guid id, CancellationToken ct)
+    public async Task<IActionResult> GetMetrics(Guid id, CancellationToken ct)
     {
         var result = await _sprintService.GetMetricsAsync(id, ct);
-        return Ok(Wrap(result));
+        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -225,12 +226,12 @@ public class SprintController : ControllerBase
     /// <response code="200">Velocity history retrieved</response>
     [HttpGet("sprints/velocity")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> GetVelocityHistory(
+    public async Task<IActionResult> GetVelocityHistory(
         [FromQuery] int count = 10, CancellationToken ct = default)
     {
         var orgId = GetOrganizationId();
         var result = await _sprintService.GetVelocityHistoryAsync(orgId, count, ct);
-        return Ok(Wrap(result, "Velocity history retrieved."));
+        return ApiResponse<object>.Ok(result, "Velocity history retrieved.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -242,12 +243,12 @@ public class SprintController : ControllerBase
     /// <response code="200">Active sprint found (or null if none)</response>
     [HttpGet("sprints/active")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> GetActiveSprint(
+    public async Task<IActionResult> GetActiveSprint(
         [FromQuery] Guid? projectId = null, CancellationToken ct = default)
     {
         var orgId = GetOrganizationId();
         var result = await _sprintService.GetActiveSprintAsync(orgId, projectId, ct);
-        return Ok(Wrap(result!));
+        return ApiResponse<object>.Ok(result!).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -255,20 +256,11 @@ public class SprintController : ControllerBase
     /// </summary>
     [HttpGet("sprints/{sprintId:guid}/velocity")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> GetVelocity(Guid sprintId, CancellationToken ct)
+    public async Task<IActionResult> GetVelocity(Guid sprintId, CancellationToken ct)
     {
         var result = await _timeEntryService.GetSprintVelocityAsync(sprintId, ct);
-        return Ok(Wrap(result, "Sprint velocity retrieved."));
+        return ApiResponse<object>.Ok(result, "Sprint velocity retrieved.").ToActionResult(HttpContext);
     }
 
     private Guid GetOrganizationId() => Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
-
-    private ApiResponse<T> Wrap<T>(T data, string? message = null)
-    {
-        var response = ApiResponse<T>.Ok(data, message);
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return response;
-    }
-
-    private ApiResponse<object> Wrap(object data, string? message = null) => Wrap<object>(data, message);
 }

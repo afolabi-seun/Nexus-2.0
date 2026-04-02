@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using SecurityService.Api.Attributes;
+using SecurityService.Api.Extensions;
 using SecurityService.Application.DTOs;
 using SecurityService.Application.DTOs.ServiceToken;
 using SecurityService.Domain.Interfaces.Services.ServiceToken;
@@ -19,7 +20,7 @@ public class ServiceTokenController : ControllerBase
 
     [HttpPost("issue")]
     [ServiceAuth]
-    public async Task<ActionResult<ApiResponse<ServiceTokenResponse>>> IssueToken(
+    public async Task<IActionResult> IssueToken(
         [FromBody] ServiceTokenIssueRequest request, CancellationToken ct)
     {
         var result = await _serviceTokenService.IssueTokenAsync(request.ServiceId, request.ServiceName, ct);
@@ -30,8 +31,6 @@ public class ServiceTokenController : ControllerBase
             ExpiresInSeconds = result.ExpiresInSeconds
         };
 
-        var apiResponse = ApiResponse<ServiceTokenResponse>.Ok(response, "Service token issued.");
-        apiResponse.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return Ok(apiResponse);
+        return ApiResponse<ServiceTokenResponse>.Ok(response, "Service token issued.").ToActionResult(HttpContext);
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SecurityService.Api.Attributes;
+using SecurityService.Api.Extensions;
 using SecurityService.Application.DTOs;
 using SecurityService.Application.DTOs.Auth;
 using SecurityService.Application.DTOs.Otp;
@@ -51,7 +52,7 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status423Locked)]
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
-    public async Task<ActionResult<ApiResponse<LoginResponse>>> Login(
+    public async Task<IActionResult> Login(
         [FromBody] LoginRequest request, CancellationToken ct)
     {
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
@@ -67,9 +68,7 @@ public class AuthController : ControllerBase
             IsFirstTimeUser = result.IsFirstTimeUser
         };
 
-        var apiResponse = ApiResponse<LoginResponse>.Ok(response, "Login successful.");
-        apiResponse.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return Ok(apiResponse);
+        return ApiResponse<LoginResponse>.Ok(response, "Login successful.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -83,7 +82,7 @@ public class AuthController : ControllerBase
     [Authorize]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<ApiResponse<object>>> Logout(CancellationToken ct)
+    public async Task<IActionResult> Logout(CancellationToken ct)
     {
         var userId = Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
         var deviceId = HttpContext.Items["deviceId"]?.ToString() ?? string.Empty;
@@ -94,9 +93,7 @@ public class AuthController : ControllerBase
 
         await _authService.LogoutAsync(userId, deviceId, jti, tokenExpiry, ct);
 
-        var apiResponse = ApiResponse<object>.Ok(null!, "Logout successful.");
-        apiResponse.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return Ok(apiResponse);
+        return ApiResponse<object>.Ok(null!, "Logout successful.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -123,7 +120,7 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<LoginResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<ApiResponse<LoginResponse>>> Refresh(
+    public async Task<IActionResult> Refresh(
         [FromBody] RefreshTokenRequest request, CancellationToken ct)
     {
         var result = await _authService.RefreshTokenAsync(request.RefreshToken, request.DeviceId, ct);
@@ -136,9 +133,7 @@ public class AuthController : ControllerBase
             IsFirstTimeUser = result.IsFirstTimeUser
         };
 
-        var apiResponse = ApiResponse<LoginResponse>.Ok(response, "Token refreshed.");
-        apiResponse.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return Ok(apiResponse);
+        return ApiResponse<LoginResponse>.Ok(response, "Token refreshed.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -153,14 +148,12 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
-    public async Task<ActionResult<ApiResponse<object>>> RequestOtp(
+    public async Task<IActionResult> RequestOtp(
         [FromBody] OtpRequest request, CancellationToken ct)
     {
         await _otpService.GenerateOtpAsync(request.Identity, ct);
 
-        var apiResponse = ApiResponse<object>.Ok(null!, "OTP sent successfully.");
-        apiResponse.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return Ok(apiResponse);
+        return ApiResponse<object>.Ok(null!, "OTP sent successfully.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -177,14 +170,12 @@ public class AuthController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
-    public async Task<ActionResult<ApiResponse<object>>> VerifyOtp(
+    public async Task<IActionResult> VerifyOtp(
         [FromBody] OtpVerifyRequest request, CancellationToken ct)
     {
         await _otpService.VerifyOtpAsync(request.Identity, request.Code, ct);
 
-        var apiResponse = ApiResponse<object>.Ok(null!, "OTP verified successfully.");
-        apiResponse.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return Ok(apiResponse);
+        return ApiResponse<object>.Ok(null!, "OTP verified successfully.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -199,13 +190,11 @@ public class AuthController : ControllerBase
     [ServiceAuth]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<ApiResponse<object>>> GenerateCredentials(
+    public async Task<IActionResult> GenerateCredentials(
         [FromBody] CredentialGenerateRequest request, CancellationToken ct)
     {
         await _authService.GenerateCredentialsAsync(request.MemberId, request.Email, ct);
 
-        var apiResponse = ApiResponse<object>.Ok(null!, "Credentials generated successfully.");
-        apiResponse.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return Ok(apiResponse);
+        return ApiResponse<object>.Ok(null!, "Credentials generated successfully.").ToActionResult(HttpContext);
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkService.Api.Attributes;
+using WorkService.Api.Extensions;
 using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.RiskRegisters;
 using WorkService.Domain.Interfaces.Services.RiskRegisters;
@@ -29,13 +30,13 @@ public class RiskRegisterController : ControllerBase
     [DeptLead]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResponse<object>>> Create(
+    public async Task<IActionResult> Create(
         [FromBody] CreateRiskRequest request, CancellationToken ct)
     {
         var orgId = GetOrganizationId();
         var userId = GetUserId();
         var result = await _riskService.CreateAsync(orgId, userId, request, ct);
-        return StatusCode(201, Wrap(result, "Risk register entry created."));
+        return ApiResponse<object>.Ok(result, "Risk register entry created.").ToActionResult(HttpContext, 201);
     }
 
     /// <summary>
@@ -45,11 +46,11 @@ public class RiskRegisterController : ControllerBase
     [DeptLead]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> Update(
+    public async Task<IActionResult> Update(
         Guid riskId, [FromBody] UpdateRiskRequest request, CancellationToken ct)
     {
         var result = await _riskService.UpdateAsync(riskId, request, ct);
-        return Ok(Wrap(result, "Risk register entry updated."));
+        return ApiResponse<object>.Ok(result, "Risk register entry updated.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -59,10 +60,10 @@ public class RiskRegisterController : ControllerBase
     [DeptLead]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiResponse<object>>> Delete(Guid riskId, CancellationToken ct)
+    public async Task<IActionResult> Delete(Guid riskId, CancellationToken ct)
     {
         await _riskService.DeleteAsync(riskId, ct);
-        return Ok(Wrap<object>(null!, "Risk register entry deleted."));
+        return ApiResponse<object>.Ok(null!, "Risk register entry deleted.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -70,7 +71,7 @@ public class RiskRegisterController : ControllerBase
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<object>>> List(
+    public async Task<IActionResult> List(
         [FromQuery] Guid projectId,
         [FromQuery] Guid? sprintId = null,
         [FromQuery] string? severity = null,
@@ -81,18 +82,9 @@ public class RiskRegisterController : ControllerBase
     {
         var orgId = GetOrganizationId();
         var result = await _riskService.ListAsync(orgId, projectId, sprintId, severity, mitigationStatus, page, pageSize, ct);
-        return Ok(Wrap(result, "Risk register entries retrieved."));
+        return ApiResponse<object>.Ok(result, "Risk register entries retrieved.").ToActionResult(HttpContext);
     }
 
     private Guid GetOrganizationId() => Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
     private Guid GetUserId() => Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
-
-    private ApiResponse<T> Wrap<T>(T data, string? message = null)
-    {
-        var response = ApiResponse<T>.Ok(data, message);
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return response;
-    }
-
-    private ApiResponse<object> Wrap(object data, string? message = null) => Wrap<object>(data, message);
 }

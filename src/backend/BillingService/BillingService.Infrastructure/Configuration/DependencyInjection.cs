@@ -72,6 +72,7 @@ public static class DependencyInjection
         // Service clients
         services.AddScoped<IProfileServiceClient, ProfileServiceClient>();
         services.AddScoped<ISecurityServiceClient, SecurityServiceClient>();
+        services.AddScoped<IUtilityServiceClient, UtilityServiceClient>();
 
         // HTTP context accessor
         services.AddHttpContextAccessor();
@@ -94,6 +95,17 @@ public static class DependencyInjection
         services.AddHttpClient("ProfileService", client =>
             {
                 client.BaseAddress = new Uri(appSettings.ProfileServiceBaseUrl);
+            })
+            .AddHttpMessageHandler<CorrelationIdDelegatingHandler>()
+            .AddTransientHttpErrorPolicy(p =>
+                p.WaitAndRetryAsync(3, attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt - 1))))
+            .AddTransientHttpErrorPolicy(p =>
+                p.CircuitBreakerAsync(5, TimeSpan.FromSeconds(30)))
+            .AddPolicyHandler(Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(10)));
+
+        services.AddHttpClient("UtilityService", client =>
+            {
+                client.BaseAddress = new Uri(appSettings.UtilityServiceBaseUrl);
             })
             .AddHttpMessageHandler<CorrelationIdDelegatingHandler>()
             .AddTransientHttpErrorPolicy(p =>
