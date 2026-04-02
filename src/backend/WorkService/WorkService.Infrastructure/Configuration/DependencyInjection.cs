@@ -166,6 +166,7 @@ public static class DependencyInjection
         // Infrastructure service clients
         services.AddScoped<IProfileServiceClient, ProfileServiceClient>();
         services.AddScoped<ISecurityServiceClient, SecurityServiceClient>();
+        services.AddScoped<IUtilityServiceClient, UtilityServiceClient>();
 
         // HTTP context accessor
         services.AddHttpContextAccessor();

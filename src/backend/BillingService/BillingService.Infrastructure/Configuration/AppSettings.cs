@@ -9,6 +9,7 @@ public class AppSettings
     public string JwtAudience { get; set; } = string.Empty;
     public string SecurityServiceBaseUrl { get; set; } = string.Empty;
     public string ProfileServiceBaseUrl { get; set; } = string.Empty;
+    public string UtilityServiceBaseUrl { get; set; } = string.Empty;
     public string FrontendUrl { get; set; } = string.Empty;
     public string[] AllowedOrigins { get; set; } = [];
     public string? SeqUrl { get; set; }
@@ -29,6 +30,7 @@ public class AppSettings
             JwtAudience = GetRequired("JWT_AUDIENCE"),
             SecurityServiceBaseUrl = GetRequired("SECURITY_SERVICE_BASE_URL"),
             ProfileServiceBaseUrl = GetRequired("PROFILE_SERVICE_BASE_URL"),
+            UtilityServiceBaseUrl = GetRequired("UTILITY_SERVICE_BASE_URL"),
             FrontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "http://localhost:5173",
             AllowedOrigins = (Environment.GetEnvironmentVariable("ALLOWED_ORIGINS") ?? "")
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
