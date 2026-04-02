@@ -9,6 +9,7 @@ using WorkService.Domain.Interfaces.Repositories.Stories;
 using WorkService.Domain.Interfaces.Repositories.Tasks;
 using WorkService.Domain.Interfaces.Services.Outbox;
 using WorkService.Infrastructure.Data;
+using WorkService.Tests.Helpers;
 using WorkService.Infrastructure.Services.Tasks;
 using Task = System.Threading.Tasks.Task;
 
@@ -38,7 +39,7 @@ public class TaskServiceTests
         _storyRepo.Setup(r => r.GetByIdAsync(_storyId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(story);
 
-        var dbContext = new WorkDbContext(new DbContextOptionsBuilder<WorkDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        var dbContext = TestWorkDbContextFactory.Create();
         _sut = new TaskService(
             _taskRepo.Object, _storyRepo.Object,
             _activityLogRepo.Object, _outbox.Object, dbContext, _logger.Object);

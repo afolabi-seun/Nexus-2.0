@@ -8,6 +8,7 @@ using WorkService.Domain.Interfaces.Repositories.Projects;
 using WorkService.Domain.Interfaces.Repositories.Stories;
 using WorkService.Domain.Interfaces.Services.Outbox;
 using WorkService.Infrastructure.Data;
+using WorkService.Tests.Helpers;
 using WorkService.Infrastructure.Services.Projects;
 using Task = System.Threading.Tasks.Task;
 
@@ -33,7 +34,7 @@ public class ProjectServiceTests
         _projectRepo.Setup(r => r.GetSprintCountAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(0);
 
-        var dbContext = new WorkDbContext(new DbContextOptionsBuilder<WorkDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        var dbContext = TestWorkDbContextFactory.Create();
         _sut = new ProjectService(_projectRepo.Object, _storyRepo.Object, _outbox.Object, dbContext, _logger.Object);
     }
 

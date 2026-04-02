@@ -16,6 +16,7 @@ using WorkService.Domain.Interfaces.Repositories.Tasks;
 using WorkService.Domain.Interfaces.Services.Outbox;
 using WorkService.Domain.Interfaces.Services.Stories;
 using WorkService.Infrastructure.Data;
+using WorkService.Tests.Helpers;
 using WorkService.Infrastructure.Services.Stories;
 using Task = System.Threading.Tasks.Task;
 
@@ -67,7 +68,7 @@ public class StoryServiceTests
         _storyIdGen.Setup(g => g.GenerateNextIdAsync(_projectId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(("NEXUS-1", 1L));
 
-        var dbContext = new WorkDbContext(new DbContextOptionsBuilder<WorkDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        var dbContext = TestWorkDbContextFactory.Create();
         _sut = new StoryService(
             _storyRepo.Object, _projectRepo.Object, _taskRepo.Object,
             _commentRepo.Object, _storyLabelRepo.Object, _labelRepo.Object,
