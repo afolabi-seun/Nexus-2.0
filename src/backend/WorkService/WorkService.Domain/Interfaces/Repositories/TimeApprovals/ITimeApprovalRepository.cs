@@ -1,9 +1,9 @@
 using WorkService.Domain.Entities;
+using WorkService.Domain.Interfaces.Repositories.Generics;
 
 namespace WorkService.Domain.Interfaces.Repositories.TimeApprovals;
 
-public interface ITimeApprovalRepository
+public interface ITimeApprovalRepository : IGenericRepository<TimeApproval>
 {
-    Task<TimeApproval> AddAsync(TimeApproval approval, CancellationToken ct = default);
     Task<IEnumerable<TimeApproval>> GetByTimeEntryAsync(Guid timeEntryId, CancellationToken ct = default);
 }

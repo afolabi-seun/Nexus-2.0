@@ -4,17 +4,20 @@ using WorkService.Domain.Entities;
 using WorkService.Domain.Exceptions;
 using WorkService.Domain.Interfaces.Repositories.TimePolicies;
 using WorkService.Domain.Interfaces.Services.TimePolicies;
+using WorkService.Infrastructure.Data;
 
 namespace WorkService.Infrastructure.Services.TimePolicies;
 
 public class TimePolicyService : ITimePolicyService
 {
     private readonly ITimePolicyRepository _policyRepo;
+    private readonly WorkDbContext _dbContext;
     private readonly ILogger<TimePolicyService> _logger;
 
-    public TimePolicyService(ITimePolicyRepository policyRepo, ILogger<TimePolicyService> logger)
+    public TimePolicyService(ITimePolicyRepository policyRepo, WorkDbContext dbContext, ILogger<TimePolicyService> logger)
     {
         _policyRepo = policyRepo;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
@@ -72,6 +75,7 @@ public class TimePolicyService : ITimePolicyService
             };
 
             await _policyRepo.AddAsync(policy, ct);
+            await _dbContext.SaveChangesAsync(ct);
             return MapToResponse(policy);
         }
 
@@ -83,6 +87,7 @@ public class TimePolicyService : ITimePolicyService
         existing.DateUpdated = DateTime.UtcNow;
 
         await _policyRepo.UpdateAsync(existing, ct);
+        await _dbContext.SaveChangesAsync(ct);
         return MapToResponse(existing);
     }
 

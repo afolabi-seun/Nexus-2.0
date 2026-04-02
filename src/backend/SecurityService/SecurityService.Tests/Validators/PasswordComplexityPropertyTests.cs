@@ -10,6 +10,7 @@ using SecurityService.Domain.Interfaces.Services.Otp;
 using SecurityService.Domain.Interfaces.Services.Outbox;
 using SecurityService.Domain.Interfaces.Services.Password;
 using SecurityService.Infrastructure.Configuration;
+using SecurityService.Infrastructure.Data;
 using SecurityService.Infrastructure.Services.Password;
 
 using SecurityService.Infrastructure.Services.ServiceClients;
@@ -36,11 +37,13 @@ public class PasswordComplexityPropertyTests
     private static PasswordService CreatePasswordService()
     {
         var repo = new Mock<IPasswordHistoryRepository>();
+        var dbContext = new Mock<SecurityDbContext>(
+            new Microsoft.EntityFrameworkCore.DbContextOptions<SecurityDbContext>());
         var otp = new Mock<IOtpService>();
         var outbox = new Mock<IOutboxService>();
         var profileClient = new Mock<IProfileServiceClient>();
         var settings = new AppSettings();
-        return new PasswordService(repo.Object, otp.Object, outbox.Object, profileClient.Object, settings);
+        return new PasswordService(repo.Object, dbContext.Object, otp.Object, outbox.Object, profileClient.Object, settings);
     }
 
     // ── FluentValidation property tests ──

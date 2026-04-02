@@ -2,20 +2,17 @@ using Microsoft.EntityFrameworkCore;
 using WorkService.Domain.Entities;
 using WorkService.Domain.Interfaces.Repositories.ActivityLogs;
 using WorkService.Infrastructure.Data;
+using WorkService.Infrastructure.Repositories.Generics;
 
 namespace WorkService.Infrastructure.Repositories.ActivityLogs;
 
-public class ActivityLogRepository : IActivityLogRepository
+public class ActivityLogRepository : GenericRepository<ActivityLog>, IActivityLogRepository
 {
     private readonly WorkDbContext _db;
 
-    public ActivityLogRepository(WorkDbContext db) => _db = db;
-
-    public async Task<ActivityLog> AddAsync(ActivityLog log, CancellationToken ct = default)
+    public ActivityLogRepository(WorkDbContext db) : base(db)
     {
-        _db.ActivityLogs.Add(log);
-        await _db.SaveChangesAsync(ct);
-        return log;
+        _db = db;
     }
 
     public async Task<IEnumerable<ActivityLog>> ListByEntityAsync(string entityType, Guid entityId, CancellationToken ct = default)

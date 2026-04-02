@@ -5,6 +5,7 @@ using UtilityService.Domain.Exceptions;
 using UtilityService.Domain.Interfaces.Repositories.ArchivedAuditLogs;
 using UtilityService.Domain.Interfaces.Repositories.AuditLogs;
 using UtilityService.Domain.Interfaces.Services.AuditLogs;
+using UtilityService.Infrastructure.Data;
 
 namespace UtilityService.Infrastructure.Services.AuditLogs;
 
@@ -12,11 +13,13 @@ public class AuditLogService : IAuditLogService
 {
     private readonly IAuditLogRepository _auditLogRepo;
     private readonly IArchivedAuditLogRepository _archivedRepo;
+    private readonly UtilityDbContext _dbContext;
 
-    public AuditLogService(IAuditLogRepository auditLogRepo, IArchivedAuditLogRepository archivedRepo)
+    public AuditLogService(IAuditLogRepository auditLogRepo, IArchivedAuditLogRepository archivedRepo, UtilityDbContext dbContext)
     {
         _auditLogRepo = auditLogRepo;
         _archivedRepo = archivedRepo;
+        _dbContext = dbContext;
     }
 
     public async Task<object> CreateAsync(object request, CancellationToken ct = default)
@@ -38,6 +41,7 @@ public class AuditLogService : IAuditLogService
         };
 
         var created = await _auditLogRepo.AddAsync(entity, ct);
+        await _dbContext.SaveChangesAsync(ct);
         return MapToResponse(created);
     }
 

@@ -17,6 +17,7 @@ using WorkService.Domain.Interfaces.Repositories.StoryLinks;
 using WorkService.Domain.Interfaces.Repositories.Tasks;
 using WorkService.Domain.Interfaces.Services.Outbox;
 using WorkService.Domain.Interfaces.Services.Stories;
+using WorkService.Infrastructure.Data;
 
 namespace WorkService.Infrastructure.Services.Stories;
 
@@ -36,6 +37,7 @@ public class StoryService : IStoryService
     private readonly IActivityLogRepository _activityLogRepo;
     private readonly IStoryIdGenerator _storyIdGenerator;
     private readonly IOutboxService _outbox;
+    private readonly WorkDbContext _dbContext;
     private readonly ILogger<StoryService> _logger;
 
     public StoryService(
@@ -43,13 +45,13 @@ public class StoryService : IStoryService
         ICommentRepository commentRepo, IStoryLabelRepository storyLabelRepo, ILabelRepository labelRepo,
         IStoryLinkRepository storyLinkRepo, ISprintRepository sprintRepo,
         IActivityLogRepository activityLogRepo, IStoryIdGenerator storyIdGenerator,
-        IOutboxService outbox, ILogger<StoryService> logger)
+        IOutboxService outbox, WorkDbContext dbContext, ILogger<StoryService> logger)
     {
         _storyRepo = storyRepo; _projectRepo = projectRepo; _taskRepo = taskRepo;
         _commentRepo = commentRepo; _storyLabelRepo = storyLabelRepo; _labelRepo = labelRepo;
         _storyLinkRepo = storyLinkRepo; _sprintRepo = sprintRepo;
         _activityLogRepo = activityLogRepo; _storyIdGenerator = storyIdGenerator;
-        _outbox = outbox; _logger = logger;
+        _outbox = outbox; _dbContext = dbContext; _logger = logger;
     }
 
     public async Task<object> CreateAsync(Guid organizationId, Guid reporterId, object request, CancellationToken ct = default)
@@ -93,6 +95,7 @@ public class StoryService : IStoryService
             StoryKey = storyKey, Action = "Created", ActorId = reporterId, ActorName = "System",
             Description = $"Story {storyKey} created"
         }, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         await _outbox.PublishAsync(new { MessageType = "AuditEvent", Action = "StoryCreated", EntityType = "Story", EntityId = story.StoryId.ToString(), OrganizationId = organizationId, UserId = reporterId }, ct);
 
@@ -176,6 +179,7 @@ public class StoryService : IStoryService
 
         story.DateUpdated = DateTime.UtcNow;
         await _storyRepo.UpdateAsync(story, ct);
+        await _dbContext.SaveChangesAsync(ct);
         return await BuildDetailResponse(story, ct);
     }
 
@@ -193,6 +197,7 @@ public class StoryService : IStoryService
         story.FlgStatus = "D";
         story.DateUpdated = DateTime.UtcNow;
         await _storyRepo.UpdateAsync(story, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     public async Task<object> TransitionStatusAsync(Guid storyId, Guid actorId, string newStatus, CancellationToken ct = default)
@@ -231,6 +236,7 @@ public class StoryService : IStoryService
 
         await _storyRepo.UpdateAsync(story, ct);
         await LogActivity(story, "StatusChanged", actorId, oldStatus, newStatus, $"Status changed from {oldStatus} to {newStatus}", ct);
+        await _dbContext.SaveChangesAsync(ct);
         await _outbox.PublishAsync(new { MessageType = "NotificationRequest", Action = "StoryStatusChanged", EntityType = "Story", EntityId = storyId.ToString(), NotificationType = "StoryStatusChanged" }, ct);
 
         return await BuildDetailResponse(story, ct);
@@ -246,6 +252,7 @@ public class StoryService : IStoryService
         await _storyRepo.UpdateAsync(story, ct);
 
         await LogActivity(story, "Assigned", actorId, null, assigneeId.ToString(), $"Story assigned", ct);
+        await _dbContext.SaveChangesAsync(ct);
         await _outbox.PublishAsync(new { MessageType = "NotificationRequest", Action = "StoryAssigned", EntityType = "Story", EntityId = storyId.ToString(), NotificationType = "StoryAssigned" }, ct);
 
         return await BuildDetailResponse(story, ct);
@@ -261,6 +268,7 @@ public class StoryService : IStoryService
         story.DateUpdated = DateTime.UtcNow;
         await _storyRepo.UpdateAsync(story, ct);
         await LogActivity(story, "Unassigned", actorId, oldAssignee, null, "Story unassigned", ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     public async System.Threading.Tasks.Task CreateLinkAsync(Guid storyId, Guid targetStoryId, string linkType, CancellationToken ct = default)
@@ -279,6 +287,7 @@ public class StoryService : IStoryService
 
         await _storyLinkRepo.AddAsync(new StoryLink { OrganizationId = story.OrganizationId, SourceStoryId = storyId, TargetStoryId = targetStoryId, LinkType = linkType }, ct);
         await _storyLinkRepo.AddAsync(new StoryLink { OrganizationId = story.OrganizationId, SourceStoryId = targetStoryId, TargetStoryId = storyId, LinkType = inverseLinkType }, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     public async System.Threading.Tasks.Task DeleteLinkAsync(Guid storyId, Guid linkId, CancellationToken ct = default)
@@ -286,8 +295,9 @@ public class StoryService : IStoryService
         var link = await _storyLinkRepo.GetByIdAsync(linkId, ct) ?? throw new NotFoundException("Link", linkId);
         var inverse = await _storyLinkRepo.FindInverseAsync(link.TargetStoryId, link.SourceStoryId, GetInverseLinkType(link.LinkType), ct);
 
-        await _storyLinkRepo.RemoveAsync(link, ct);
-        if (inverse != null) await _storyLinkRepo.RemoveAsync(inverse, ct);
+        await _storyLinkRepo.DeleteAsync(link, ct);
+        if (inverse != null) await _storyLinkRepo.DeleteAsync(inverse, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     public async System.Threading.Tasks.Task ApplyLabelAsync(Guid storyId, Guid labelId, CancellationToken ct = default)
@@ -299,12 +309,17 @@ public class StoryService : IStoryService
         if (existing != null) return;
 
         await _storyLabelRepo.AddAsync(new StoryLabel { StoryId = storyId, LabelId = labelId }, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     public async System.Threading.Tasks.Task RemoveLabelAsync(Guid storyId, Guid labelId, CancellationToken ct = default)
     {
         var existing = await _storyLabelRepo.GetAsync(storyId, labelId, ct);
-        if (existing != null) await _storyLabelRepo.RemoveAsync(existing, ct);
+        if (existing != null)
+        {
+            await _storyLabelRepo.DeleteAsync(existing, ct);
+            await _dbContext.SaveChangesAsync(ct);
+        }
     }
 
     private static string GetInverseLinkType(string linkType) => linkType switch

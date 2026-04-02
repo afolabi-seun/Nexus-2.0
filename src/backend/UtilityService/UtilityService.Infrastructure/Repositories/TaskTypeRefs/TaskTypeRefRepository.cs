@@ -2,24 +2,19 @@ using Microsoft.EntityFrameworkCore;
 using UtilityService.Domain.Entities;
 using UtilityService.Domain.Interfaces.Repositories.TaskTypeRefs;
 using UtilityService.Infrastructure.Data;
+using UtilityService.Infrastructure.Repositories.Generics;
 
 namespace UtilityService.Infrastructure.Repositories.TaskTypeRefs;
 
-public class TaskTypeRefRepository : ITaskTypeRefRepository
+public class TaskTypeRefRepository : GenericRepository<TaskTypeRef>, ITaskTypeRefRepository
 {
-    private readonly UtilityDbContext _context;
+    private readonly UtilityDbContext _db;
 
-    public TaskTypeRefRepository(UtilityDbContext context) => _context = context;
+    public TaskTypeRefRepository(UtilityDbContext db) : base(db) => _db = db;
 
     public async Task<IEnumerable<TaskTypeRef>> ListAsync(CancellationToken ct = default)
-        => await _context.TaskTypeRefs.AsNoTracking().OrderBy(e => e.TypeName).ToListAsync(ct);
-
-    public async Task AddRangeAsync(IEnumerable<TaskTypeRef> types, CancellationToken ct = default)
-    {
-        _context.TaskTypeRefs.AddRange(types);
-        await _context.SaveChangesAsync(ct);
-    }
+        => await _db.TaskTypeRefs.AsNoTracking().OrderBy(e => e.TypeName).ToListAsync(ct);
 
     public async Task<bool> ExistsAsync(string typeName, CancellationToken ct = default)
-        => await _context.TaskTypeRefs.AnyAsync(e => e.TypeName == typeName, ct);
+        => await _db.TaskTypeRefs.AnyAsync(e => e.TypeName == typeName, ct);
 }

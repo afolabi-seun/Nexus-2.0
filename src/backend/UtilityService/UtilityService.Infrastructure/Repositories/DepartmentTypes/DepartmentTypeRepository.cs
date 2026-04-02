@@ -2,37 +2,25 @@ using Microsoft.EntityFrameworkCore;
 using UtilityService.Domain.Entities;
 using UtilityService.Domain.Interfaces.Repositories.DepartmentTypes;
 using UtilityService.Infrastructure.Data;
+using UtilityService.Infrastructure.Repositories.Generics;
 
 namespace UtilityService.Infrastructure.Repositories.DepartmentTypes;
 
-public class DepartmentTypeRepository : IDepartmentTypeRepository
+public class DepartmentTypeRepository : GenericRepository<DepartmentType>, IDepartmentTypeRepository
 {
-    private readonly UtilityDbContext _context;
+    private readonly UtilityDbContext _db;
 
-    public DepartmentTypeRepository(UtilityDbContext context) => _context = context;
+    public DepartmentTypeRepository(UtilityDbContext db) : base(db) => _db = db;
 
     public async Task<DepartmentType?> GetByNameAsync(string typeName, CancellationToken ct = default)
-        => await _context.DepartmentTypes.FirstOrDefaultAsync(e => e.TypeName == typeName, ct);
+        => await _db.DepartmentTypes.FirstOrDefaultAsync(e => e.TypeName == typeName, ct);
 
     public async Task<DepartmentType?> GetByCodeAsync(string typeCode, CancellationToken ct = default)
-        => await _context.DepartmentTypes.FirstOrDefaultAsync(e => e.TypeCode == typeCode, ct);
-
-    public async Task<DepartmentType> AddAsync(DepartmentType departmentType, CancellationToken ct = default)
-    {
-        _context.DepartmentTypes.Add(departmentType);
-        await _context.SaveChangesAsync(ct);
-        return departmentType;
-    }
+        => await _db.DepartmentTypes.FirstOrDefaultAsync(e => e.TypeCode == typeCode, ct);
 
     public async Task<IEnumerable<DepartmentType>> ListAsync(CancellationToken ct = default)
-        => await _context.DepartmentTypes.AsNoTracking().OrderBy(e => e.TypeName).ToListAsync(ct);
-
-    public async Task AddRangeAsync(IEnumerable<DepartmentType> types, CancellationToken ct = default)
-    {
-        _context.DepartmentTypes.AddRange(types);
-        await _context.SaveChangesAsync(ct);
-    }
+        => await _db.DepartmentTypes.AsNoTracking().OrderBy(e => e.TypeName).ToListAsync(ct);
 
     public async Task<bool> ExistsAsync(string typeName, CancellationToken ct = default)
-        => await _context.DepartmentTypes.AnyAsync(e => e.TypeName == typeName, ct);
+        => await _db.DepartmentTypes.AnyAsync(e => e.TypeName == typeName, ct);
 }

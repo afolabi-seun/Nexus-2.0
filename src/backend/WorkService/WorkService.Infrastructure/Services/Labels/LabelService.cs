@@ -3,14 +3,20 @@ using WorkService.Domain.Entities;
 using WorkService.Domain.Exceptions;
 using WorkService.Domain.Interfaces.Repositories.Labels;
 using WorkService.Domain.Interfaces.Services.Labels;
+using WorkService.Infrastructure.Data;
 
 namespace WorkService.Infrastructure.Services.Labels;
 
 public class LabelService : ILabelService
 {
     private readonly ILabelRepository _labelRepo;
+    private readonly WorkDbContext _dbContext;
 
-    public LabelService(ILabelRepository labelRepo) => _labelRepo = labelRepo;
+    public LabelService(ILabelRepository labelRepo, WorkDbContext dbContext)
+    {
+        _labelRepo = labelRepo;
+        _dbContext = dbContext;
+    }
 
     public async Task<object> CreateAsync(Guid organizationId, object request, CancellationToken ct = default)
     {
@@ -20,6 +26,7 @@ public class LabelService : ILabelService
 
         var label = new Label { OrganizationId = organizationId, Name = req.Name, Color = req.Color };
         await _labelRepo.AddAsync(label, ct);
+        await _dbContext.SaveChangesAsync(ct);
         return BuildResponse(label);
     }
 
@@ -38,6 +45,7 @@ public class LabelService : ILabelService
         if (req.Name != null) label.Name = req.Name;
         if (req.Color != null) label.Color = req.Color;
         await _labelRepo.UpdateAsync(label, ct);
+        await _dbContext.SaveChangesAsync(ct);
         return BuildResponse(label);
     }
 
@@ -45,7 +53,8 @@ public class LabelService : ILabelService
     {
         var label = await _labelRepo.GetByIdAsync(labelId, ct)
             ?? throw new LabelNotFoundException(labelId);
-        await _labelRepo.RemoveAsync(label, ct);
+        await _labelRepo.DeleteAsync(label, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     private static LabelResponse BuildResponse(Label l) => new()

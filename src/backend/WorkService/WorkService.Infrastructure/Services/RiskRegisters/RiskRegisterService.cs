@@ -5,6 +5,7 @@ using WorkService.Domain.Entities;
 using WorkService.Domain.Exceptions;
 using WorkService.Domain.Interfaces.Repositories.RiskRegisters;
 using WorkService.Domain.Interfaces.Services.RiskRegisters;
+using WorkService.Infrastructure.Data;
 
 namespace WorkService.Infrastructure.Services.RiskRegisters;
 
@@ -15,13 +16,16 @@ public class RiskRegisterService : IRiskRegisterService
     private static readonly HashSet<string> ValidMitigationStatuses = new() { "Open", "Mitigating", "Mitigated", "Accepted" };
 
     private readonly IRiskRegisterRepository _riskRepo;
+    private readonly WorkDbContext _dbContext;
     private readonly ILogger<RiskRegisterService> _logger;
 
     public RiskRegisterService(
         IRiskRegisterRepository riskRepo,
+        WorkDbContext dbContext,
         ILogger<RiskRegisterService> logger)
     {
         _riskRepo = riskRepo;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
@@ -46,6 +50,7 @@ public class RiskRegisterService : IRiskRegisterService
         };
 
         await _riskRepo.AddAsync(risk, ct);
+        await _dbContext.SaveChangesAsync(ct);
         _logger.LogInformation("Created risk register entry {RiskId} for project {ProjectId}", risk.RiskRegisterId, risk.ProjectId);
 
         return MapToResponse(risk);
@@ -84,6 +89,7 @@ public class RiskRegisterService : IRiskRegisterService
 
         risk.DateUpdated = DateTime.UtcNow;
         await _riskRepo.UpdateAsync(risk, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         return MapToResponse(risk);
     }
@@ -96,6 +102,7 @@ public class RiskRegisterService : IRiskRegisterService
         risk.FlgStatus = "D";
         risk.DateUpdated = DateTime.UtcNow;
         await _riskRepo.UpdateAsync(risk, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     public async Task<object> ListAsync(Guid orgId, Guid projectId, Guid? sprintId,

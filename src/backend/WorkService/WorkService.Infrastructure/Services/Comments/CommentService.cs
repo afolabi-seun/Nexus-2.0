@@ -7,6 +7,7 @@ using WorkService.Domain.Interfaces.Repositories.ActivityLogs;
 using WorkService.Domain.Interfaces.Repositories.Comments;
 using WorkService.Domain.Interfaces.Services.Comments;
 using WorkService.Domain.Interfaces.Services.Outbox;
+using WorkService.Infrastructure.Data;
 using WorkService.Infrastructure.Services.ServiceClients;
 
 namespace WorkService.Infrastructure.Services.Comments;
@@ -19,16 +20,17 @@ public partial class CommentService : ICommentService
     private readonly ICommentRepository _commentRepo;
     private readonly IActivityLogRepository _activityLogRepo;
     private readonly IOutboxService _outbox;
+    private readonly WorkDbContext _dbContext;
     private readonly IProfileServiceClient? _profileClient;
     private readonly ILogger<CommentService> _logger;
 
     public CommentService(
         ICommentRepository commentRepo, IActivityLogRepository activityLogRepo,
-        IOutboxService outbox, ILogger<CommentService> logger,
+        IOutboxService outbox, WorkDbContext dbContext, ILogger<CommentService> logger,
         IProfileServiceClient? profileClient = null)
     {
         _commentRepo = commentRepo; _activityLogRepo = activityLogRepo;
-        _outbox = outbox; _logger = logger; _profileClient = profileClient;
+        _outbox = outbox; _dbContext = dbContext; _logger = logger; _profileClient = profileClient;
     }
 
     public async Task<object> CreateAsync(Guid organizationId, Guid authorId, object request, CancellationToken ct = default)
@@ -45,11 +47,13 @@ public partial class CommentService : ICommentService
         await _commentRepo.AddAsync(comment, ct);
 
         await _activityLogRepo.AddAsync(new Domain.Entities.ActivityLog
+
         {
             OrganizationId = organizationId, EntityType = req.EntityType, EntityId = req.EntityId,
             Action = "CommentAdded", ActorId = authorId, ActorName = "System",
             Description = "Comment added"
         }, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         // Resolve @mentions
         var mentions = MentionRegex().Matches(req.Content);
@@ -100,6 +104,7 @@ public partial class CommentService : ICommentService
         comment.IsEdited = true;
         comment.DateUpdated = DateTime.UtcNow;
         await _commentRepo.UpdateAsync(comment, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         return BuildResponse(comment);
     }
@@ -114,6 +119,7 @@ public partial class CommentService : ICommentService
         comment.FlgStatus = "D";
         comment.DateUpdated = DateTime.UtcNow;
         await _commentRepo.UpdateAsync(comment, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     public async Task<object> ListByEntityAsync(string entityType, Guid entityId, CancellationToken ct = default)

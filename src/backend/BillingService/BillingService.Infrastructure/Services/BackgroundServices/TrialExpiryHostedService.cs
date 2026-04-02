@@ -4,6 +4,7 @@ using BillingService.Domain.Enums;
 using BillingService.Domain.Interfaces.Repositories.Plans;
 using BillingService.Domain.Interfaces.Repositories.Subscriptions;
 using BillingService.Domain.Interfaces.Services.Outbox;
+using BillingService.Infrastructure.Data;
 using BillingService.Infrastructure.Services.ServiceClients;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -48,6 +49,7 @@ public class TrialExpiryHostedService : BackgroundService
         var outboxService = scope.ServiceProvider.GetRequiredService<IOutboxService>();
         var profileClient = scope.ServiceProvider.GetRequiredService<IProfileServiceClient>();
         var redis = scope.ServiceProvider.GetRequiredService<IConnectionMultiplexer>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<BillingDbContext>();
 
         var expiredTrials = await subscriptionRepo.GetExpiredTrialsAsync(DateTime.UtcNow, ct);
         _logger.LogInformation("Found {Count} expired trials to process", expiredTrials.Count);
@@ -99,6 +101,7 @@ public class TrialExpiryHostedService : BackgroundService
                 }
 
                 await subscriptionRepo.UpdateAsync(subscription, ct);
+                await dbContext.SaveChangesAsync(ct);
             }
             catch (Exception ex)
             {

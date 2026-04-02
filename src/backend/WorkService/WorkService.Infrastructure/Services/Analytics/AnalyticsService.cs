@@ -21,6 +21,7 @@ using WorkService.Domain.Interfaces.Repositories.TimePolicies;
 using WorkService.Domain.Interfaces.Repositories.VelocitySnapshots;
 using WorkService.Domain.Interfaces.Services.Analytics;
 using WorkService.Domain.Interfaces.Services.CostRates;
+using WorkService.Infrastructure.Data;
 using WorkService.Infrastructure.Services.ServiceClients;
 
 namespace WorkService.Infrastructure.Services.Analytics;
@@ -43,6 +44,7 @@ public class AnalyticsService : IAnalyticsService
     private readonly IStoryLinkRepository _storyLinkRepo;
     private readonly ICostSnapshotRepository _costSnapshotRepo;
     private readonly IConnectionMultiplexer _redis;
+    private readonly WorkDbContext _dbContext;
     private readonly IProfileServiceClient? _profileClient;
     private readonly ILogger<AnalyticsService> _logger;
 
@@ -63,6 +65,7 @@ public class AnalyticsService : IAnalyticsService
         IStoryLinkRepository storyLinkRepo,
         ICostSnapshotRepository costSnapshotRepo,
         IConnectionMultiplexer redis,
+        WorkDbContext dbContext,
         ILogger<AnalyticsService> logger,
         IProfileServiceClient? profileClient = null)
     {
@@ -82,6 +85,7 @@ public class AnalyticsService : IAnalyticsService
         _storyLinkRepo = storyLinkRepo;
         _costSnapshotRepo = costSnapshotRepo;
         _redis = redis;
+        _dbContext = dbContext;
         _logger = logger;
         _profileClient = profileClient;
     }
@@ -161,6 +165,7 @@ public class AnalyticsService : IAnalyticsService
         };
 
         await _velocitySnapshotRepo.AddOrUpdateAsync(snapshot, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     // ── Resource Management ──────────────────────────────────────────────
@@ -371,6 +376,7 @@ public class AnalyticsService : IAnalyticsService
 
             await _resourceSnapshotRepo.AddOrUpdateAsync(snapshot, ct);
         }
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     // ── Project Cost ─────────────────────────────────────────────────────
@@ -533,6 +539,7 @@ public class AnalyticsService : IAnalyticsService
         };
 
         await _healthSnapshotRepo.AddAsync(snapshot, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     // ── Bug Metrics ──────────────────────────────────────────────────────

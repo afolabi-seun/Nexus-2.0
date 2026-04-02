@@ -8,6 +8,7 @@ using WorkService.Domain.Interfaces.Repositories.Projects;
 using WorkService.Domain.Interfaces.Repositories.Stories;
 using WorkService.Domain.Interfaces.Services.Outbox;
 using WorkService.Domain.Interfaces.Services.Projects;
+using WorkService.Infrastructure.Data;
 
 namespace WorkService.Infrastructure.Services.Projects;
 
@@ -16,6 +17,7 @@ public partial class ProjectService : IProjectService
     private readonly IProjectRepository _projectRepo;
     private readonly IStoryRepository _storyRepo;
     private readonly IOutboxService _outbox;
+    private readonly WorkDbContext _dbContext;
     private readonly ILogger<ProjectService> _logger;
 
     [GeneratedRegex(@"^[A-Z0-9]{2,10}$")]
@@ -25,11 +27,13 @@ public partial class ProjectService : IProjectService
         IProjectRepository projectRepo,
         IStoryRepository storyRepo,
         IOutboxService outbox,
+        WorkDbContext dbContext,
         ILogger<ProjectService> logger)
     {
         _projectRepo = projectRepo;
         _storyRepo = storyRepo;
         _outbox = outbox;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
@@ -59,6 +63,7 @@ public partial class ProjectService : IProjectService
         };
 
         await _projectRepo.AddAsync(project, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         await _outbox.PublishAsync(new { MessageType = "AuditEvent", Action = "ProjectCreated", EntityType = "Project", EntityId = project.ProjectId.ToString(), OrganizationId = organizationId, UserId = creatorId }, ct);
 
@@ -133,6 +138,7 @@ public partial class ProjectService : IProjectService
         project.DateUpdated = DateTime.UtcNow;
 
         await _projectRepo.UpdateAsync(project, ct);
+        await _dbContext.SaveChangesAsync(ct);
         return await BuildDetailResponse(project, ct);
     }
 
@@ -143,6 +149,7 @@ public partial class ProjectService : IProjectService
         project.FlgStatus = newStatus;
         project.DateUpdated = DateTime.UtcNow;
         await _projectRepo.UpdateAsync(project, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     private async Task<ProjectDetailResponse> BuildDetailResponse(Project project, CancellationToken ct)

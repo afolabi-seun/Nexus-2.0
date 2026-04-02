@@ -5,17 +5,20 @@ using WorkService.Domain.Entities;
 using WorkService.Domain.Exceptions;
 using WorkService.Domain.Interfaces.Repositories.CostRates;
 using WorkService.Domain.Interfaces.Services.CostRates;
+using WorkService.Infrastructure.Data;
 
 namespace WorkService.Infrastructure.Services.CostRates;
 
 public class CostRateService : ICostRateService
 {
     private readonly ICostRateRepository _costRateRepo;
+    private readonly WorkDbContext _dbContext;
     private readonly ILogger<CostRateService> _logger;
 
-    public CostRateService(ICostRateRepository costRateRepo, ILogger<CostRateService> logger)
+    public CostRateService(ICostRateRepository costRateRepo, WorkDbContext dbContext, ILogger<CostRateService> logger)
     {
         _costRateRepo = costRateRepo;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
@@ -47,6 +50,7 @@ public class CostRateService : ICostRateService
         };
 
         await _costRateRepo.AddAsync(rate, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         return MapToResponse(rate);
     }
@@ -70,6 +74,7 @@ public class CostRateService : ICostRateService
         rate.DateUpdated = DateTime.UtcNow;
 
         await _costRateRepo.UpdateAsync(rate, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         return MapToResponse(rate);
     }
@@ -86,6 +91,7 @@ public class CostRateService : ICostRateService
         rate.DateUpdated = DateTime.UtcNow;
 
         await _costRateRepo.UpdateAsync(rate, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     public async Task<object> ListAsync(Guid orgId, string? rateType, Guid? memberId,

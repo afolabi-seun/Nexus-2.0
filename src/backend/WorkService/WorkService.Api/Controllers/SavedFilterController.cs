@@ -5,6 +5,7 @@ using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.SavedFilters;
 using WorkService.Domain.Entities;
 using WorkService.Domain.Interfaces.Repositories.SavedFilters;
+using WorkService.Infrastructure.Data;
 
 namespace WorkService.Api.Controllers;
 
@@ -14,10 +15,12 @@ namespace WorkService.Api.Controllers;
 public class SavedFilterController : ControllerBase
 {
     private readonly ISavedFilterRepository _savedFilterRepository;
+    private readonly WorkDbContext _dbContext;
 
-    public SavedFilterController(ISavedFilterRepository savedFilterRepository)
+    public SavedFilterController(ISavedFilterRepository savedFilterRepository, WorkDbContext dbContext)
     {
         _savedFilterRepository = savedFilterRepository;
+        _dbContext = dbContext;
     }
 
     [HttpPost]
@@ -36,6 +39,7 @@ public class SavedFilterController : ControllerBase
             DateCreated = DateTime.UtcNow
         };
         var result = await _savedFilterRepository.AddAsync(filter, ct);
+        await _dbContext.SaveChangesAsync(ct);
         var response = new SavedFilterResponse
         {
             SavedFilterId = result.SavedFilterId,
@@ -77,7 +81,8 @@ public class SavedFilterController : ControllerBase
             return notFound.ToActionResult(HttpContext);
         }
 
-        await _savedFilterRepository.RemoveAsync(filter, ct);
+        await _savedFilterRepository.DeleteAsync(filter, ct);
+        await _dbContext.SaveChangesAsync(ct);
         return ApiResponse<object>.Ok(null!, "Saved filter deleted.").ToActionResult(HttpContext);
     }
 

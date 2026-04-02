@@ -1,8 +1,9 @@
 using WorkService.Domain.Entities;
+using WorkService.Domain.Interfaces.Repositories.Generics;
 
 namespace WorkService.Domain.Interfaces.Repositories.CostSnapshots;
 
-public interface ICostSnapshotRepository
+public interface ICostSnapshotRepository : IGenericRepository<CostSnapshot>
 {
     Task<CostSnapshot> AddOrUpdateAsync(CostSnapshot snapshot, CancellationToken ct = default);
     Task<(IEnumerable<CostSnapshot> Items, int TotalCount)> ListByProjectAsync(

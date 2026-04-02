@@ -1,14 +1,11 @@
 using ProfileService.Domain.Entities;
+using ProfileService.Domain.Interfaces.Repositories.Generics;
 
 namespace ProfileService.Domain.Interfaces.Repositories.Devices;
 
-public interface IDeviceRepository
+public interface IDeviceRepository : IGenericRepository<Device>
 {
-    Task<Device?> GetByIdAsync(Guid deviceId, CancellationToken ct = default);
     Task<IEnumerable<Device>> ListByMemberAsync(Guid memberId, CancellationToken ct = default);
     Task<int> CountByMemberAsync(Guid memberId, CancellationToken ct = default);
-    Task<Device> AddAsync(Device device, CancellationToken ct = default);
-    Task UpdateAsync(Device device, CancellationToken ct = default);
-    Task RemoveAsync(Device device, CancellationToken ct = default);
     Task ClearPrimaryAsync(Guid memberId, CancellationToken ct = default);
 }

@@ -2,14 +2,18 @@ using Microsoft.EntityFrameworkCore;
 using WorkService.Domain.Entities;
 using WorkService.Domain.Interfaces.Repositories.VelocitySnapshots;
 using WorkService.Infrastructure.Data;
+using WorkService.Infrastructure.Repositories.Generics;
 
 namespace WorkService.Infrastructure.Repositories.VelocitySnapshots;
 
-public class VelocitySnapshotRepository : IVelocitySnapshotRepository
+public class VelocitySnapshotRepository : GenericRepository<VelocitySnapshot>, IVelocitySnapshotRepository
 {
     private readonly WorkDbContext _db;
 
-    public VelocitySnapshotRepository(WorkDbContext db) => _db = db;
+    public VelocitySnapshotRepository(WorkDbContext db) : base(db)
+    {
+        _db = db;
+    }
 
     public async Task<VelocitySnapshot> AddOrUpdateAsync(VelocitySnapshot snapshot, CancellationToken ct = default)
     {
@@ -29,12 +33,10 @@ public class VelocitySnapshotRepository : IVelocitySnapshotRepository
             existing.CompletedStoryCount = snapshot.CompletedStoryCount;
             existing.SnapshotDate = snapshot.SnapshotDate;
             _db.VelocitySnapshots.Update(existing);
-            await _db.SaveChangesAsync(ct);
             return existing;
         }
 
         _db.VelocitySnapshots.Add(snapshot);
-        await _db.SaveChangesAsync(ct);
         return snapshot;
     }
 

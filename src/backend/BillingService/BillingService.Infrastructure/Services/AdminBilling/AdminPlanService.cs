@@ -6,21 +6,25 @@ using BillingService.Domain.Exceptions;
 using BillingService.Domain.Interfaces.Repositories.Plans;
 using BillingService.Domain.Interfaces.Services.AdminBilling;
 using BillingService.Domain.Interfaces.Services.Outbox;
+using BillingService.Infrastructure.Data;
 using Microsoft.Extensions.Logging;
 
 namespace BillingService.Infrastructure.Services.AdminBilling;
 
 public class AdminPlanService : IAdminPlanService
 {
+    private readonly BillingDbContext _dbContext;
     private readonly IPlanRepository _planRepo;
     private readonly IOutboxService _outboxService;
     private readonly ILogger<AdminPlanService> _logger;
 
     public AdminPlanService(
+        BillingDbContext dbContext,
         IPlanRepository planRepo,
         IOutboxService outboxService,
         ILogger<AdminPlanService> logger)
     {
+        _dbContext = dbContext;
         _planRepo = planRepo;
         _outboxService = outboxService;
         _logger = logger;
@@ -68,7 +72,8 @@ public class AdminPlanService : IAdminPlanService
             DateCreated = DateTime.UtcNow
         };
 
-        await _planRepo.CreateAsync(plan, ct);
+        await _planRepo.AddAsync(plan, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         _logger.LogInformation("Plan {PlanCode} created with ID {PlanId}", plan.PlanCode, plan.PlanId);
 
@@ -105,6 +110,7 @@ public class AdminPlanService : IAdminPlanService
         plan.FeaturesJson = updateRequest.FeaturesJson;
 
         await _planRepo.UpdateAsync(plan, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         var newValueJson = JsonSerializer.Serialize(new
         {
@@ -154,6 +160,7 @@ public class AdminPlanService : IAdminPlanService
         plan.IsActive = false;
 
         await _planRepo.UpdateAsync(plan, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         await _outboxService.PublishAsync(new OutboxMessage
         {

@@ -170,8 +170,10 @@ public class AdminBillingService : IAdminBillingService
                 CurrentPeriodEnd = DateTime.UtcNow.AddMonths(1),
             };
 
-            subscription = await _subscriptionRepo.CreateAsync(subscription, ct);
+            subscription = await _subscriptionRepo.AddAsync(subscription, ct);
         }
+
+        await _dbContext.SaveChangesAsync(ct);
 
         var newValueJson = JsonSerializer.Serialize(new
         {
@@ -225,6 +227,7 @@ public class AdminBillingService : IAdminBillingService
         }
 
         await _subscriptionRepo.UpdateAsync(subscription, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         var newValueJson = JsonSerializer.Serialize(new
         {

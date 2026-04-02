@@ -9,6 +9,7 @@ using WorkService.Domain.Interfaces.Repositories.CostSnapshots;
 using WorkService.Domain.Interfaces.Repositories.Projects;
 using WorkService.Domain.Interfaces.Services.CostSnapshots;
 using WorkService.Domain.Interfaces.Services.TimeEntries;
+using WorkService.Infrastructure.Data;
 
 namespace WorkService.Infrastructure.Services.CostSnapshots;
 
@@ -87,6 +88,7 @@ public class CostSnapshotHostedService : BackgroundService, ICostSnapshotService
         var projectRepo = scope.ServiceProvider.GetRequiredService<IProjectRepository>();
         var timeEntryService = scope.ServiceProvider.GetRequiredService<ITimeEntryService>();
         var snapshotRepo = scope.ServiceProvider.GetRequiredService<ICostSnapshotRepository>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<WorkDbContext>();
 
         // Query all active projects across all organizations
         // We use a large page size to get all projects; in production this would be batched
@@ -117,6 +119,7 @@ public class CostSnapshotHostedService : BackgroundService, ICostSnapshotService
                 };
 
                 await snapshotRepo.AddOrUpdateAsync(snapshot, ct);
+                await dbContext.SaveChangesAsync(ct);
 
                 _logger.LogDebug("Generated cost snapshot for project {ProjectId}", project.ProjectId);
             }

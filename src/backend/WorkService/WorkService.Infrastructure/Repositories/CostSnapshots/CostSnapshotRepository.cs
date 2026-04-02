@@ -2,14 +2,18 @@ using Microsoft.EntityFrameworkCore;
 using WorkService.Domain.Entities;
 using WorkService.Domain.Interfaces.Repositories.CostSnapshots;
 using WorkService.Infrastructure.Data;
+using WorkService.Infrastructure.Repositories.Generics;
 
 namespace WorkService.Infrastructure.Repositories.CostSnapshots;
 
-public class CostSnapshotRepository : ICostSnapshotRepository
+public class CostSnapshotRepository : GenericRepository<CostSnapshot>, ICostSnapshotRepository
 {
     private readonly WorkDbContext _db;
 
-    public CostSnapshotRepository(WorkDbContext db) => _db = db;
+    public CostSnapshotRepository(WorkDbContext db) : base(db)
+    {
+        _db = db;
+    }
 
     public async Task<CostSnapshot> AddOrUpdateAsync(CostSnapshot snapshot, CancellationToken ct = default)
     {
@@ -25,12 +29,10 @@ public class CostSnapshotRepository : ICostSnapshotRepository
             existing.TotalNonBillableHours = snapshot.TotalNonBillableHours;
             existing.SnapshotDate = snapshot.SnapshotDate;
             _db.CostSnapshots.Update(existing);
-            await _db.SaveChangesAsync(ct);
             return existing;
         }
 
         _db.CostSnapshots.Add(snapshot);
-        await _db.SaveChangesAsync(ct);
         return snapshot;
     }
 

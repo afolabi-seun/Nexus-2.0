@@ -12,6 +12,7 @@ using BillingService.Domain.Interfaces.Services.Outbox;
 using BillingService.Domain.Interfaces.Services.Stripe;
 using BillingService.Domain.Interfaces.Services.Subscriptions;
 using BillingService.Domain.Interfaces.Services.Usage;
+using BillingService.Infrastructure.Data;
 using BillingService.Infrastructure.Services.ServiceClients;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
@@ -20,6 +21,7 @@ namespace BillingService.Infrastructure.Services.Subscriptions;
 
 public class SubscriptionService : ISubscriptionService
 {
+    private readonly BillingDbContext _dbContext;
     private readonly ISubscriptionRepository _subscriptionRepo;
     private readonly IPlanRepository _planRepo;
     private readonly IStripePaymentService _stripePaymentService;
@@ -30,6 +32,7 @@ public class SubscriptionService : ISubscriptionService
     private readonly ILogger<SubscriptionService> _logger;
 
     public SubscriptionService(
+        BillingDbContext dbContext,
         ISubscriptionRepository subscriptionRepo,
         IPlanRepository planRepo,
         IStripePaymentService stripePaymentService,
@@ -39,6 +42,7 @@ public class SubscriptionService : ISubscriptionService
         IConnectionMultiplexer redis,
         ILogger<SubscriptionService> logger)
     {
+        _dbContext = dbContext;
         _subscriptionRepo = subscriptionRepo;
         _planRepo = planRepo;
         _stripePaymentService = stripePaymentService;
@@ -102,7 +106,8 @@ public class SubscriptionService : ISubscriptionService
             subscription.CurrentPeriodEnd = DateTime.UtcNow.AddMonths(1);
         }
 
-        var created = await _subscriptionRepo.CreateAsync(subscription, ct);
+        var created = await _subscriptionRepo.AddAsync(subscription, ct);
+        await _dbContext.SaveChangesAsync(ct);
         await RefreshCacheAndNotify(organizationId, plan, ct);
         await PublishAuditEvent(organizationId, "SubscriptionCreated", plan.PlanName, ct);
 
@@ -157,6 +162,7 @@ public class SubscriptionService : ISubscriptionService
         subscription.CurrentPeriodEnd = DateTime.UtcNow.AddMonths(1);
 
         await _subscriptionRepo.UpdateAsync(subscription, ct);
+        await _dbContext.SaveChangesAsync(ct);
         await RefreshCacheAndNotify(organizationId, newPlan, ct);
         await PublishAuditEvent(organizationId, "SubscriptionUpgraded", $"{oldPlanName} -> {newPlan.PlanName}", ct);
 
@@ -187,6 +193,7 @@ public class SubscriptionService : ISubscriptionService
         subscription.ScheduledPlan = newPlan;
 
         await _subscriptionRepo.UpdateAsync(subscription, ct);
+        await _dbContext.SaveChangesAsync(ct);
         await PublishAuditEvent(organizationId, "SubscriptionDowngraded",
             $"{currentPlan.PlanName} -> {newPlan.PlanName} (effective at period end)", ct);
 
@@ -217,6 +224,7 @@ public class SubscriptionService : ISubscriptionService
         }
 
         await _subscriptionRepo.UpdateAsync(subscription, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         // For free plan, downgrade is immediate
         if (plan.PlanCode == "free")

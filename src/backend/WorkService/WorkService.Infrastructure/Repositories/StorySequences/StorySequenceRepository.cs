@@ -1,15 +1,20 @@
 using Microsoft.EntityFrameworkCore;
+using WorkService.Domain.Entities;
 using WorkService.Domain.Interfaces.Repositories.StorySequences;
 using WorkService.Infrastructure.Data;
+using WorkService.Infrastructure.Repositories.Generics;
 using Task = System.Threading.Tasks.Task;
 
 namespace WorkService.Infrastructure.Repositories.StorySequences;
 
-public class StorySequenceRepository : IStorySequenceRepository
+public class StorySequenceRepository : GenericRepository<StorySequence>, IStorySequenceRepository
 {
     private readonly WorkDbContext _db;
 
-    public StorySequenceRepository(WorkDbContext db) => _db = db;
+    public StorySequenceRepository(WorkDbContext db) : base(db)
+    {
+        _db = db;
+    }
 
     public async Task InitializeAsync(Guid projectId, CancellationToken ct = default)
     {

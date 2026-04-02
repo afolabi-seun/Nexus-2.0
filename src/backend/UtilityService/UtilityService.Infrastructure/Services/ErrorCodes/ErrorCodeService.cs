@@ -5,6 +5,7 @@ using UtilityService.Domain.Entities;
 using UtilityService.Domain.Exceptions;
 using UtilityService.Domain.Interfaces.Repositories.ErrorCodeEntries;
 using UtilityService.Domain.Interfaces.Services.ErrorCodes;
+using UtilityService.Infrastructure.Data;
 
 namespace UtilityService.Infrastructure.Services.ErrorCodes;
 
@@ -12,13 +13,15 @@ public class ErrorCodeService : IErrorCodeService
 {
     private readonly IErrorCodeEntryRepository _repo;
     private readonly IConnectionMultiplexer _redis;
+    private readonly UtilityDbContext _dbContext;
     private const string CacheKey = "error_codes_registry";
     private static readonly TimeSpan CacheTtl = TimeSpan.FromHours(24);
 
-    public ErrorCodeService(IErrorCodeEntryRepository repo, IConnectionMultiplexer redis)
+    public ErrorCodeService(IErrorCodeEntryRepository repo, IConnectionMultiplexer redis, UtilityDbContext dbContext)
     {
         _repo = repo;
         _redis = redis;
+        _dbContext = dbContext;
     }
 
     public async Task<object> CreateAsync(object request, CancellationToken ct = default)
@@ -36,6 +39,7 @@ public class ErrorCodeService : IErrorCodeService
         };
 
         var created = await _repo.AddAsync(entity, ct);
+        await _dbContext.SaveChangesAsync(ct);
         await InvalidateCacheAsync();
         return MapToResponse(created);
     }
@@ -70,6 +74,7 @@ public class ErrorCodeService : IErrorCodeService
         entity.DateUpdated = DateTime.UtcNow;
 
         await _repo.UpdateAsync(entity, ct);
+        await _dbContext.SaveChangesAsync(ct);
         await InvalidateCacheAsync();
         return MapToResponse(entity);
     }
@@ -80,6 +85,7 @@ public class ErrorCodeService : IErrorCodeService
             ?? throw new ErrorCodeNotFoundException(code);
 
         await _repo.RemoveAsync(entity, ct);
+        await _dbContext.SaveChangesAsync(ct);
         await InvalidateCacheAsync();
     }
 

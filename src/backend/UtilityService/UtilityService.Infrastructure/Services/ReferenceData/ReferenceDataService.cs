@@ -8,6 +8,7 @@ using UtilityService.Domain.Interfaces.Repositories.PriorityLevels;
 using UtilityService.Domain.Interfaces.Repositories.TaskTypeRefs;
 using UtilityService.Domain.Interfaces.Repositories.WorkflowStates;
 using UtilityService.Domain.Interfaces.Services.ReferenceData;
+using UtilityService.Infrastructure.Data;
 
 namespace UtilityService.Infrastructure.Services.ReferenceData;
 
@@ -18,18 +19,20 @@ public class ReferenceDataService : IReferenceDataService
     private readonly ITaskTypeRefRepository _taskTypeRepo;
     private readonly IWorkflowStateRepository _workflowRepo;
     private readonly IConnectionMultiplexer _redis;
+    private readonly UtilityDbContext _dbContext;
     private static readonly TimeSpan CacheTtl = TimeSpan.FromHours(24);
 
     public ReferenceDataService(
         IDepartmentTypeRepository deptRepo, IPriorityLevelRepository priorityRepo,
         ITaskTypeRefRepository taskTypeRepo, IWorkflowStateRepository workflowRepo,
-        IConnectionMultiplexer redis)
+        IConnectionMultiplexer redis, UtilityDbContext dbContext)
     {
         _deptRepo = deptRepo;
         _priorityRepo = priorityRepo;
         _taskTypeRepo = taskTypeRepo;
         _workflowRepo = workflowRepo;
         _redis = redis;
+        _dbContext = dbContext;
     }
 
     public async Task<IEnumerable<object>> GetDepartmentTypesAsync(CancellationToken ct = default)
@@ -88,6 +91,7 @@ public class ReferenceDataService : IReferenceDataService
 
         var entity = new DepartmentType { TypeName = req.TypeName, TypeCode = req.TypeCode };
         var created = await _deptRepo.AddAsync(entity, ct);
+        await _dbContext.SaveChangesAsync(ct);
         await InvalidateCacheAsync("ref:department_types");
 
         return new DepartmentTypeResponse
@@ -104,6 +108,7 @@ public class ReferenceDataService : IReferenceDataService
 
         var entity = new PriorityLevel { Name = req.Name, SortOrder = req.SortOrder, Color = req.Color };
         var created = await _priorityRepo.AddAsync(entity, ct);
+        await _dbContext.SaveChangesAsync(ct);
         await InvalidateCacheAsync("ref:priority_levels");
 
         return new PriorityLevelResponse

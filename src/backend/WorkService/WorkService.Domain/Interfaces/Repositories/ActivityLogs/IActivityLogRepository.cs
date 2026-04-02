@@ -1,10 +1,9 @@
 using WorkService.Domain.Entities;
-using Task = System.Threading.Tasks.Task;
+using WorkService.Domain.Interfaces.Repositories.Generics;
 
 namespace WorkService.Domain.Interfaces.Repositories.ActivityLogs;
 
-public interface IActivityLogRepository
+public interface IActivityLogRepository : IGenericRepository<ActivityLog>
 {
-    Task<ActivityLog> AddAsync(ActivityLog log, CancellationToken ct = default);
     Task<IEnumerable<ActivityLog>> ListByEntityAsync(string entityType, Guid entityId, CancellationToken ct = default);
 }

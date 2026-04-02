@@ -10,6 +10,7 @@ using ProfileService.Domain.Interfaces.Repositories.Departments;
 using ProfileService.Domain.Interfaces.Repositories.Roles;
 using ProfileService.Domain.Interfaces.Repositories.TeamMembers;
 using ProfileService.Domain.Interfaces.Services.TeamMembers;
+using ProfileService.Infrastructure.Data;
 using StackExchange.Redis;
 
 namespace ProfileService.Infrastructure.Services.TeamMembers;
@@ -27,6 +28,7 @@ public class TeamMemberService : ITeamMemberService
     private readonly IDepartmentRepository _deptRepo;
     private readonly IRoleRepository _roleRepo;
     private readonly IConnectionMultiplexer _redis;
+    private readonly ProfileDbContext _dbContext;
     private readonly ILogger<TeamMemberService> _logger;
 
     public TeamMemberService(
@@ -35,6 +37,7 @@ public class TeamMemberService : ITeamMemberService
         IDepartmentRepository deptRepo,
         IRoleRepository roleRepo,
         IConnectionMultiplexer redis,
+        ProfileDbContext dbContext,
         ILogger<TeamMemberService> logger)
     {
         _memberRepo = memberRepo;
@@ -42,6 +45,7 @@ public class TeamMemberService : ITeamMemberService
         _deptRepo = deptRepo;
         _roleRepo = roleRepo;
         _redis = redis;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
@@ -90,6 +94,7 @@ public class TeamMemberService : ITeamMemberService
 
         member.DateUpdated = DateTime.UtcNow;
         await _memberRepo.UpdateAsync(member, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         // Invalidate cache
         var db = _redis.GetDatabase();
@@ -130,6 +135,7 @@ public class TeamMemberService : ITeamMemberService
         member.FlgStatus = newStatus;
         member.DateUpdated = DateTime.UtcNow;
         await _memberRepo.UpdateAsync(member, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         var db = _redis.GetDatabase();
         await db.KeyDeleteAsync($"member_profile:{memberId}");
@@ -147,6 +153,7 @@ public class TeamMemberService : ITeamMemberService
         member.Availability = availability;
         member.DateUpdated = DateTime.UtcNow;
         await _memberRepo.UpdateAsync(member, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     public async Task AddToDepartmentAsync(Guid memberId, object request, CancellationToken ct = default)
@@ -171,6 +178,7 @@ public class TeamMemberService : ITeamMemberService
             RoleId = req.RoleId
         };
         await _deptMemberRepo.AddAsync(deptMember, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         // Invalidate caches
         var db = _redis.GetDatabase();
@@ -191,7 +199,8 @@ public class TeamMemberService : ITeamMemberService
         if (allMemberships.Count() <= 1)
             throw new MemberMustHaveDepartmentException();
 
-        await _deptMemberRepo.RemoveAsync(deptMember, ct);
+        await _deptMemberRepo.DeleteAsync(deptMember, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         // Invalidate caches
         var db = _redis.GetDatabase();
@@ -207,6 +216,7 @@ public class TeamMemberService : ITeamMemberService
 
         deptMember.RoleId = req.RoleId;
         await _deptMemberRepo.UpdateAsync(deptMember, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         var db = _redis.GetDatabase();
         await db.KeyDeleteAsync($"member_profile:{memberId}");
@@ -249,6 +259,7 @@ public class TeamMemberService : ITeamMemberService
         member.Password = passwordHash;
         member.DateUpdated = DateTime.UtcNow;
         await _memberRepo.UpdateAsync(member, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     private static TeamMemberResponse MapToResponse(TeamMember m) => new()

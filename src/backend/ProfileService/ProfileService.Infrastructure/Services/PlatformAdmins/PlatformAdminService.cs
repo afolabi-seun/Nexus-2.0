@@ -2,16 +2,19 @@ using ProfileService.Application.DTOs.PlatformAdmins;
 using ProfileService.Domain.Exceptions;
 using ProfileService.Domain.Interfaces.Repositories.PlatformAdmins;
 using ProfileService.Domain.Interfaces.Services.PlatformAdmins;
+using ProfileService.Infrastructure.Data;
 
 namespace ProfileService.Infrastructure.Services.PlatformAdmins;
 
 public class PlatformAdminService : IPlatformAdminService
 {
     private readonly IPlatformAdminRepository _adminRepo;
+    private readonly ProfileDbContext _dbContext;
 
-    public PlatformAdminService(IPlatformAdminRepository adminRepo)
+    public PlatformAdminService(IPlatformAdminRepository adminRepo, ProfileDbContext dbContext)
     {
         _adminRepo = adminRepo;
+        _dbContext = dbContext;
     }
 
     public async Task<object> GetByUsernameAsync(string username, CancellationToken ct = default)
@@ -37,5 +40,6 @@ public class PlatformAdminService : IPlatformAdminService
         admin.PasswordHash = passwordHash;
         admin.DateUpdated = DateTime.UtcNow;
         await _adminRepo.UpdateAsync(admin, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 }

@@ -4,6 +4,7 @@ using UtilityService.Domain.Entities;
 using UtilityService.Domain.Interfaces.Repositories.ErrorLogs;
 using UtilityService.Domain.Interfaces.Services.ErrorLogs;
 using UtilityService.Domain.Interfaces.Services.PiiRedaction;
+using UtilityService.Infrastructure.Data;
 
 namespace UtilityService.Infrastructure.Services.ErrorLogs;
 
@@ -11,11 +12,13 @@ public class ErrorLogService : IErrorLogService
 {
     private readonly IErrorLogRepository _repo;
     private readonly IPiiRedactionService _piiRedaction;
+    private readonly UtilityDbContext _dbContext;
 
-    public ErrorLogService(IErrorLogRepository repo, IPiiRedactionService piiRedaction)
+    public ErrorLogService(IErrorLogRepository repo, IPiiRedactionService piiRedaction, UtilityDbContext dbContext)
     {
         _repo = repo;
         _piiRedaction = piiRedaction;
+        _dbContext = dbContext;
     }
 
     public async Task<object> CreateAsync(object request, CancellationToken ct = default)
@@ -34,6 +37,7 @@ public class ErrorLogService : IErrorLogService
         };
 
         var created = await _repo.AddAsync(entity, ct);
+        await _dbContext.SaveChangesAsync(ct);
         return MapToResponse(created);
     }
 

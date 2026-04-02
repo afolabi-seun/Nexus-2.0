@@ -13,6 +13,7 @@ using WorkService.Domain.Interfaces.Repositories.Tasks;
 using WorkService.Domain.Interfaces.Services.Analytics;
 using WorkService.Domain.Interfaces.Services.Outbox;
 using WorkService.Domain.Interfaces.Services.Sprints;
+using WorkService.Infrastructure.Data;
 using WorkService.Infrastructure.Services.ServiceClients;
 using StackExchange.Redis;
 
@@ -27,6 +28,7 @@ public class SprintService : ISprintService
     private readonly IProjectRepository _projectRepo;
     private readonly IOutboxService _outbox;
     private readonly IConnectionMultiplexer _redis;
+    private readonly WorkDbContext _dbContext;
     private readonly IProfileServiceClient? _profileClient;
     private readonly IAnalyticsSnapshotService? _analyticsSnapshotService;
     private readonly ILogger<SprintService> _logger;
@@ -34,13 +36,13 @@ public class SprintService : ISprintService
     public SprintService(
         ISprintRepository sprintRepo, ISprintStoryRepository sprintStoryRepo,
         IStoryRepository storyRepo, ITaskRepository taskRepo, IProjectRepository projectRepo,
-        IOutboxService outbox, IConnectionMultiplexer redis,
+        IOutboxService outbox, IConnectionMultiplexer redis, WorkDbContext dbContext,
         ILogger<SprintService> logger, IProfileServiceClient? profileClient = null,
         IAnalyticsSnapshotService? analyticsSnapshotService = null)
     {
         _sprintRepo = sprintRepo; _sprintStoryRepo = sprintStoryRepo;
         _storyRepo = storyRepo; _taskRepo = taskRepo; _projectRepo = projectRepo;
-        _outbox = outbox; _redis = redis; _logger = logger; _profileClient = profileClient;
+        _outbox = outbox; _redis = redis; _dbContext = dbContext; _logger = logger; _profileClient = profileClient;
         _analyticsSnapshotService = analyticsSnapshotService;
     }
 
@@ -60,6 +62,7 @@ public class SprintService : ISprintService
         };
 
         await _sprintRepo.AddAsync(sprint, ct);
+        await _dbContext.SaveChangesAsync(ct);
         return await BuildDetailResponse(sprint, ct);
     }
 
@@ -101,6 +104,7 @@ public class SprintService : ISprintService
         sprint.DateUpdated = DateTime.UtcNow;
 
         await _sprintRepo.UpdateAsync(sprint, ct);
+        await _dbContext.SaveChangesAsync(ct);
         return await BuildDetailResponse(sprint, ct);
     }
 
@@ -116,6 +120,7 @@ public class SprintService : ISprintService
         sprint.Status = "Active";
         sprint.DateUpdated = DateTime.UtcNow;
         await _sprintRepo.UpdateAsync(sprint, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         var db = _redis.GetDatabase();
         await db.StringSetAsync($"sprint_active:{sprint.ProjectId}", sprint.SprintId.ToString(), TimeSpan.FromMinutes(5));
@@ -160,6 +165,7 @@ public class SprintService : ISprintService
         sprint.Velocity = velocity;
         sprint.DateUpdated = DateTime.UtcNow;
         await _sprintRepo.UpdateAsync(sprint, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         var db = _redis.GetDatabase();
         await db.KeyDeleteAsync($"sprint_active:{sprint.ProjectId}");
@@ -206,6 +212,7 @@ public class SprintService : ISprintService
         sprint.Status = "Cancelled";
         sprint.DateUpdated = DateTime.UtcNow;
         await _sprintRepo.UpdateAsync(sprint, ct);
+        await _dbContext.SaveChangesAsync(ct);
 
         var db = _redis.GetDatabase();
         await db.KeyDeleteAsync($"sprint_active:{sprint.ProjectId}");
@@ -230,6 +237,7 @@ public class SprintService : ISprintService
         story.SprintId = sprintId;
         story.DateUpdated = DateTime.UtcNow;
         await _storyRepo.UpdateAsync(story, ct);
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     public async System.Threading.Tasks.Task RemoveStoryAsync(Guid sprintId, Guid storyId, CancellationToken ct = default)
@@ -247,6 +255,7 @@ public class SprintService : ISprintService
             story.DateUpdated = DateTime.UtcNow;
             await _storyRepo.UpdateAsync(story, ct);
         }
+        await _dbContext.SaveChangesAsync(ct);
     }
 
     public async Task<object> GetMetricsAsync(Guid sprintId, CancellationToken ct = default)

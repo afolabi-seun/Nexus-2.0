@@ -1,8 +1,9 @@
 using WorkService.Domain.Entities;
+using WorkService.Domain.Interfaces.Repositories.Generics;
 
 namespace WorkService.Domain.Interfaces.Repositories.ResourceAllocationSnapshots;
 
-public interface IResourceAllocationSnapshotRepository
+public interface IResourceAllocationSnapshotRepository : IGenericRepository<ResourceAllocationSnapshot>
 {
     Task<ResourceAllocationSnapshot> AddOrUpdateAsync(
         ResourceAllocationSnapshot snapshot, CancellationToken ct = default);

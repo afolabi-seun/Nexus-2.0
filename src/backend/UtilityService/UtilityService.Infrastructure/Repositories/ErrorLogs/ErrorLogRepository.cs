@@ -2,29 +2,23 @@ using Microsoft.EntityFrameworkCore;
 using UtilityService.Domain.Entities;
 using UtilityService.Domain.Interfaces.Repositories.ErrorLogs;
 using UtilityService.Infrastructure.Data;
+using UtilityService.Infrastructure.Repositories.Generics;
 
 namespace UtilityService.Infrastructure.Repositories.ErrorLogs;
 
-public class ErrorLogRepository : IErrorLogRepository
+public class ErrorLogRepository : GenericRepository<ErrorLog>, IErrorLogRepository
 {
-    private readonly UtilityDbContext _context;
+    private readonly UtilityDbContext _db;
 
-    public ErrorLogRepository(UtilityDbContext context) => _context = context;
-
-    public async Task<ErrorLog> AddAsync(ErrorLog errorLog, CancellationToken ct = default)
-    {
-        _context.ErrorLogs.Add(errorLog);
-        await _context.SaveChangesAsync(ct);
-        return errorLog;
-    }
+    public ErrorLogRepository(UtilityDbContext db) : base(db) => _db = db;
 
     public async Task<(IEnumerable<ErrorLog> Items, int TotalCount)> QueryAsync(
         Guid organizationId, string? serviceName, string? errorCode, string? severity,
         DateTime? dateFrom, DateTime? dateTo, int page, int pageSize,
         CancellationToken ct = default)
     {
-        _context.OrganizationId = organizationId;
-        var query = _context.ErrorLogs.AsNoTracking();
+        _db.OrganizationId = organizationId;
+        var query = _db.ErrorLogs.AsNoTracking();
 
         if (!string.IsNullOrEmpty(serviceName))
             query = query.Where(e => e.ServiceName == serviceName);

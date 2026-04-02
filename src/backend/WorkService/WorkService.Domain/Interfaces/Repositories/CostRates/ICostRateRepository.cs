@@ -1,13 +1,11 @@
 using WorkService.Domain.Entities;
+using WorkService.Domain.Interfaces.Repositories.Generics;
 using Task = System.Threading.Tasks.Task;
 
 namespace WorkService.Domain.Interfaces.Repositories.CostRates;
 
-public interface ICostRateRepository
+public interface ICostRateRepository : IGenericRepository<CostRate>
 {
-    Task<CostRate?> GetByIdAsync(Guid costRateId, CancellationToken ct = default);
-    Task<CostRate> AddAsync(CostRate rate, CancellationToken ct = default);
-    Task UpdateAsync(CostRate rate, CancellationToken ct = default);
     Task<(IEnumerable<CostRate> Items, int TotalCount)> ListAsync(
         Guid organizationId, string? rateType, Guid? memberId,
         Guid? departmentId, string? roleName, int page, int pageSize,
