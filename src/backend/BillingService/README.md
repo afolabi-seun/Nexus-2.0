@@ -144,4 +144,5 @@ See [`.env.example`](BillingService.Api/.env.example) for all variables. Key set
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
 | `SECURITY_SERVICE_BASE_URL` | SecurityService URL |
 | `PROFILE_SERVICE_BASE_URL` | ProfileService URL |
+| `UTILITY_SERVICE_BASE_URL` | UtilityService URL (error code resolution) |
 | `SERVICE_SECRET` | Shared secret for service-to-service auth |
