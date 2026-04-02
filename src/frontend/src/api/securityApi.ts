@@ -39,4 +39,11 @@ export const securityApi = {
 
     revokeAllSessions: (): Promise<void> =>
         client.delete('/api/v1/auth/sessions').then(() => undefined),
+
+    // OTP
+    requestOtp: (data: { email: string }): Promise<void> =>
+        client.post('/api/v1/auth/otp/request', data).then(() => undefined),
+
+    verifyOtp: (data: { email: string; otp: string }): Promise<{ verified: boolean }> =>
+        client.post('/api/v1/auth/otp/verify', data).then((r) => r.data),
 };

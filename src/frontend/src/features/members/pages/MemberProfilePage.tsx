@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { profileApi } from '@/api/profileApi';
 import { Badge } from '@/components/common/Badge';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { Modal } from '@/components/common/Modal';
 import { useToast } from '@/components/common/Toast';
 import { SkeletonLoader } from '@/components/common/SkeletonLoader';
@@ -27,6 +28,8 @@ export function MemberProfilePage() {
     const [editAvailability, setEditAvailability] = useState('');
     const [editMaxTasks, setEditMaxTasks] = useState(5);
     const [saving, setSaving] = useState(false);
+    const [statusConfirmOpen, setStatusConfirmOpen] = useState(false);
+    const [pendingStatus, setPendingStatus] = useState<string | null>(null);
 
     const isOrgAdmin = user?.roleName === 'OrgAdmin';
     const isSelf = user?.userId === id;
@@ -102,6 +105,20 @@ export function MemberProfilePage() {
                     <div className="mt-1 flex flex-wrap gap-2">
                         <Badge variant="status" value={member.availability} />
                         <Badge variant="status" value={member.flgStatus === 'A' ? 'Active' : member.flgStatus === 'S' ? 'Suspended' : 'Deactivated'} />
+                        {isOrgAdmin && (
+                            <select
+                                value={member.flgStatus}
+                                onChange={(e) => {
+                                    setPendingStatus(e.target.value);
+                                    setStatusConfirmOpen(true);
+                                }}
+                                className="h-7 rounded-md border border-input bg-background px-2 text-xs text-foreground"
+                            >
+                                <option value="A">Active</option>
+                                <option value="S">Suspended</option>
+                                <option value="D">Deactivated</option>
+                            </select>
+                        )}
                     </div>
                 </div>
             </div>
@@ -251,6 +268,30 @@ export function MemberProfilePage() {
                     </div>
                 </div>
             </Modal>
+
+            {/* Status Change Confirm Dialog */}
+            <ConfirmDialog
+                open={statusConfirmOpen}
+                title="Change Member Status"
+                message={`Are you sure you want to change this member's status to ${pendingStatus === 'A' ? 'Active' : pendingStatus === 'S' ? 'Suspended' : 'Deactivated'}?`}
+                onConfirm={async () => {
+                    try {
+                        await profileApi.updateMemberStatus(id!, { status: pendingStatus! });
+                        addToast('success', 'Member status updated');
+                        fetchMember();
+                    } catch (err) {
+                        if (err instanceof ApiError) addToast('error', mapErrorCode(err.errorCode));
+                        else addToast('error', 'Failed to update status');
+                    } finally {
+                        setPendingStatus(null);
+                        setStatusConfirmOpen(false);
+                    }
+                }}
+                onCancel={() => {
+                    setPendingStatus(null);
+                    setStatusConfirmOpen(false);
+                }}
+            />
         </div>
     );
 }
