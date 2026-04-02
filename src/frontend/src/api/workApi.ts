@@ -29,6 +29,7 @@ import type {
     SprintListItem,
     SprintDetail,
     CreateSprintRequest,
+    UpdateSprintRequest,
     SprintFilters,
     SprintMetrics,
     VelocityChartData,
@@ -151,6 +152,8 @@ export const workApi = {
         client.post(`/api/v1/sprints/${sprintId}/stories`, data).then(() => undefined),
     removeStoryFromSprint: (sprintId: string, storyId: string): Promise<void> =>
         client.delete(`/api/v1/sprints/${sprintId}/stories/${storyId}`).then(() => undefined),
+    updateSprint: (id: string, data: UpdateSprintRequest): Promise<SprintDetail> =>
+        client.put(`/api/v1/sprints/${id}`, data).then((r) => r.data),
 
     // Boards
     getKanbanBoard: (params?: BoardFilters): Promise<KanbanBoard> =>

@@ -47,6 +47,9 @@ import { PlatformAdminBillingPage } from '@/features/admin/pages/PlatformAdminBi
 import { PlatformAdminOrgBillingDetailPage } from '@/features/admin/pages/PlatformAdminOrgBillingDetailPage';
 import { PlatformAdminPlansPage } from '@/features/admin/pages/PlatformAdminPlansPage';
 import { NotificationHistoryPage } from '@/features/notifications/pages/NotificationHistoryPage';
+import { AuditLogsPage } from '@/features/admin/pages/AuditLogsPage';
+import { ErrorLogsPage } from '@/features/admin/pages/ErrorLogsPage';
+import { ReferenceDataPage } from '@/features/admin/pages/ReferenceDataPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { BillingPage } from '@/features/billing/pages/BillingPage';
 import { PlanComparisonPage } from '@/features/billing/pages/PlanComparisonPage';
@@ -139,6 +142,9 @@ export const router = createBrowserRouter([
                                     { path: '/billing', element: <BillingPage /> },
                                     { path: '/billing/plans', element: <PlanComparisonPage /> },
                                     { path: '/time-tracking/settings', element: <TimeTrackingSettingsPage /> },
+                                    { path: '/audit-logs', element: <AuditLogsPage /> },
+                                    { path: '/settings/error-logs', element: <ErrorLogsPage /> },
+                                    { path: '/settings/reference-data', element: <ReferenceDataPage /> },
                                 ],
                             },
 
@@ -165,6 +171,7 @@ export const router = createBrowserRouter([
                             { path: '/admin/billing', element: <PlatformAdminBillingPage /> },
                             { path: '/admin/billing/organizations/:id', element: <PlatformAdminOrgBillingDetailPage /> },
                             { path: '/admin/billing/plans', element: <PlatformAdminPlansPage /> },
+                            { path: '/admin/audit-logs', element: <AuditLogsPage /> },
                         ],
                     },
                 ],

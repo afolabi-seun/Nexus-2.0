@@ -57,3 +57,32 @@ export interface ReferenceData {
     taskTypes: TaskTypeRef[];
     workflowStates: WorkflowState[];
 }
+
+export interface ErrorLog {
+    errorLogId: string;
+    serviceName: string;
+    errorCode: string;
+    severity: string;
+    message: string;
+    stackTrace: string | null;
+    dateCreated: string;
+}
+
+export interface ErrorLogFilters {
+    serviceName?: string;
+    errorCode?: string;
+    severity?: string;
+    dateFrom?: string;
+    dateTo?: string;
+}
+
+export interface CreateDepartmentTypeRequest {
+    code: string;
+    name: string;
+}
+
+export interface CreatePriorityLevelRequest {
+    code: string;
+    name: string;
+    level: number;
+}
