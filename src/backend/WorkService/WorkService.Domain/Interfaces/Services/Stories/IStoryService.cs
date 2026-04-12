@@ -15,4 +15,6 @@ public interface IStoryService
     Task DeleteLinkAsync(Guid storyId, Guid linkId, CancellationToken ct = default);
     Task ApplyLabelAsync(Guid storyId, Guid labelId, CancellationToken ct = default);
     Task RemoveLabelAsync(Guid storyId, Guid labelId, CancellationToken ct = default);
+    Task<object> BulkUpdateStatusAsync(Guid organizationId, Guid actorId, List<Guid> storyIds, string newStatus, CancellationToken ct = default);
+    Task<object> BulkAssignAsync(Guid organizationId, Guid actorId, List<Guid> storyIds, Guid assigneeId, string actorRole, Guid actorDepartmentId, CancellationToken ct = default);
 }

@@ -397,4 +397,40 @@ public class StoryService : IStoryService
             FlgStatus = story.FlgStatus, DateCreated = story.DateCreated, DateUpdated = story.DateUpdated
         };
     }
+
+    public async Task<object> BulkUpdateStatusAsync(Guid organizationId, Guid actorId, List<Guid> storyIds, string newStatus, CancellationToken ct = default)
+    {
+        var results = new List<object>();
+        foreach (var storyId in storyIds)
+        {
+            try
+            {
+                var result = await TransitionStatusAsync(storyId, actorId, newStatus, ct);
+                results.Add(new { StoryId = storyId, Success = true });
+            }
+            catch (Exception ex)
+            {
+                results.Add(new { StoryId = storyId, Success = false, Error = ex.Message });
+            }
+        }
+        return new { Updated = results.Count(r => ((dynamic)r).Success), Total = storyIds.Count, Results = results };
+    }
+
+    public async Task<object> BulkAssignAsync(Guid organizationId, Guid actorId, List<Guid> storyIds, Guid assigneeId, string actorRole, Guid actorDepartmentId, CancellationToken ct = default)
+    {
+        var results = new List<object>();
+        foreach (var storyId in storyIds)
+        {
+            try
+            {
+                await AssignAsync(storyId, actorId, assigneeId, actorRole, actorDepartmentId, ct);
+                results.Add(new { StoryId = storyId, Success = true });
+            }
+            catch (Exception ex)
+            {
+                results.Add(new { StoryId = storyId, Success = false, Error = ex.Message });
+            }
+        }
+        return new { Assigned = results.Count(r => ((dynamic)r).Success), Total = storyIds.Count, Results = results };
+    }
 }

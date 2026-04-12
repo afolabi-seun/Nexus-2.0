@@ -8,6 +8,8 @@ using WorkService.Domain.Interfaces.Services.CostSnapshots;
 using WorkService.Domain.Interfaces.Services.Projects;
 using WorkService.Domain.Interfaces.Services.TimeEntries;
 
+using WorkService.Domain.Interfaces.Services.Export;
+
 namespace WorkService.Api.Controllers;
 
 /// <summary>
@@ -21,12 +23,14 @@ public class ProjectController : ControllerBase
     private readonly IProjectService _projectService;
     private readonly ITimeEntryService _timeEntryService;
     private readonly ICostSnapshotService _costSnapshotService;
+    private readonly IExportService _exportService;
 
-    public ProjectController(IProjectService projectService, ITimeEntryService timeEntryService, ICostSnapshotService costSnapshotService)
+    public ProjectController(IProjectService projectService, ITimeEntryService timeEntryService, ICostSnapshotService costSnapshotService, IExportService exportService)
     {
         _projectService = projectService;
         _timeEntryService = timeEntryService;
         _costSnapshotService = costSnapshotService;
+        _exportService = exportService;
     }
 
     /// <summary>
@@ -182,4 +186,32 @@ public class ProjectController : ControllerBase
 
     private Guid GetOrganizationId() => Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
     private Guid GetUserId() => Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
+
+    /// <summary>
+    /// Export stories as CSV.
+    /// </summary>
+    [HttpGet("export/stories")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> ExportStories(
+        [FromQuery] Guid? projectId = null, [FromQuery] Guid? sprintId = null,
+        CancellationToken ct = default)
+    {
+        var orgId = GetOrganizationId();
+        var csv = await _exportService.ExportStoriesCsvAsync(orgId, projectId, sprintId, ct);
+        return File(csv, "text/csv", "stories-export.csv");
+    }
+
+    /// <summary>
+    /// Export time entries as CSV.
+    /// </summary>
+    [HttpGet("export/time-entries")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> ExportTimeEntries(
+        [FromQuery] Guid? projectId = null, [FromQuery] DateTime? dateFrom = null,
+        [FromQuery] DateTime? dateTo = null, CancellationToken ct = default)
+    {
+        var orgId = GetOrganizationId();
+        var csv = await _exportService.ExportTimeEntriesCsvAsync(orgId, projectId, dateFrom, dateTo, ct);
+        return File(csv, "text/csv", "time-entries-export.csv");
+    }
 }

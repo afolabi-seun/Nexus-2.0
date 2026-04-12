@@ -14,6 +14,7 @@ using WorkService.Domain.Interfaces.Repositories.StoryLinks;
 using WorkService.Domain.Interfaces.Repositories.StorySequences;
 using WorkService.Domain.Interfaces.Repositories.Tasks;
 using WorkService.Domain.Interfaces.Services.ActivityLog;
+using WorkService.Domain.Interfaces.Services.Export;
 using WorkService.Domain.Interfaces.Services.Boards;
 using WorkService.Domain.Interfaces.Services.Comments;
 using WorkService.Domain.Interfaces.Services.ErrorCodeResolver;
@@ -86,6 +87,7 @@ using WorkService.Infrastructure.Services.TimePolicies;
 using WorkService.Infrastructure.Services.TimerSessions;
 using StackExchange.Redis;
 using ActivityLogService = WorkService.Infrastructure.Services.ActivityLog.ActivityLogService;
+using ExportService = WorkService.Infrastructure.Services.Export.ExportService;
 
 namespace WorkService.Infrastructure.Configuration;
 
@@ -138,6 +140,7 @@ public static class DependencyInjection
         services.AddScoped<ICommentService, CommentService>();
         services.AddScoped<ILabelService, LabelService>();
         services.AddScoped<IActivityLogService, ActivityLogService>();
+        services.AddScoped<IExportService, ExportService>();
         services.AddScoped<ISearchService, SearchService>();
         services.AddScoped<IBoardService, BoardService>();
         services.AddScoped<IReportService, ReportService>();
