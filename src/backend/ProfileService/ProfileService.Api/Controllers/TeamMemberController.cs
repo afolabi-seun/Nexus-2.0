@@ -95,6 +95,15 @@ public class TeamMemberController : ControllerBase
     public async Task<IActionResult> Update(
         Guid id, [FromBody] UpdateTeamMemberRequest request, CancellationToken ct)
     {
+        var userId = Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
+        var roleName = HttpContext.Items["roleName"]?.ToString() ?? string.Empty;
+
+        // Members can only update their own profile
+        if (roleName != "OrgAdmin" && roleName != "PlatformAdmin" && id != userId)
+        {
+            return ApiResponse<object>.Fail(403, "INSUFFICIENT_PERMISSIONS", "You can only update your own profile.").ToActionResult(HttpContext, 403);
+        }
+
         var result = await _teamMemberService.UpdateAsync(id, request, ct);
         return ApiResponse<object>.Ok(result, "Team member updated.").ToActionResult(HttpContext);
     }
@@ -109,6 +118,7 @@ public class TeamMemberController : ControllerBase
     /// <response code="200">Status updated</response>
     /// <response code="400">Cannot deactivate the last OrgAdmin</response>
     [HttpPatch("{id:guid}/status")]
+    [OrgAdmin]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateStatus(
@@ -145,6 +155,7 @@ public class TeamMemberController : ControllerBase
     /// <response code="200">Member added to department</response>
     /// <response code="409">Member already in department</response>
     [HttpPost("{id:guid}/departments")]
+    [OrgAdmin]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> AddToDepartment(
@@ -164,6 +175,7 @@ public class TeamMemberController : ControllerBase
     /// <response code="200">Member removed from department</response>
     /// <response code="400">Member must belong to at least one department</response>
     [HttpDelete("{id:guid}/departments/{deptId:guid}")]
+    [OrgAdmin]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RemoveFromDepartment(
@@ -183,6 +195,7 @@ public class TeamMemberController : ControllerBase
     /// <returns>Confirmation of role change</returns>
     /// <response code="200">Department role updated</response>
     [HttpPatch("{id:guid}/departments/{deptId:guid}/role")]
+    [OrgAdmin]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     public async Task<IActionResult> ChangeDepartmentRole(
         Guid id, Guid deptId, [FromBody] ChangeRoleRequest request, CancellationToken ct)

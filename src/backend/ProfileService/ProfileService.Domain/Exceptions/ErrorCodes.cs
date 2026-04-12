@@ -88,6 +88,19 @@ public static class ErrorCodes
     public const string PreferenceKeyUnknown = "PREFERENCE_KEY_UNKNOWN";
     public const int PreferenceKeyUnknownValue = 3027;
 
+    // Role Restrictions (3028–3031)
+    public const string InsufficientPermissions = "INSUFFICIENT_PERMISSIONS";
+    public const int InsufficientPermissionsValue = 3028;
+
+    public const string OrgAdminRequired = "ORGADMIN_REQUIRED";
+    public const int OrgAdminRequiredValue = 3029;
+
+    public const string DeptLeadRequired = "DEPTLEAD_REQUIRED";
+    public const int DeptLeadRequiredValue = 3030;
+
+    public const string PlatformAdminRequired = "PLATFORM_ADMIN_REQUIRED";
+    public const int PlatformAdminRequiredValue = 3031;
+
     // Internal
     public const string InternalError = "INTERNAL_ERROR";
     public const int InternalErrorValue = 9999;

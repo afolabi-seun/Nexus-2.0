@@ -68,7 +68,8 @@ public class ErrorCodeResolverService : IErrorCodeResolverService
     {
         "INVALID_CREDENTIALS" => "01",
         "ACCOUNT_LOCKED" or "ACCOUNT_INACTIVE" => "02",
-        "INSUFFICIENT_PERMISSIONS" or "DEPARTMENT_ACCESS_DENIED" or "ORGANIZATION_MISMATCH" => "03",
+        "INSUFFICIENT_PERMISSIONS" or "DEPARTMENT_ACCESS_DENIED" or "ORGANIZATION_MISMATCH"
+            or "ORGADMIN_REQUIRED" or "DEPTLEAD_REQUIRED" or "PLATFORM_ADMIN_REQUIRED" => "03",
         _ when errorCode.StartsWith("OTP_") => "04",
         _ when errorCode.StartsWith("PASSWORD_") => "05",
         _ when errorCode.Contains("DUPLICATE") || errorCode.Contains("CONFLICT") => "06",

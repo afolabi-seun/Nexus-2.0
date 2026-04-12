@@ -172,7 +172,7 @@ public class ErrorHandlingPropertyTests
 
         context.Response.Body.Seek(0, SeekOrigin.Begin);
         var body = await new StreamReader(context.Response.Body).ReadToEndAsync();
-        Assert.Contains("INSUFFICIENT_PERMISSIONS", body);
+        Assert.Contains("ORGADMIN_REQUIRED", body);
     }
 
     /// <summary>

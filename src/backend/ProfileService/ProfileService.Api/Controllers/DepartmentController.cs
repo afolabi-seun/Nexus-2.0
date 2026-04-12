@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ProfileService.Api.Attributes;
 using ProfileService.Api.Extensions;
 using ProfileService.Application.DTOs;
 using ProfileService.Application.DTOs.Departments;
@@ -21,6 +22,7 @@ public class DepartmentController : ControllerBase
     }
 
     [HttpPost]
+    [OrgAdmin]
     public async Task<IActionResult> Create(
         [FromBody] CreateDepartmentRequest request, CancellationToken ct)
     {
@@ -46,6 +48,7 @@ public class DepartmentController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [DeptLead]
     public async Task<IActionResult> Update(
         Guid id, [FromBody] UpdateDepartmentRequest request, CancellationToken ct)
     {
@@ -54,6 +57,7 @@ public class DepartmentController : ControllerBase
     }
 
     [HttpPatch("{id:guid}/status")]
+    [OrgAdmin]
     public async Task<IActionResult> UpdateStatus(
         Guid id, [FromBody] StatusChangeRequest request, CancellationToken ct)
     {
@@ -77,6 +81,7 @@ public class DepartmentController : ControllerBase
     }
 
     [HttpPut("{id:guid}/preferences")]
+    [DeptLead]
     public async Task<IActionResult> UpdatePreferences(
         Guid id, [FromBody] DepartmentPreferencesRequest request, CancellationToken ct)
     {

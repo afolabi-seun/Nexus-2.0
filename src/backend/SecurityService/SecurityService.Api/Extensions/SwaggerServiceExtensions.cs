@@ -45,6 +45,8 @@ public static class SwaggerServiceExtensions
                     Array.Empty<string>()
                 }
             });
+
+            options.DocumentFilter<HideServiceAuthFilter>();
         });
 
         return services;

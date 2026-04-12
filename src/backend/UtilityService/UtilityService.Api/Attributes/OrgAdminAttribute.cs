@@ -19,7 +19,7 @@ public class OrgAdminAttribute : Attribute, IAsyncAuthorizationFilter
         }
 
         var roleName = httpContext.Items.TryGetValue("roleName", out var rObj) ? rObj as string : null;
-        if (roleName != "OrgAdmin")
+        if (roleName != "OrgAdmin" && roleName != "PlatformAdmin")
         {
             SetForbiddenResult(context);
             return;
@@ -34,11 +34,11 @@ public class OrgAdminAttribute : Attribute, IAsyncAuthorizationFilter
         var response = new ApiResponse<object>
         {
             Success = false,
-            ErrorCode = "INSUFFICIENT_PERMISSIONS",
-            Message = "OrgAdmin role required.",
+            ErrorCode = "ORGADMIN_REQUIRED",
+            Message = "OrgAdmin access required.",
             CorrelationId = correlationId,
             ResponseCode = "03",
-            ResponseDescription = "OrgAdmin role required."
+            ResponseDescription = "OrgAdmin access required."
         };
 
         context.Result = new JsonResult(response) { StatusCode = 403 };

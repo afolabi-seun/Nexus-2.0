@@ -88,13 +88,19 @@ public static class ErrorCodes
     public const string StorySequenceInitFailed = "STORY_SEQUENCE_INIT_FAILED";
     public const int StorySequenceInitFailedValue = 4034;
 
-    // Authorization (4030–4032)
+    // Authorization (4030–4032, 4070–4072)
     public const string OrganizationMismatch = "ORGANIZATION_MISMATCH";
     public const int OrganizationMismatchValue = 4030;
     public const string DepartmentAccessDenied = "DEPARTMENT_ACCESS_DENIED";
     public const int DepartmentAccessDeniedValue = 4031;
     public const string InsufficientPermissions = "INSUFFICIENT_PERMISSIONS";
     public const int InsufficientPermissionsValue = 4032;
+    public const string OrgAdminRequired = "ORGADMIN_REQUIRED";
+    public const int OrgAdminRequiredValue = 4070;
+    public const string DeptLeadRequired = "DEPTLEAD_REQUIRED";
+    public const int DeptLeadRequiredValue = 4071;
+    public const string PlatformAdminRequired = "PLATFORM_ADMIN_REQUIRED";
+    public const int PlatformAdminRequiredValue = 4072;
 
     // General (4036–4038)
     public const string NotFound = "NOT_FOUND";

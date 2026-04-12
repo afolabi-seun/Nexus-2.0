@@ -6,6 +6,7 @@ using ProfileService.Application.DTOs;
 using ProfileService.Application.DTOs.Organizations;
 using ProfileService.Domain.Interfaces.Services.Organizations;
 
+
 namespace ProfileService.Api.Controllers;
 
 /// <summary>
@@ -98,6 +99,7 @@ public class OrganizationController : ControllerBase
     /// <response code="200">Organization updated</response>
     /// <response code="404">Organization not found</response>
     [HttpPut("{id:guid}")]
+    [OrgAdmin]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(
@@ -117,6 +119,7 @@ public class OrganizationController : ControllerBase
     /// <response code="200">Status updated</response>
     /// <response code="404">Organization not found</response>
     [HttpPatch("{id:guid}/status")]
+    [OrgAdmin]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateStatus(
@@ -147,6 +150,7 @@ public class OrganizationController : ControllerBase
     ///
     /// </remarks>
     [HttpPut("{id:guid}/settings")]
+    [OrgAdmin]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateSettings(
