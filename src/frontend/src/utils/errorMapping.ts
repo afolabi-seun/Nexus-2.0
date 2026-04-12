@@ -90,6 +90,10 @@ const errorCodeMap: Record<string, string> = {
         'Your organization has reached the usage limit for this feature.',
     VALIDATION_ERROR: 'Please fix the highlighted fields.',
     INVALID_TASK_TRANSITION: 'Invalid task status transition.',
+    INSUFFICIENT_PERMISSIONS: 'You don\'t have permission to perform this action.',
+    ORGADMIN_REQUIRED: 'This action requires OrgAdmin access.',
+    DEPTLEAD_REQUIRED: 'This action requires DeptLead or higher access.',
+    PLATFORM_ADMIN_REQUIRED: 'This action requires PlatformAdmin access.',
     INTERNAL_ERROR: 'Something went wrong. Please try again.',
     NETWORK_ERROR:
         'Unable to connect to the server. Please check your connection.',
