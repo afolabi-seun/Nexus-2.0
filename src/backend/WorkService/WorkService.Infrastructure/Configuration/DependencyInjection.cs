@@ -81,6 +81,7 @@ using WorkService.Infrastructure.Services.Tasks;
 using WorkService.Infrastructure.Services.Workflows;
 using WorkService.Infrastructure.Services.CostRates;
 using WorkService.Infrastructure.Services.CostSnapshots;
+using WorkService.Infrastructure.Services.SprintNotifications;
 using WorkService.Infrastructure.Services.RiskRegisters;
 using WorkService.Infrastructure.Services.TimeEntries;
 using WorkService.Infrastructure.Services.TimePolicies;
@@ -165,6 +166,7 @@ public static class DependencyInjection
         // Background services
         services.AddHostedService<CostSnapshotHostedService>();
         services.AddHostedService<AnalyticsSnapshotHostedService>();
+        services.AddHostedService<SprintNotificationHostedService>();
 
         // Infrastructure service clients
         services.AddScoped<IProfileServiceClient, ProfileServiceClient>();

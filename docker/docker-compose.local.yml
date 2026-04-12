@@ -180,5 +180,15 @@ services:
       - utility-service
       - billing-service
 
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: nexus-mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    volumes:
+      - mailpit_data:/data
+
 volumes:
   seq_data:
+  mailpit_data:

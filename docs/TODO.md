@@ -16,13 +16,13 @@ Prioritized roadmap for hardening, features, and documentation before release.
 
 ## Phase 2 — Communications
 
-- [ ] **Email integration** — Set up email sending (e.g., SendGrid, SES). Emails needed for:
+- [x] **Email integration** — Set up email sending (e.g., SendGrid, SES). Emails needed for:
   - Account registration (welcome / email verification)
   - OTP delivery (login, password reset)
   - Organization invite (join link)
   - Password reset confirmation
   - Subscription/billing events (plan change, payment failed, invoice)
-- [ ] **Sprint notifications** — Background service (daily schedule) for:
+- [x] **Sprint notifications** — Background service (daily schedule) for:
   - Sprint due soon (e.g., 2 days before end date)
   - Sprint overdue (past end date, still active)
   - Sprint at risk (too many incomplete stories relative to time remaining)

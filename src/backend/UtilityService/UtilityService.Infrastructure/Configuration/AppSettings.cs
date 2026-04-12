@@ -21,6 +21,15 @@ public class AppSettings
     // Notification settings
     public int NotificationRetryMax { get; set; } = 3;
 
+    // SMTP settings
+    public string SmtpHost { get; set; } = "localhost";
+    public int SmtpPort { get; set; } = 1025;
+    public string SmtpFromAddress { get; set; } = "noreply@nexus-platform.local";
+    public string SmtpFromName { get; set; } = "Nexus Platform";
+    public string? SmtpUsername { get; set; }
+    public string? SmtpPassword { get; set; }
+    public bool SmtpUseSsl { get; set; } = false;
+
     public static AppSettings FromEnvironment()
     {
         return new AppSettings
@@ -38,6 +47,13 @@ public class AppSettings
             RetentionPeriodDays = int.TryParse(Environment.GetEnvironmentVariable("RETENTION_PERIOD_DAYS"), out var ret) ? ret : 90,
             RetentionScheduleHour = int.TryParse(Environment.GetEnvironmentVariable("RETENTION_SCHEDULE_HOUR"), out var hour) ? hour : 2,
             NotificationRetryMax = int.TryParse(Environment.GetEnvironmentVariable("NOTIFICATION_RETRY_MAX"), out var retry) ? retry : 3,
+            SmtpHost = Environment.GetEnvironmentVariable("SMTP_HOST") ?? "localhost",
+            SmtpPort = int.TryParse(Environment.GetEnvironmentVariable("SMTP_PORT"), out var smtpPort) ? smtpPort : 1025,
+            SmtpFromAddress = Environment.GetEnvironmentVariable("SMTP_FROM_ADDRESS") ?? "noreply@nexus-platform.local",
+            SmtpFromName = Environment.GetEnvironmentVariable("SMTP_FROM_NAME") ?? "Nexus Platform",
+            SmtpUsername = Environment.GetEnvironmentVariable("SMTP_USERNAME"),
+            SmtpPassword = Environment.GetEnvironmentVariable("SMTP_PASSWORD"),
+            SmtpUseSsl = bool.TryParse(Environment.GetEnvironmentVariable("SMTP_USE_SSL"), out var ssl) && ssl,
         };
     }
 
