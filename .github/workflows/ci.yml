@@ -162,5 +162,5 @@ jobs:
             EXISTING_PR=$(gh pr list --base main --head dev --state open --json number --jq '.[0].number')
           fi
           
-          # Enable auto-merge (merges when status checks pass)
-          gh pr merge "$EXISTING_PR" --auto --merge
+          # Merge directly — all CI checks already passed (this job depends on them)
+          gh pr merge "$EXISTING_PR" --merge --delete-branch=false

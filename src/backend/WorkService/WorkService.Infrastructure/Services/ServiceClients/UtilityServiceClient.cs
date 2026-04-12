@@ -48,4 +48,23 @@ public class UtilityServiceClient : IUtilityServiceClient
 
         return apiResponse.Data;
     }
+
+    public async Task DispatchNotificationAsync(Guid organizationId, Guid userId, string recipient,
+        string notificationType, string subject, string channels,
+        Dictionary<string, string>? templateVars = null, CancellationToken ct = default)
+    {
+        var client = _httpClientFactory.CreateClient(ClientName);
+        var payload = new
+        {
+            organizationId, userId, recipient, notificationType,
+            subject, channels, templateVariables = templateVars
+        };
+
+        var response = await client.PostAsJsonAsync("/api/v1/notifications/dispatch", payload, ct);
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogWarning("UtilityService notification dispatch returned {StatusCode} for {NotificationType}",
+                response.StatusCode, notificationType);
+        }
+    }
 }
