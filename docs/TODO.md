@@ -32,9 +32,9 @@ Prioritized roadmap for hardening, features, and documentation before release.
 
 ## Phase 3 — Documentation
 
-- [ ] **QA guide** — Manual QA checklist covering happy paths and edge cases per feature. Include role restriction scenarios (what each role can/cannot do).
-- [ ] **Testing guide with realistic seed data** — Seed script or guide with realistic orgs, departments, members, projects, stories, sprints. Include role restriction test scenarios for each role type.
-- [ ] **Update main README** — Reflect new features, phases, role system, email integration, and link to new docs (QA guide, testing guide, endpoint restrictions).
+- [x] **QA guide** — Manual QA checklist covering happy paths and edge cases per feature. Include role restriction scenarios (what each role can/cannot do).
+- [x] **Testing guide with realistic seed data** — Seed script or guide with realistic orgs, departments, members, projects, stories, sprints. Include role restriction test scenarios for each role type.
+- [x] **Update main README** — Reflect new features, phases, role system, email integration, and link to new docs (QA guide, testing guide, endpoint restrictions).
 - [ ] **Update QA email templates** — Include role restriction context in QA-related email communications.
 
 ---
