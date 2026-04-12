@@ -29,6 +29,10 @@ public class ErrorCodeResolverService : IErrorCodeResolverService
         [DomainErrorCodes.RetentionPeriodInvalid] = ("14", "Retention period invalid"),
         [DomainErrorCodes.ReferenceDataDuplicate] = ("15", "Reference data duplicate"),
         [DomainErrorCodes.OutboxProcessingFailed] = ("16", "Outbox processing failed"),
+        ["INSUFFICIENT_PERMISSIONS"] = ("17", "You don't have permission to perform this action."),
+        ["ORGADMIN_REQUIRED"] = ("18", "OrgAdmin access required."),
+        ["DEPTLEAD_REQUIRED"] = ("19", "DeptLead or higher access required."),
+        ["PLATFORM_ADMIN_REQUIRED"] = ("20", "PlatformAdmin access required."),
         [DomainErrorCodes.InternalError] = ("98", "An unexpected error occurred"),
     };
 

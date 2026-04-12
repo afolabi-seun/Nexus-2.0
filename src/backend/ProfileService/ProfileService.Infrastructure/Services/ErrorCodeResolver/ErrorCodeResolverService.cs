@@ -70,7 +70,8 @@ public class ErrorCodeResolverService : IErrorCodeResolverService
     {
         _ when errorCode.Contains("DUPLICATE") || errorCode.Contains("CONFLICT") || errorCode.Contains("ALREADY") => "06",
         _ when errorCode.Contains("NOT_FOUND") => "07",
-        "ORGANIZATION_MISMATCH" or "INSUFFICIENT_PERMISSIONS" => "03",
+        "ORGANIZATION_MISMATCH" or "INSUFFICIENT_PERMISSIONS"
+            or "ORGADMIN_REQUIRED" or "DEPTLEAD_REQUIRED" or "PLATFORM_ADMIN_REQUIRED" => "03",
         "RATE_LIMIT_EXCEEDED" => "08",
         _ when errorCode.StartsWith("INVALID_") => "09",
         _ when errorCode.Contains("IMMUTABLE") || errorCode.Contains("CANNOT") => "10",

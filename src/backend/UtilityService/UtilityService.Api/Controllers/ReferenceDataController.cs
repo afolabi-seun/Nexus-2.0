@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UtilityService.Api.Attributes;
 using UtilityService.Api.Extensions;
@@ -9,6 +10,7 @@ namespace UtilityService.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/reference")]
+[Authorize]
 public class ReferenceDataController : ControllerBase
 {
     private readonly IReferenceDataService _referenceDataService;

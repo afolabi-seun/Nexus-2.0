@@ -66,6 +66,7 @@ public class AuditLogController : ControllerBase
     /// <response code="200">Audit logs retrieved</response>
     [HttpGet]
     [Authorize]
+    [OrgAdmin]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     public async Task<IActionResult> Query(
         [FromQuery] AuditLogFilterRequest filter,
@@ -87,6 +88,7 @@ public class AuditLogController : ControllerBase
     /// <response code="200">Archived audit logs retrieved</response>
     [HttpGet("archive")]
     [Authorize]
+    [OrgAdmin]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     public async Task<IActionResult> QueryArchive(
         [FromQuery] AuditLogFilterRequest filter,

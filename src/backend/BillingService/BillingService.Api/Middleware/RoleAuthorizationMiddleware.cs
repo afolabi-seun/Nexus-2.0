@@ -1,5 +1,7 @@
 using BillingService.Api.Attributes;
 using BillingService.Application.DTOs;
+using BillingService.Domain.Exceptions;
+using BillingService.Domain.Interfaces.Services.ErrorCodeResolver;
 
 namespace BillingService.Api.Middleware;
 
@@ -31,7 +33,8 @@ public class RoleAuthorizationMiddleware
 
         if (string.IsNullOrEmpty(roleName))
         {
-            await WriteErrorResponse(context, "No role assigned.");
+            await WriteErrorResponse(context, ErrorCodes.InsufficientPermissions,
+                ErrorCodes.InsufficientPermissionsValue, "No role assigned.");
             return;
         }
 
@@ -39,41 +42,52 @@ public class RoleAuthorizationMiddleware
 
         // Check if endpoint requires PlatformAdmin
         var requiresPlatformAdmin = endpoint?.Metadata.GetMetadata<PlatformAdminAttribute>() is not null;
-
         if (requiresPlatformAdmin)
         {
             if (roleName != "PlatformAdmin")
             {
-                await WriteErrorResponse(context, "PlatformAdmin access required.");
+                await WriteErrorResponse(context, "PLATFORM_ADMIN_REQUIRED",
+                    ErrorCodes.InsufficientPermissionsValue, "PlatformAdmin access required.");
                 return;
             }
 
-            // PlatformAdmin is authorized — bypass OrgAdmin check
             await _next(context);
             return;
         }
 
         // Check if endpoint requires OrgAdmin
         var requiresOrgAdmin = endpoint?.Metadata.GetMetadata<OrgAdminAttribute>() is not null;
-
-        if (requiresOrgAdmin && roleName != "OrgAdmin")
+        if (requiresOrgAdmin)
         {
-            await WriteErrorResponse(context, "OrgAdmin access required.");
-            return;
+            if (roleName != "OrgAdmin" && roleName != "PlatformAdmin")
+            {
+                await WriteErrorResponse(context, "ORGADMIN_REQUIRED",
+                    ErrorCodes.InsufficientPermissionsValue, "OrgAdmin access required.");
+                return;
+            }
         }
 
         await _next(context);
     }
 
-    private static async Task WriteErrorResponse(HttpContext context, string message)
+    private static async Task WriteErrorResponse(HttpContext context, string errorCode, int errorValue, string message)
     {
         var correlationId = context.Items["CorrelationId"]?.ToString() ?? string.Empty;
+
+        var resolver = context.RequestServices?.GetService<IErrorCodeResolverService>();
+        var (responseCode, responseDescription) = resolver is not null
+            ? await resolver.ResolveAsync(errorCode, context.RequestAborted)
+            : (errorCode, message);
+
         var response = new ApiResponse<object>
         {
             Success = false,
-            ErrorCode = "INSUFFICIENT_PERMISSIONS",
+            ErrorValue = errorValue,
+            ErrorCode = errorCode,
             Message = message,
-            CorrelationId = correlationId
+            CorrelationId = correlationId,
+            ResponseCode = responseCode,
+            ResponseDescription = responseDescription
         };
 
         context.Response.StatusCode = 403;

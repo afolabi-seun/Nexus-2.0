@@ -78,6 +78,9 @@ public class ErrorCodeResolverService : IErrorCodeResolverService
             "INVALID_WEBHOOK_PAYLOAD" => ("09", "Webhook payload could not be deserialized."),
             "FEATURE_NOT_AVAILABLE" => ("03", "Feature not included in current plan."),
             "USAGE_LIMIT_REACHED" => ("03", "Usage limit reached for this feature."),
+            "INSUFFICIENT_PERMISSIONS" => ("03", "You don't have permission to perform this action."),
+            "ORGADMIN_REQUIRED" => ("03", "OrgAdmin access required."),
+            "PLATFORM_ADMIN_REQUIRED" => ("03", "PlatformAdmin access required."),
             "VALIDATION_ERROR" => ("96", "Validation error."),
             "INTERNAL_ERROR" => ("98", "An unexpected error occurred."),
             _ => ("99", "Unknown error.")

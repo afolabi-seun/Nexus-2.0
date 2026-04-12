@@ -65,5 +65,22 @@ public static class SeedDataHelper
         }
 
         await context.SaveChangesAsync();
+
+        // Seed role restriction error codes
+        var roleCodes = new[]
+        {
+            new ErrorCodeEntry { Code = "INSUFFICIENT_PERMISSIONS", Value = 1001, HttpStatusCode = 403, ResponseCode = "03", Description = "You don't have permission to perform this action.", ServiceName = "Shared" },
+            new ErrorCodeEntry { Code = "ORGADMIN_REQUIRED", Value = 1002, HttpStatusCode = 403, ResponseCode = "03", Description = "This action requires OrgAdmin access.", ServiceName = "Shared" },
+            new ErrorCodeEntry { Code = "DEPTLEAD_REQUIRED", Value = 1003, HttpStatusCode = 403, ResponseCode = "03", Description = "This action requires DeptLead or higher access.", ServiceName = "Shared" },
+            new ErrorCodeEntry { Code = "PLATFORM_ADMIN_REQUIRED", Value = 1004, HttpStatusCode = 403, ResponseCode = "03", Description = "This action requires PlatformAdmin access.", ServiceName = "Shared" },
+        };
+
+        foreach (var code in roleCodes)
+        {
+            if (!await context.ErrorCodeEntries.AnyAsync(e => e.Code == code.Code))
+                context.ErrorCodeEntries.Add(code);
+        }
+
+        await context.SaveChangesAsync();
     }
 }

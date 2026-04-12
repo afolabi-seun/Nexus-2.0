@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ProfileService.Api.Attributes;
 using ProfileService.Api.Extensions;
 using ProfileService.Application.DTOs;
 using ProfileService.Application.DTOs.Invites;
@@ -44,6 +45,7 @@ public class InviteController : ControllerBase
     /// </remarks>
     [HttpPost]
     [Authorize]
+    [DeptLead]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Create(
@@ -134,6 +136,7 @@ public class InviteController : ControllerBase
     /// <response code="404">Invite not found</response>
     [HttpDelete("{id:guid}")]
     [Authorize]
+    [DeptLead]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Cancel(Guid id, CancellationToken ct)
