@@ -19,7 +19,7 @@ A multi-tenant agile project management platform built with .NET 8 microservices
 
 - **Backend:** .NET 8, ASP.NET Core, Entity Framework Core, PostgreSQL, Redis, FluentValidation
 - **Frontend:** React 18, TypeScript, Vite, Tailwind CSS v3, Zustand, React Router v6, Recharts, dnd-kit
-- **Testing:** xUnit, Moq, FsCheck (421 backend tests) · Vitest, fast-check (93 frontend tests)
+- **Testing:** xUnit, Moq, FsCheck (569 backend tests) · Vitest, fast-check (93 frontend tests)
 - **Infrastructure:** Polly (resilience), Serilog + Seq (logging), Stripe SDK (payments), Docker Compose
 - **CI/CD:** GitHub Actions (build, test, Docker image push)
 
@@ -47,7 +47,21 @@ Key patterns shared across all services:
 - **Middleware pipeline** — CORS → CorrelationId → GlobalExceptionHandler → Serilog → RateLimiter → Routing → Auth → JwtClaims → TokenBlacklist → RoleAuthorization → OrganizationScope → Controllers.
 - **Polly resilience** — Inter-service calls use retry (3x exponential), circuit breaker (5/30s), timeout (10s).
 - **Redis outbox** — Audit events published via `LPUSH outbox:{service}` for async processing by UtilityService.
-- **Swagger + JWT** — All services expose `/swagger` with Bearer token auth support and XML doc comments.
+- **Swagger + JWT** — All services expose `/swagger` with Bearer token auth support and XML doc comments. Internal service-to-service endpoints are hidden from Swagger via `HideServiceAuthFilter`.
+
+## Security & Access Control
+
+Role-based access control (RBAC) enforced at the middleware level across all services:
+
+| Role | Level | Access |
+|------|-------|--------|
+| PlatformAdmin | — | Full platform access, manage all organizations |
+| OrgAdmin | 100 | Full organization access, settings, billing, member management |
+| DeptLead | 75 | Department management, sprint/project operations, approvals |
+| Member | 50 | Create/update stories and tasks, log time |
+| Viewer | 25 | Read-only access |
+
+See [docs/endpoint-restrictions.md](docs/endpoint-restrictions.md) for the complete 120-endpoint access matrix.
 
 ## New Features (Phase 1 & 2)
 
@@ -162,15 +176,15 @@ Nexus-2.0/
 ```
 ## Tests
 
-514 tests total, all passing:
+662 tests total, all passing:
 
 | Service | Tests | Framework |
 |---------|-------|-----------|
-| SecurityService | 54 | xUnit + Moq |
-| ProfileService | 58 | xUnit + Moq |
-| WorkService | 150 | xUnit + Moq + FsCheck (130 + 20 property tests) |
-| UtilityService | 80 | xUnit + Moq |
-| BillingService | 79 | xUnit + Moq + FsCheck |
+| SecurityService | 83 | xUnit + Moq |
+| ProfileService | 87 | xUnit + Moq |
+| WorkService | 179 | xUnit + Moq + FsCheck (159 + 20 property tests) |
+| UtilityService | 109 | xUnit + Moq |
+| BillingService | 111 | xUnit + Moq + FsCheck (79 + 32 property tests) |
 | Frontend | 93 | Vitest + fast-check |
 
 ```bash
@@ -195,15 +209,11 @@ GitHub Actions pipelines in `.github/workflows/`:
 | Environment Configuration | [config/README.md](config/README.md) |
 | Docker Compose | [docker/README.md](docker/README.md) |
 | Postman Collection | [postman/README.md](postman/README.md) |
-| Database Migrations | [src/backend/migrations-guide.md](src/backend/mig
-## Resources
-
-| Resource | Path |
-|----------|------|
-| Environment Configuration | [config/README.md](config/README.md) |
-| Docker Compose | [docker/README.md](docker/README.md) |
-| Postman Collection | [postman/README.md](postman/README.md) |
 | Database Migrations | [migrations-guide.md](src/backend/migrations-guide.md) |
 | Platform Specification | [platform-specification.md](docs/platform-specification.md) |
 | Backend Requirements | [backend-requirements.md](docs/nexus-2.0-backend-requirements.md) |
 | Backend Specification | [backend-specification.md](docs/nexus-2.0-backend-specification.md) |
+| Endpoint Restrictions | [endpoint-restrictions.md](docs/endpoint-restrictions.md) |
+| QA Guide | [qa-guide.md](docs/qa-guide.md) |
+| Testing Guide | [testing-guide.md](docs/testing-guide.md) |
+| TODO / Roadmap | [TODO.md](docs/TODO.md) |
