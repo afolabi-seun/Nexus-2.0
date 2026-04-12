@@ -42,11 +42,11 @@ Prioritized roadmap for hardening, features, and documentation before release.
 ## Phase 4 — Hardening
 
 - [x] **API rate limiting audit** — Verify rate limits per endpoint (auth endpoints stricter, read endpoints more lenient).
-- [ ] **Input validation audit** — Ensure FluentValidation covers all edge cases (max lengths, special characters, injection attempts).
+- [x] **Input validation audit** — Ensure FluentValidation covers all edge cases (max lengths, special characters, injection attempts).
 - [x] **CORS lockdown** — Production config only allows the frontend origin.
 - [x] **Error message sanitization** — Production error responses must not leak stack traces or internal details.
 - [x] **Pagination max limits** — All list endpoints have sensible max page sizes to prevent abuse.
-- [ ] **Soft delete audit** — Deleted entities (orgs, members, projects) properly excluded from all queries.
+- [x] **Soft delete audit** — Deleted entities (orgs, members, projects) properly excluded from all queries.
 
 ---
 

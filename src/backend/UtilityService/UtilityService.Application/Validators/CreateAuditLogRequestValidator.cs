@@ -8,11 +8,11 @@ public class CreateAuditLogRequestValidator : AbstractValidator<CreateAuditLogRe
     public CreateAuditLogRequestValidator()
     {
         RuleFor(x => x.OrganizationId).NotEmpty();
-        RuleFor(x => x.ServiceName).NotEmpty();
-        RuleFor(x => x.Action).NotEmpty();
-        RuleFor(x => x.EntityType).NotEmpty();
-        RuleFor(x => x.EntityId).NotEmpty();
+        RuleFor(x => x.ServiceName).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.Action).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.EntityType).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.EntityId).NotEmpty().MaximumLength(200);
         RuleFor(x => x.UserId).NotEmpty();
-        RuleFor(x => x.CorrelationId).NotEmpty();
+        RuleFor(x => x.CorrelationId).NotEmpty().MaximumLength(100);
     }
 }

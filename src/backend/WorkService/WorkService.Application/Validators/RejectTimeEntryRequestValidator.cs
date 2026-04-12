@@ -7,6 +7,6 @@ public class RejectTimeEntryRequestValidator : AbstractValidator<RejectTimeEntry
 {
     public RejectTimeEntryRequestValidator()
     {
-        RuleFor(x => x.Reason).NotEmpty();
+        RuleFor(x => x.Reason).NotEmpty().MaximumLength(500).WithMessage("Reason must not exceed 500 characters.");
     }
 }
