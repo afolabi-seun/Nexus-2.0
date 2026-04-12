@@ -1,3 +1,5 @@
+using WorkService.Api.Filters;
+
 namespace WorkService.Api.Extensions;
 
 public static class ControllerServiceExtensions
@@ -7,6 +9,7 @@ public static class ControllerServiceExtensions
         services.AddControllers(options =>
         {
             options.SuppressAsyncSuffixInActionNames = false;
+            options.Filters.Add<PaginationFilter>();
         });
 
         return services;
