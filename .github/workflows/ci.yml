@@ -138,6 +138,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Skip if dev has no new commits ahead of main
+          AHEAD=$(git rev-list --count origin/main..origin/dev 2>/dev/null || echo "0")
+          if [ "$AHEAD" = "0" ]; then
+            echo "dev is not ahead of main — nothing to merge. Skipping."
+            exit 0
+          fi
+          echo "dev is $AHEAD commit(s) ahead of main."
+
           # Check if a PR already exists
           EXISTING_PR=$(gh pr list --base main --head dev --state open --json number --jq '.[0].number' 2>/dev/null || echo "")
           
