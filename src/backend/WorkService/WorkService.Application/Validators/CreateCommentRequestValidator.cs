@@ -9,6 +9,6 @@ public class CreateCommentRequestValidator : AbstractValidator<CreateCommentRequ
     {
         RuleFor(x => x.EntityType).NotEmpty().Must(v => v is "Story" or "Task");
         RuleFor(x => x.EntityId).NotEmpty();
-        RuleFor(x => x.Content).NotEmpty();
+        RuleFor(x => x.Content).NotEmpty().MaximumLength(5000).WithMessage("Comment must not exceed 5000 characters.");
     }
 }
