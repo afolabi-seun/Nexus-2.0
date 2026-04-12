@@ -52,7 +52,7 @@ Prioritized roadmap for hardening, features, and documentation before release.
 
 ## Phase 5 — Enhancements
 
-- [ ] **Health check endpoints** — `/health` on each service for monitoring and Docker health checks.
+- [x] **Health check endpoints** — `/health` on each service for monitoring and Docker health checks.
 - [ ] **API versioning** — Add `v1` prefix to all routes now (easier before release than after).
 - [ ] **Export functionality** — CSV/PDF export for stories, sprint reports, time tracking, invoices.
 - [ ] **Activity feed** — Per-project or per-org feed showing recent actions (builds on existing audit log).

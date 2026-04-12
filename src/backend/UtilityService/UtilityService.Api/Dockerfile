@@ -28,4 +28,6 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENV ASPNETCORE_URLS=http://+:5200
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:5200/health || exit 1
 ENTRYPOINT ["dotnet", "UtilityService.Api.dll"]
