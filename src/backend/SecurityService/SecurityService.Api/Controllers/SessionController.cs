@@ -23,9 +23,6 @@ public class SessionController : ControllerBase
     public async Task<IActionResult> GetSessions(
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
-        pageSize = Math.Min(pageSize, 100);
-        page = Math.Max(page, 1);
-
         var userId = Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
         var sessions = await _sessionService.GetSessionsAsync(userId, page, pageSize, ct);
 
