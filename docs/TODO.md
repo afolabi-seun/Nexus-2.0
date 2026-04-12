@@ -9,7 +9,7 @@ Prioritized roadmap for hardening, features, and documentation before release.
 - [x] **Endpoint role restriction audit** — Audit every controller endpoint across all 5 services. Ensure Admin/Owner/Member distinctions are enforced. No endpoint should be accidentally open to any authenticated user.
 - [x] **PlatformAdmin role** — Super-admin role above org-level roles in SecurityService. Capabilities: manage all orgs (suspend/delete/audit), platform-wide analytics, manage subscription plans & feature gates, user impersonation for support, access to internal/diagnostic endpoints.
 - [x] **Hide `[ServiceAuth]` endpoints from Swagger** — Add a Swagger document filter to exclude service-to-service internal endpoints from public API docs.
-- [ ] **Remove internal endpoints from Postman** — Remove credentials/generate, by-username, and other internal endpoints from the public Postman collection. Optionally maintain a separate internal/dev collection.
+- [x] **Remove internal endpoints from Postman** — Remove credentials/generate, by-username, and other internal endpoints from the public Postman collection. Optionally maintain a separate internal/dev collection.
 - [x] **Endpoint restrictions reference doc** — Comprehensive markdown file (`docs/endpoint-restrictions.md`) listing every endpoint, its HTTP method, required role, and auth type (user JWT, service-to-service, public).
 
 ---
