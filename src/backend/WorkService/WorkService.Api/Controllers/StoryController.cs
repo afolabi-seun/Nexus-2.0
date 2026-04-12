@@ -306,6 +306,51 @@ public class StoryController : ControllerBase
         return ApiResponse<object>.Ok(result, "Activity log retrieved.").ToActionResult(HttpContext);
     }
 
+    /// <summary>
+    /// Organization-wide activity feed.
+    /// </summary>
+    [HttpGet("/api/v1/activity-feed")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetActivityFeed(
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+    {
+        var orgId = GetOrganizationId();
+        var result = await _activityLogService.GetOrganizationFeedAsync(orgId, page, pageSize, ct);
+        return ApiResponse<object>.Ok(result, "Activity feed retrieved.").ToActionResult(HttpContext);
+    }
+
+    /// <summary>
+    /// Bulk update story statuses.
+    /// </summary>
+    [HttpPost("bulk/status")]
+    [DeptLead]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> BulkUpdateStatus(
+        [FromBody] BulkStatusRequest request, CancellationToken ct)
+    {
+        var orgId = GetOrganizationId();
+        var userId = GetUserId();
+        var result = await _storyService.BulkUpdateStatusAsync(orgId, userId, request.StoryIds, request.Status, ct);
+        return ApiResponse<object>.Ok(result, "Bulk status update completed.").ToActionResult(HttpContext);
+    }
+
+    /// <summary>
+    /// Bulk assign stories.
+    /// </summary>
+    [HttpPost("bulk/assign")]
+    [DeptLead]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> BulkAssign(
+        [FromBody] BulkAssignRequest request, CancellationToken ct)
+    {
+        var orgId = GetOrganizationId();
+        var userId = GetUserId();
+        var role = GetRole();
+        var deptId = GetDepartmentId();
+        var result = await _storyService.BulkAssignAsync(orgId, userId, request.StoryIds, request.AssigneeId, role, deptId, ct);
+        return ApiResponse<object>.Ok(result, "Bulk assign completed.").ToActionResult(HttpContext);
+    }
+
     private Guid GetOrganizationId() => Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
     private Guid GetUserId() => Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
     private string GetRole() => HttpContext.Items["roleName"]?.ToString() ?? string.Empty;

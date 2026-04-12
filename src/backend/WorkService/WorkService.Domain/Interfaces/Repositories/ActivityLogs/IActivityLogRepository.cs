@@ -6,4 +6,5 @@ namespace WorkService.Domain.Interfaces.Repositories.ActivityLogs;
 public interface IActivityLogRepository : IGenericRepository<ActivityLog>
 {
     Task<IEnumerable<ActivityLog>> ListByEntityAsync(string entityType, Guid entityId, CancellationToken ct = default);
+    Task<(IEnumerable<ActivityLog> Items, int TotalCount)> ListByOrganizationAsync(Guid organizationId, int page, int pageSize, CancellationToken ct = default);
 }

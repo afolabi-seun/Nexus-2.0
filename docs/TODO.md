@@ -54,12 +54,12 @@ Prioritized roadmap for hardening, features, and documentation before release.
 
 - [x] **Health check endpoints** — `/health` on each service for monitoring and Docker health checks.
 - [x] **API versioning** — Add `v1` prefix to all routes now (easier before release than after). Already in place — all routes use `/api/v1/`.
-- [ ] **Export functionality** — CSV/PDF export for stories, sprint reports, time tracking, invoices.
-- [ ] **Activity feed** — Per-project or per-org feed showing recent actions (builds on existing audit log).
-- [ ] **Bulk operations** — Bulk move stories between sprints, bulk assign, bulk status change.
+- [x] **Export functionality** — CSV/PDF export for stories, sprint reports, time tracking, invoices.
+- [x] **Activity feed** — Per-project or per-org feed showing recent actions (builds on existing audit log).
+- [x] **Bulk operations** — Bulk move stories between sprints, bulk assign, bulk status change.
 - [ ] **Story templates** — Reusable templates for common story types (bug report, feature request, tech debt).
 - [ ] **SLA tracking** — Time-to-resolution metrics, especially for bug stories.
-- [ ] **Archival** — Archive completed sprints/projects to keep active views clean, preserve history.
+- [x] **Archival** — Archive completed sprints/projects to keep active views clean, preserve history.
 - [ ] **Webhook support** — Let orgs configure webhooks for key events (Slack, Teams integration).
 - [ ] **Global search** — Search across stories, projects, members.
 - [ ] **Onboarding flow** — Guided setup for new orgs (create first project, invite members, create first sprint).
