@@ -87,9 +87,9 @@ export const workApi = {
     updateStory: (id: string, data: UpdateStoryRequest): Promise<StoryDetail> =>
         client.put(`/api/v1/stories/${id}`, data).then((r) => r.data),
     updateStoryStatus: (id: string, data: StoryStatusRequest): Promise<void> =>
-        client.put(`/api/v1/stories/${id}/status`, data).then(() => undefined),
+        client.patch(`/api/v1/stories/${id}/status`, data).then(() => undefined),
     assignStory: (id: string, data: StoryAssignRequest): Promise<void> =>
-        client.put(`/api/v1/stories/${id}/assign`, data).then(() => undefined),
+        client.patch(`/api/v1/stories/${id}/assign`, data).then(() => undefined),
     getStoryActivity: (id: string): Promise<ActivityLogEntry[]> =>
         client.get(`/api/v1/stories/${id}/activity`).then((r) => r.data),
     deleteStory: (id: string): Promise<void> =>
@@ -133,11 +133,11 @@ export const workApi = {
     updateTask: (id: string, data: UpdateTaskRequest): Promise<TaskDetail> =>
         client.put(`/api/v1/tasks/${id}`, data).then((r) => r.data),
     updateTaskStatus: (id: string, data: TaskStatusRequest): Promise<void> =>
-        client.put(`/api/v1/tasks/${id}/status`, data).then(() => undefined),
+        client.patch(`/api/v1/tasks/${id}/status`, data).then(() => undefined),
     assignTask: (id: string, data: TaskAssignRequest): Promise<void> =>
-        client.put(`/api/v1/tasks/${id}/assign`, data).then(() => undefined),
+        client.patch(`/api/v1/tasks/${id}/assign`, data).then(() => undefined),
     selfAssignTask: (id: string): Promise<void> =>
-        client.put(`/api/v1/tasks/${id}/self-assign`).then(() => undefined),
+        client.patch(`/api/v1/tasks/${id}/self-assign`).then(() => undefined),
     suggestAssignee: (params: { storyId: string; taskType: string }): Promise<SuggestAssigneeResponse> =>
         client.get('/api/v1/tasks/suggest-assignee', { params }).then((r) => r.data),
     logHours: (id: string, data: LogHoursRequest): Promise<void> =>
@@ -159,11 +159,11 @@ export const workApi = {
     createSprint: (projectId: string, data: CreateSprintRequest): Promise<SprintDetail> =>
         client.post(`/api/v1/projects/${projectId}/sprints`, data).then((r) => r.data),
     startSprint: (id: string): Promise<void> =>
-        client.put(`/api/v1/sprints/${id}/start`).then(() => undefined),
+        client.patch(`/api/v1/sprints/${id}/start`).then(() => undefined),
     completeSprint: (id: string): Promise<void> =>
-        client.put(`/api/v1/sprints/${id}/complete`).then(() => undefined),
+        client.patch(`/api/v1/sprints/${id}/complete`).then(() => undefined),
     cancelSprint: (id: string): Promise<void> =>
-        client.put(`/api/v1/sprints/${id}/cancel`).then(() => undefined),
+        client.patch(`/api/v1/sprints/${id}/cancel`).then(() => undefined),
     getSprintMetrics: (id: string): Promise<SprintMetrics> =>
         client.get(`/api/v1/sprints/${id}/metrics`).then((r) => r.data),
     getVelocity: (params: { count: number }): Promise<VelocityChartData[]> =>
@@ -218,4 +218,20 @@ export const workApi = {
         client.get('/api/v1/reports/cycle-time', { params }).then((r) => r.data),
     getTaskCompletionReport: (params?: ReportFilters): Promise<TaskCompletionData[]> =>
         client.get('/api/v1/reports/task-completion', { params }).then((r) => r.data),
+
+    // Workflows
+    getWorkflows: (): Promise<object> =>
+        client.get('/api/v1/workflows').then((r) => r.data),
+    saveOrgWorkflowOverride: (data: object): Promise<void> =>
+        client.put('/api/v1/workflows/organization', data).then(() => undefined),
+    saveDeptWorkflowOverride: (departmentId: string, data: object): Promise<void> =>
+        client.put(`/api/v1/workflows/department/${departmentId}`, data).then(() => undefined),
+
+    // Sprint Velocity (per-sprint)
+    getSprintVelocity: (sprintId: string): Promise<object> =>
+        client.get(`/api/v1/sprints/${sprintId}/velocity`).then((r) => r.data),
+
+    // Cost Snapshots
+    getProjectCostSnapshots: (projectId: string, params?: PaginationParams & { dateFrom?: string; dateTo?: string }): Promise<PaginatedResponse<object>> =>
+        client.get(`/api/v1/projects/${projectId}/cost-snapshots`, { params }).then((r) => r.data),
 };
