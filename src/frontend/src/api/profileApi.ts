@@ -72,7 +72,7 @@ export const profileApi = {
         data: ChangeRoleRequest
     ): Promise<void> =>
         client
-            .put(`/api/v1/team-members/${memberId}/departments/${deptId}/role`, data)
+            .patch(`/api/v1/team-members/${memberId}/departments/${deptId}/role`, data)
             .then(() => undefined),
 
     addToDepartment: (
@@ -139,7 +139,7 @@ export const profileApi = {
         client.delete(`/api/v1/devices/${id}`).then(() => undefined),
 
     setPrimaryDevice: (id: string): Promise<void> =>
-        client.put(`/api/v1/devices/${id}/primary`).then(() => undefined),
+        client.patch(`/api/v1/devices/${id}/primary`).then(() => undefined),
 
     // Preferences
     getPreferences: (): Promise<UserPreferences> =>
@@ -192,4 +192,18 @@ export const profileApi = {
     // Navigation
     getNavigation: (): Promise<import('@/types/profile').NavigationItem[]> =>
         client.get('/api/v1/navigation').then((r) => r.data),
+
+    // Roles
+    getRoles: (): Promise<object[]> =>
+        client.get('/api/v1/roles').then((r) => r.data),
+    getRole: (id: string): Promise<object> =>
+        client.get(`/api/v1/roles/${id}`).then((r) => r.data),
+
+    // Notification Types
+    getNotificationTypes: (): Promise<object[]> =>
+        client.get('/api/v1/notification-types').then((r) => r.data),
+
+    // Department Members
+    getDepartmentMembers: (id: string, params?: PaginationParams): Promise<PaginatedResponse<TeamMember>> =>
+        client.get(`/api/v1/departments/${id}/members`, { params }).then((r) => r.data),
 };

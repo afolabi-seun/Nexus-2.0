@@ -62,4 +62,14 @@ export const utilityApi = {
 
     createPriorityLevel: (data: CreatePriorityLevelRequest): Promise<PriorityLevel> =>
         client.post('/api/v1/reference/priority-levels', data).then((r) => r.data),
+
+    // Error Codes
+    getErrorCodes: (): Promise<object[]> =>
+        client.get('/api/v1/error-codes').then((r) => r.data),
+    createErrorCode: (data: { code: string; value: number; httpStatusCode: number; responseCode: string; description: string; serviceName: string }): Promise<object> =>
+        client.post('/api/v1/error-codes', data).then((r) => r.data),
+    updateErrorCode: (code: string, data: { description?: string; httpStatusCode?: number; responseCode?: string }): Promise<object> =>
+        client.put(`/api/v1/error-codes/${code}`, data).then((r) => r.data),
+    deleteErrorCode: (code: string): Promise<void> =>
+        client.delete(`/api/v1/error-codes/${code}`).then(() => undefined),
 };
