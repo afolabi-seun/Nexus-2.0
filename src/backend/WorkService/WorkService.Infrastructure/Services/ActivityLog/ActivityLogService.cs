@@ -1,3 +1,4 @@
+using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.Activity;
 using WorkService.Domain.Entities;
 using WorkService.Domain.Interfaces.Repositories.ActivityLogs;
@@ -40,7 +41,7 @@ public class ActivityLogService : IActivityLogService
     public async Task<object> GetOrganizationFeedAsync(Guid organizationId, int page, int pageSize, CancellationToken ct = default)
     {
         var (items, totalCount) = await _activityLogRepo.ListByOrganizationAsync(organizationId, page, pageSize, ct);
-        return new
+        return new PaginatedResponse<ActivityLogResponse>
         {
             Data = items.Select(MapToResponse).ToList(),
             Page = page,
