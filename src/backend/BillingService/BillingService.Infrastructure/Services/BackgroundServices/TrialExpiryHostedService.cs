@@ -83,7 +83,7 @@ public class TrialExpiryHostedService : BackgroundService
                             freePlan.MaxTeamMembers, freePlan.MaxDepartments, freePlan.MaxStoriesPerMonth,
                             freePlan.FeaturesJson
                         });
-                        await db.StringSetAsync($"plan:{subscription.OrganizationId}", cacheValue, TimeSpan.FromMinutes(60));
+                        await db.StringSetAsync($"plan:{subscription.OrganizationId}", cacheValue, TimeSpan.FromMinutes(30));
 
                         try { await profileClient.UpdateOrganizationPlanTierAsync(subscription.OrganizationId, "free", ct); }
                         catch (Exception ex) { _logger.LogWarning(ex, "Failed to notify ProfileService for trial expiry"); }

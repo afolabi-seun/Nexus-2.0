@@ -123,7 +123,7 @@ public class SprintService : ISprintService
         await _dbContext.SaveChangesAsync(ct);
 
         var db = _redis.GetDatabase();
-        await db.StringSetAsync($"sprint_active:{sprint.ProjectId}", sprint.SprintId.ToString(), TimeSpan.FromMinutes(5));
+        await db.StringSetAsync($"sprint_active:{sprint.ProjectId}", sprint.SprintId.ToString(), TimeSpan.FromMinutes(2));
 
         await _outbox.PublishAsync(new { MessageType = "NotificationRequest", Action = "SprintStarted", EntityType = "Sprint", EntityId = sprintId.ToString(), NotificationType = "SprintStarted" }, ct);
 
@@ -302,7 +302,7 @@ public class SprintService : ISprintService
         };
 
         var json = JsonSerializer.Serialize(metrics);
-        await db.StringSetAsync(cacheKey, json, TimeSpan.FromMinutes(5));
+        await db.StringSetAsync(cacheKey, json, TimeSpan.FromMinutes(3));
 
         return metrics;
     }

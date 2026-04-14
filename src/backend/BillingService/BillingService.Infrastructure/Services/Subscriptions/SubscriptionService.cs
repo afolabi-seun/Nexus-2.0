@@ -252,7 +252,7 @@ public class SubscriptionService : ISubscriptionService
                 plan.MaxStoriesPerMonth,
                 plan.FeaturesJson
             });
-            await db.StringSetAsync($"plan:{organizationId}", cacheValue, TimeSpan.FromMinutes(60));
+            await db.StringSetAsync($"plan:{organizationId}", cacheValue, TimeSpan.FromMinutes(30));
         }
         catch (Exception ex)
         {

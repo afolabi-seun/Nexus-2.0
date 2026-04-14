@@ -178,7 +178,7 @@ public class StripeWebhookService
                     freePlan.MaxTeamMembers, freePlan.MaxDepartments, freePlan.MaxStoriesPerMonth,
                     freePlan.FeaturesJson
                 });
-                await db.StringSetAsync($"plan:{subscription.OrganizationId}", cacheValue, TimeSpan.FromMinutes(60));
+                await db.StringSetAsync($"plan:{subscription.OrganizationId}", cacheValue, TimeSpan.FromMinutes(30));
             }
             catch (Exception ex)
             {

@@ -13,7 +13,7 @@ namespace SecurityService.Infrastructure.Services.ServiceClients;
 public class ProfileServiceClient : IProfileServiceClient
 {
     private const string ClientName = "ProfileService";
-    private static readonly TimeSpan UserCacheTtl = TimeSpan.FromMinutes(15);
+    private static readonly TimeSpan UserCacheTtl = TimeSpan.FromMinutes(5);
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
