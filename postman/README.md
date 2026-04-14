@@ -4,7 +4,7 @@
 
 | File | Description |
 |------|-------------|
-| `nexus-2.0-api.postman_collection.json` | Full API collection covering all 5 microservices (40+ requests) |
+| `nexus-2.0-api.postman_collection.json` | API collection covering all 5 microservices (90 public endpoints, internal service-to-service endpoints excluded) |
 | `nexus-2.0-development.postman_environment.json` | Environment variables for local development (localhost) |
 | `nexus-2.0-staging.postman_environment.json` | Environment variables for staging |
 
@@ -19,8 +19,10 @@
 
 ## Collection Structure
 
-- **SecurityService** — Auth (login, refresh, logout, OTP), Password (change, reset), Sessions, Service Tokens
+- **SecurityService** — Auth (login, refresh, logout, OTP), Password (change, reset), Sessions
 - **ProfileService** — Organizations, Team Members, Departments, Invites, Devices, Preferences, Notification Settings, Navigation
-- **WorkService** — Projects, Stories, Sprints, Boards, Comments, Search, Reports
+- **WorkService** — Projects, Stories, Sprints, Boards, Comments, Search, Reports, Time Tracking, Analytics, Risk Register
 - **UtilityService** — Audit Logs, Notification Logs, Reference Data, Error Codes
-- **BillingService** — Plans, Subscriptions, Usage, Feature Gates
+- **BillingService** — Plans, Subscriptions, Usage, Admin Billing, Admin Plans
+
+> **Note:** Internal service-to-service endpoints (credentials/generate, feature-gates, service-tokens, etc.) are excluded from this collection. They are hidden from Swagger via `HideServiceAuthFilter`.

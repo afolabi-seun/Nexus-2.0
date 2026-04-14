@@ -67,6 +67,26 @@ Subscription management and billing microservice for the Nexus 2.0 platform.
 |--------|------|------|-------------|
 | POST | `/webhooks/stripe` | Public | Handle Stripe webhook events |
 
+### Admin Billing (`/api/v1/admin/billing`) — PlatformAdmin only
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/admin/billing/subscriptions` | PlatformAdmin | List all subscriptions |
+| GET | `/admin/billing/organizations/{orgId}` | PlatformAdmin | Get org billing details |
+| POST | `/admin/billing/organizations/{orgId}/override` | PlatformAdmin | Override subscription |
+| POST | `/admin/billing/organizations/{orgId}/cancel` | PlatformAdmin | Cancel org subscription |
+| GET | `/admin/billing/usage/summary` | PlatformAdmin | Platform-wide usage summary |
+| GET | `/admin/billing/usage/organizations` | PlatformAdmin | Per-org usage list |
+
+### Admin Plans (`/api/v1/admin/billing/plans`) — PlatformAdmin only
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/admin/billing/plans` | PlatformAdmin | List all plans (including inactive) |
+| POST | `/admin/billing/plans` | PlatformAdmin | Create plan |
+| PUT | `/admin/billing/plans/{planId}` | PlatformAdmin | Update plan |
+| PATCH | `/admin/billing/plans/{planId}/deactivate` | PlatformAdmin | Deactivate plan |
+
 ## Project Structure
 
 ```

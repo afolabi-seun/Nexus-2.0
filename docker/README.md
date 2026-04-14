@@ -15,6 +15,7 @@ Spin up the entire platform with one command.
 | nexus-utility | .NET 8 | 5200 | UtilityService |
 | nexus-billing | .NET 8 | 5300 | BillingService |
 | nexus-frontend | nginx | 5173 | React SPA |
+| nexus-mailpit | axllent/mailpit | 1025/8025 | Local email testing (SMTP + Web UI) |
 
 ## Quick Start
 
@@ -41,6 +42,7 @@ Then open:
 - Swagger (Utility): http://localhost:5200/swagger
 - Swagger (Billing): http://localhost:5300/swagger
 - Seq Logs: http://localhost:5341
+- Mailpit (email): http://localhost:8025 (SMTP on port 1025)
 
 ## Stop
 
@@ -59,5 +61,6 @@ docker compose -f docker/docker-compose.yml down -v
 - PostgreSQL creates all 5 databases on first startup via `init-databases.sql`
 - Each service auto-applies EF Core migrations on startup
 - Seq accepts logs from all services (no API key needed in dev)
+- Mailpit captures all outgoing emails in dev (SMTP port 1025, Web UI port 8025)
 - Frontend is built as a static SPA served by nginx
 - All services use Docker-internal hostnames (e.g., `postgres`, `redis`, `security-service`)
