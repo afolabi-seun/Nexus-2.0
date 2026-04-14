@@ -64,6 +64,16 @@ export const workApi = {
         client.post('/api/v1/projects', data).then((r) => r.data),
     updateProject: (id: string, data: UpdateProjectRequest): Promise<ProjectDetail> =>
         client.put(`/api/v1/projects/${id}`, data).then((r) => r.data),
+    updateProjectStatus: (id: string, data: { status: string }): Promise<void> =>
+        client.patch(`/api/v1/projects/${id}/status`, data).then(() => undefined),
+    getProjectCostSummary: (id: string, params?: { dateFrom?: string; dateTo?: string }): Promise<object> =>
+        client.get(`/api/v1/projects/${id}/cost-summary`, { params }).then((r) => r.data),
+    getProjectUtilization: (id: string, params?: { dateFrom?: string; dateTo?: string }): Promise<object> =>
+        client.get(`/api/v1/projects/${id}/utilization`, { params }).then((r) => r.data),
+    exportStoriesCsv: (params?: { projectId?: string; sprintId?: string }): Promise<Blob> =>
+        client.get('/api/v1/projects/export/stories', { params, responseType: 'blob' }).then((r) => r.data),
+    exportTimeEntriesCsv: (params?: { projectId?: string; dateFrom?: string; dateTo?: string }): Promise<Blob> =>
+        client.get('/api/v1/projects/export/time-entries', { params, responseType: 'blob' }).then((r) => r.data),
 
     // Stories
     getStories: (params?: PaginationParams & StoryFilters): Promise<PaginatedResponse<StoryListItem>> =>
@@ -86,6 +96,16 @@ export const workApi = {
         client.delete(`/api/v1/stories/${id}`).then(() => undefined),
     unassignStory: (id: string): Promise<void> =>
         client.patch(`/api/v1/stories/${id}/unassign`).then(() => undefined),
+
+    // Bulk Operations
+    bulkUpdateStatus: (data: { storyIds: string[]; status: string }): Promise<object> =>
+        client.post('/api/v1/stories/bulk/status', data).then((r) => r.data),
+    bulkAssign: (data: { storyIds: string[]; assigneeId: string }): Promise<object> =>
+        client.post('/api/v1/stories/bulk/assign', data).then((r) => r.data),
+
+    // Activity Feed
+    getActivityFeed: (params?: PaginationParams): Promise<PaginatedResponse<ActivityLogEntry>> =>
+        client.get('/api/v1/activity-feed', { params }).then((r) => r.data),
 
     // Story Labels
     getLabels: (): Promise<Label[]> =>
