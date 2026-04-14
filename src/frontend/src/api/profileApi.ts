@@ -36,6 +36,12 @@ export const profileApi = {
     getOrganization: (id: string): Promise<Organization> =>
         client.get(`/api/v1/organizations/${id}`).then((r) => r.data),
 
+    updateOrganization: (id: string, data: { name?: string }): Promise<Organization> =>
+        client.put(`/api/v1/organizations/${id}`, data).then((r) => r.data),
+
+    updateOrganizationStatus: (id: string, data: { status: string }): Promise<void> =>
+        client.patch(`/api/v1/organizations/${id}/status`, data).then(() => undefined),
+
     getOrganizationSettings: (id: string): Promise<OrganizationSettings> =>
         client.get(`/api/v1/organizations/${id}/settings`).then((r) => r.data),
 
@@ -77,6 +83,11 @@ export const profileApi = {
             .post(`/api/v1/team-members/${memberId}/departments`, data)
             .then(() => undefined),
 
+    removeFromDepartment: (memberId: string, deptId: string): Promise<void> =>
+        client
+            .delete(`/api/v1/team-members/${memberId}/departments/${deptId}`)
+            .then(() => undefined),
+
     // Departments
     getDepartments: (params?: PaginationParams): Promise<PaginatedResponse<Department>> =>
         client.get('/api/v1/departments', { params }).then((r) => r.data),
@@ -86,6 +97,12 @@ export const profileApi = {
 
     createDepartment: (data: CreateDepartmentRequest): Promise<Department> =>
         client.post('/api/v1/departments', data).then((r) => r.data),
+
+    updateDepartment: (id: string, data: { departmentName?: string; departmentCode?: string }): Promise<Department> =>
+        client.put(`/api/v1/departments/${id}`, data).then((r) => r.data),
+
+    updateDepartmentStatus: (id: string, data: { status: string }): Promise<void> =>
+        client.patch(`/api/v1/departments/${id}/status`, data).then(() => undefined),
 
     getDepartmentPreferences: (id: string): Promise<DepartmentPreferences> =>
         client.get(`/api/v1/departments/${id}/preferences`).then((r) => r.data),
