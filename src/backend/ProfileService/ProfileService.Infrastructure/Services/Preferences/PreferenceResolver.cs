@@ -13,10 +13,10 @@ namespace ProfileService.Infrastructure.Services.Preferences;
 
 public class PreferenceResolver : IPreferenceResolver
 {
-    private static readonly TimeSpan OrgSettingsTtl = TimeSpan.FromMinutes(60);
-    private static readonly TimeSpan DeptPrefsTtl = TimeSpan.FromMinutes(30);
-    private static readonly TimeSpan UserPrefsTtl = TimeSpan.FromMinutes(15);
-    private static readonly TimeSpan ResolvedTtl = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan OrgSettingsTtl = TimeSpan.FromMinutes(15);
+    private static readonly TimeSpan DeptPrefsTtl = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan UserPrefsTtl = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan ResolvedTtl = TimeSpan.FromMinutes(2);
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

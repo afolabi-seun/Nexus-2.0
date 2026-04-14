@@ -731,7 +731,7 @@ public class AnalyticsService : IAnalyticsService
 
         // Cache for 5 minutes
         var json = JsonSerializer.Serialize(dashboard);
-        await db.StringSetAsync(cacheKey, json, TimeSpan.FromMinutes(5));
+        await db.StringSetAsync(cacheKey, json, TimeSpan.FromMinutes(3));
 
         return dashboard;
     }

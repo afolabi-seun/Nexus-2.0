@@ -58,6 +58,12 @@ public static class ErrorCodes
     public const string PlanCodeImmutable = "PLAN_CODE_IMMUTABLE";
     public const int PlanCodeImmutableValue = 5017;
 
+    // Database Constraints
+    public const string UniqueConstraintViolation = "UNIQUE_CONSTRAINT_VIOLATION";
+    public const int UniqueConstraintViolationValue = 9001;
+    public const string ForeignKeyViolation = "FOREIGN_KEY_VIOLATION";
+    public const int ForeignKeyViolationValue = 9002;
+
     // Internal
     public const string InternalError = "INTERNAL_ERROR";
     public const int InternalErrorValue = 9999;

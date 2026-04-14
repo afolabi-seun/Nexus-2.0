@@ -173,12 +173,12 @@ export function SprintDetailPage() {
 
     useEffect(() => { fetchSprint(); }, [fetchSprint]);
 
-    // Auto-refresh metrics every 5 minutes when sprint is Active
+    // Auto-refresh metrics every 3 minutes when sprint is Active
     useEffect(() => {
         if (!id || sprint?.status !== SprintStatus.Active) return;
         const interval = setInterval(() => {
             workApi.getSprintMetrics(id).then(setMetrics).catch(() => { });
-        }, 5 * 60 * 1000);
+        }, 3 * 60 * 1000);
         return () => clearInterval(interval);
     }, [id, sprint?.status]);
 

@@ -17,8 +17,8 @@ namespace ProfileService.Infrastructure.Services.Departments;
 
 public class DepartmentService : IDepartmentService
 {
-    private static readonly TimeSpan DeptListCacheTtl = TimeSpan.FromMinutes(30);
-    private static readonly TimeSpan DeptPrefsCacheTtl = TimeSpan.FromMinutes(30);
+    private static readonly TimeSpan DeptListCacheTtl = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan DeptPrefsCacheTtl = TimeSpan.FromMinutes(10);
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
