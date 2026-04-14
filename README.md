@@ -19,7 +19,7 @@ A multi-tenant agile project management platform built with .NET 8 microservices
 
 - **Backend:** .NET 8, ASP.NET Core, Entity Framework Core, PostgreSQL, Redis, FluentValidation
 - **Frontend:** React 18, TypeScript, Vite, Tailwind CSS v3, Zustand, React Router v6, Recharts, dnd-kit
-- **Testing:** xUnit, Moq, FsCheck (569 backend tests) · Vitest, fast-check (93 frontend tests)
+- **Testing:** xUnit, Moq, FsCheck (570 backend tests) · Vitest, fast-check (93 frontend tests)
 - **Infrastructure:** Polly (resilience), Serilog + Seq (logging), Stripe SDK (payments), Docker Compose
 - **CI/CD:** GitHub Actions (build, test, Docker image push)
 
@@ -63,10 +63,16 @@ Role-based access control (RBAC) enforced at the middleware level across all ser
 
 See [docs/endpoint-restrictions.md](docs/endpoint-restrictions.md) for the complete 120-endpoint access matrix.
 
-## New Features (Phase 1 & 2)
+## New Features
 
 - **Time Tracking:** time entries, start/stop timer, cost rates, time policies, approval workflows
 - **Analytics:** velocity trends, resource management, project cost, project health scoring, risk register, dependency analysis, bug metrics, dashboard
+- **Email Integration:** SMTP-based email delivery (Mailpit for dev, SES/SendGrid for production)
+- **Sprint Notifications:** background service checks for sprints due soon, overdue, and at risk
+- **Activity Feed:** org-wide activity feed with paginated history
+- **CSV Export:** export stories and time entries as CSV
+- **Bulk Operations:** bulk status update and bulk assign for stories
+- **Health Checks:** `/health` and `/ready` endpoints on all services with DB + Redis checks
 
 ## Prerequisites
 
@@ -176,7 +182,7 @@ Nexus-2.0/
 ```
 ## Tests
 
-662 tests total, all passing:
+663 tests total (570 backend + 93 frontend):
 
 | Service | Tests | Framework |
 |---------|-------|-----------|
@@ -184,7 +190,7 @@ Nexus-2.0/
 | ProfileService | 87 | xUnit + Moq |
 | WorkService | 179 | xUnit + Moq + FsCheck (159 + 20 property tests) |
 | UtilityService | 109 | xUnit + Moq |
-| BillingService | 111 | xUnit + Moq + FsCheck (79 + 32 property tests) |
+| BillingService | 112 | xUnit + Moq + FsCheck (80 + 32 property tests) |
 | Frontend | 93 | Vitest + fast-check |
 
 ```bash

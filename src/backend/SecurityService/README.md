@@ -19,6 +19,7 @@ Authentication and authorization microservice for the Nexus 2.0 platform.
 - **Token blacklisting** — Revoked JWTs tracked in Redis until natural expiry
 - **Anomaly detection** — IP-based tracking on login attempts
 - **Service-to-service auth** — Issue and validate service tokens for inter-service calls
+- **Health checks** — `/health` and `/ready` endpoints with PostgreSQL + Redis connectivity checks
 
 ## API Endpoints
 
@@ -142,4 +143,6 @@ See [`.env.example`](SecurityService.Api/.env.example) for all variables. Key se
 - **Redis session store** — Sessions are stored in Redis for fast lookup and automatic TTL-based expiry.
 - **Polly resilience** — HTTP calls to ProfileService and UtilityService use retry + circuit breaker policies.
 - **BCrypt password hashing** — Passwords hashed with BCrypt; password history prevents reuse.
+- **Swagger + JWT** — `/swagger` with Bearer token auth. Internal service-to-service endpoints hidden via `HideServiceAuthFilter`.
 - **Correlation IDs** — Every request gets a correlation ID propagated across service calls for distributed tracing.
+- **Pagination** — Global `PaginationFilter` clamps `pageSize` to max 100 on all endpoints.

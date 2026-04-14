@@ -28,9 +28,9 @@ Organization and team member management microservice for the Nexus 2.0 platform.
 | POST | `/organizations` | Bearer | Create organization |
 | GET | `/organizations` | PlatformAdmin | List all organizations |
 | GET | `/organizations/{id}` | Bearer | Get organization by ID |
-| PUT | `/organizations/{id}` | Bearer | Update organization |
-| PATCH | `/organizations/{id}/status` | Bearer | Update org status |
-| PUT | `/organizations/{id}/settings` | Bearer | Update org settings |
+| PUT | `/organizations/{id}` | OrgAdmin | Update organization |
+| PATCH | `/organizations/{id}/status` | OrgAdmin | Update org status |
+| PUT | `/organizations/{id}/settings` | OrgAdmin | Update org settings |
 | POST | `/organizations/{id}/provision-admin` | PlatformAdmin | Provision OrgAdmin |
 
 ### Team Members (`/api/v1/team-members`)
@@ -39,37 +39,37 @@ Organization and team member management microservice for the Nexus 2.0 platform.
 |--------|------|------|-------------|
 | GET | `/team-members` | Bearer | List members (paginated) |
 | GET | `/team-members/{id}` | Bearer | Get member by ID |
-| PUT | `/team-members/{id}` | Bearer | Update member |
-| PATCH | `/team-members/{id}/status` | Bearer | Update member status |
+| PUT | `/team-members/{id}` | Bearer | Update member (self or OrgAdmin) |
+| PATCH | `/team-members/{id}/status` | OrgAdmin | Update member status |
 | PATCH | `/team-members/{id}/availability` | Bearer | Update availability |
-| POST | `/team-members/{id}/departments` | Bearer | Add to department |
-| DELETE | `/team-members/{id}/departments/{deptId}` | Bearer | Remove from department |
-| PATCH | `/team-members/{id}/departments/{deptId}/role` | Bearer | Change department role |
-| GET | `/team-members/by-email/{email}` | Bearer | Lookup by email |
+| POST | `/team-members/{id}/departments` | OrgAdmin | Add to department |
+| DELETE | `/team-members/{id}/departments/{deptId}` | OrgAdmin | Remove from department |
+| PATCH | `/team-members/{id}/departments/{deptId}/role` | OrgAdmin | Change department role |
+| GET | `/team-members/by-email/{email}` | Service | Lookup by email |
 | PATCH | `/team-members/{id}/password` | Service | Update password hash |
 
 ### Departments (`/api/v1/departments`)
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| POST | `/departments` | Bearer | Create department |
+| POST | `/departments` | OrgAdmin | Create department |
 | GET | `/departments` | Bearer | List departments |
 | GET | `/departments/{id}` | Bearer | Get department by ID |
-| PUT | `/departments/{id}` | Bearer | Update department |
-| PATCH | `/departments/{id}/status` | Bearer | Update status |
+| PUT | `/departments/{id}` | DeptLead+ | Update department |
+| PATCH | `/departments/{id}/status` | OrgAdmin | Update status |
 | GET | `/departments/{id}/members` | Bearer | List department members |
 | GET | `/departments/{id}/preferences` | Bearer | Get department preferences |
-| PUT | `/departments/{id}/preferences` | Bearer | Update department preferences |
+| PUT | `/departments/{id}/preferences` | DeptLead+ | Update department preferences |
 
 ### Invites (`/api/v1/invites`)
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| POST | `/invites` | Bearer | Create invite |
+| POST | `/invites` | DeptLead+ | Create invite |
 | GET | `/invites` | Bearer | List pending invites |
 | GET | `/invites/{token}/validate` | Public | Validate invite token |
 | POST | `/invites/{token}/accept` | Public | Accept invite |
-| DELETE | `/invites/{id}` | Bearer | Cancel invite |
+| DELETE | `/invites/{id}` | DeptLead+ | Cancel invite |
 
 ### Other Endpoints
 

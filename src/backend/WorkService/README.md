@@ -20,7 +20,12 @@ Project and work item management microservice for the Nexus 2.0 platform.
 - **Reports** — Velocity, department workload, capacity utilization, cycle time, task completion
 - **Saved filters** — Per-user saved filter configurations
 - **Activity logging** — Track all changes on stories and tasks
+- **Activity feed** — Organization-wide paginated activity feed
+- **CSV export** — Export stories and time entries as CSV
+- **Bulk operations** — Bulk status update and bulk assign for stories
 - **Workflow engine** — Configurable state machine with org-level and department-level overrides
+- **Sprint notifications** — Background service checks for sprints due soon, overdue, and at risk
+- **Health checks** — `/health` and `/ready` endpoints with DB + Redis checks
 
 ## Workflow State Machine
 
@@ -59,6 +64,11 @@ States: `Backlog` → `Ready` → `InProgress` → `Review` → `Done` (with `Bl
 | GET | `/projects/{id}` | Bearer | Get project by ID |
 | PUT | `/projects/{id}` | DeptLead+ | Update project |
 | PATCH | `/projects/{id}/status` | OrgAdmin | Update project status |
+| GET | `/projects/{id}/cost-summary` | Bearer | Get project cost summary |
+| GET | `/projects/{id}/utilization` | Bearer | Get resource utilization |
+| GET | `/projects/{id}/cost-snapshots` | Bearer | Get cost snapshots |
+| GET | `/projects/export/stories` | Bearer | Export stories as CSV |
+| GET | `/projects/export/time-entries` | Bearer | Export time entries as CSV |
 
 ### Stories (`/api/v1/stories`)
 
@@ -71,8 +81,8 @@ States: `Backlog` → `Ready` → `InProgress` → `Review` → `Done` (with `Bl
 | PUT | `/stories/{id}` | Bearer | Update story |
 | DELETE | `/stories/{id}` | DeptLead+ | Delete story |
 | PATCH | `/stories/{id}/status` | Bearer | Transition workflow state |
-| PATCH | `/stories/{id}/assign` | Bearer | Assign story |
-| PATCH | `/stories/{id}/unassign` | Bearer | Unassign story |
+| PATCH | `/stories/{id}/assign` | DeptLead+ | Assign story |
+| PATCH | `/stories/{id}/unassign` | DeptLead+ | Unassign story |
 | POST | `/stories/{id}/links` | Bearer | Add story link |
 | DELETE | `/stories/{id}/links/{linkId}` | Bearer | Remove story link |
 | POST | `/stories/{id}/labels` | Bearer | Add label to story |
@@ -80,6 +90,9 @@ States: `Backlog` → `Ready` → `InProgress` → `Review` → `Done` (with `Bl
 | GET | `/stories/{id}/comments` | Bearer | List story comments |
 | GET | `/stories/{id}/activity` | Bearer | List story activity log |
 | GET | `/stories/{storyId}/tasks` | Bearer | List tasks for story |
+| GET | `/activity-feed` | Bearer | Organization-wide activity feed |
+| POST | `/stories/bulk/status` | DeptLead+ | Bulk update story statuses |
+| POST | `/stories/bulk/assign` | DeptLead+ | Bulk assign stories |
 
 ### Tasks (`/api/v1/tasks`)
 

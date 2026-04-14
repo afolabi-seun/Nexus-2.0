@@ -29,6 +29,7 @@ config/
 | JWT Expiry | 15 min / 7 days | 15 min / 7 days | 10 min / 1 day |
 | Rate Limits | Relaxed | Standard | Strict |
 | Stripe | Test keys | Test keys | Live keys |
+| SMTP | Mailpit (localhost:1025) | Mailpit (localhost:1025) | AWS SES (port 587, SSL) |
 | Log Level | Information | Information | Warning |
 
 ## Security Notes

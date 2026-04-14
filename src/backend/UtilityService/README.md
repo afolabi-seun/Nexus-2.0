@@ -10,9 +10,9 @@ Audit logging, notifications, and reference data microservice for the Nexus 2.0 
 
 - **Audit logging** — Immutable audit trail (no update/delete); service-to-service creation, org-scoped queries, archive queries
 - **Error logging** — Structured error logs with PII redaction
-- **Notification dispatch** — Multi-channel delivery (Email/Push/InApp) with 16 notification templates
-- **Error code registry** — CRUD for application error codes
-- **Reference data** — Department types, priority levels, task types, workflow states
+- **Notification dispatch** — Multi-channel delivery (Email/Push/InApp) with SMTP email integration and 16 notification templates
+- **Error code registry** — CRUD for application error codes with role restriction codes seeded
+- **Reference data** — Department types, priority levels, task types, workflow states (requires authentication)
 - **Retention archival** — Automatic archival of aged audit logs based on configurable retention period
 
 ### Background Hosted Services
@@ -29,8 +29,8 @@ Audit logging, notifications, and reference data microservice for the Nexus 2.0 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | POST | `/audit-logs` | Service | Create audit log entry |
-| GET | `/audit-logs` | Bearer | Query audit logs (paginated, filterable) |
-| GET | `/audit-logs/archive` | Bearer | Query archived audit logs |
+| GET | `/audit-logs` | OrgAdmin | Query audit logs (paginated, filterable) |
+| GET | `/audit-logs/archive` | OrgAdmin | Query archived audit logs |
 | PUT | `/audit-logs` | — | 405 — Audit logs are immutable |
 | DELETE | `/audit-logs` | — | 405 — Audit logs are immutable |
 
@@ -61,10 +61,10 @@ Audit logging, notifications, and reference data microservice for the Nexus 2.0 
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/reference/department-types` | Public | Get department types |
-| GET | `/reference/priority-levels` | Public | Get priority levels |
-| GET | `/reference/task-types` | Public | Get task types |
-| GET | `/reference/workflow-states` | Public | Get workflow states |
+| GET | `/reference/department-types` | Bearer | Get department types |
+| GET | `/reference/priority-levels` | Bearer | Get priority levels |
+| GET | `/reference/task-types` | Bearer | Get task types |
+| GET | `/reference/workflow-states` | Bearer | Get workflow states |
 | POST | `/reference/department-types` | OrgAdmin | Create department type |
 | POST | `/reference/priority-levels` | OrgAdmin | Create priority level |
 
@@ -150,4 +150,11 @@ See [`.env.example`](UtilityService.Api/.env.example) for all variables. Key set
 | `RETENTION_PERIOD_DAYS` | Audit log retention before archival (default: 90) |
 | `RETENTION_SCHEDULE_HOUR` | Hour of day to run archival (default: 2) |
 | `NOTIFICATION_RETRY_MAX` | Max notification delivery retries (default: 3) |
+| `SMTP_HOST` | SMTP server host (default: localhost) |
+| `SMTP_PORT` | SMTP server port (default: 1025) |
+| `SMTP_FROM_ADDRESS` | Sender email address |
+| `SMTP_FROM_NAME` | Sender display name |
+| `SMTP_USERNAME` | SMTP auth username (optional) |
+| `SMTP_PASSWORD` | SMTP auth password (optional) |
+| `SMTP_USE_SSL` | Enable SSL/TLS (default: false) |
 | `SEQ_URL` | Seq logging server URL |
