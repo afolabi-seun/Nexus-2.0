@@ -158,12 +158,23 @@ ProfileService/
 ## How to Run
 
 ```bash
+# Automated (from project root)
+make setup    # Creates DBs, starts all services, seeds test data
+make start    # Start services only
+make status   # Check health
+
+# Manual
 cd src/backend/ProfileService/ProfileService.Api
-cp .env.example .env   # Edit with your values
 dotnet run
 ```
 
 Service starts at `http://localhost:5002`. Swagger UI at `/swagger`.
+Health checks at `/health` and `/ready` (checks PostgreSQL + Redis).
+
+## Seed Data
+
+The seed scripts (`make seed`) create 2 organizations with OrgAdmins, departments, and team members.
+See [docs/setup-guide.md](../../docs/setup-guide.md) for full seed data details.
 
 ## Environment Variables
 

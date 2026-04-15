@@ -238,4 +238,5 @@ GitHub Actions pipelines in `.github/workflows/`:
 | Endpoint Restrictions | [endpoint-restrictions.md](docs/endpoint-restrictions.md) |
 | QA Guide | [qa-guide.md](docs/qa-guide.md) |
 | Testing Guide | [testing-guide.md](docs/testing-guide.md) |
+| Setup Guide | [setup-guide.md](docs/setup-guide.md) |
 | TODO / Roadmap | [TODO.md](docs/TODO.md) |

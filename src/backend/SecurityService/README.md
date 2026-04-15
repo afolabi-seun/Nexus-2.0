@@ -114,12 +114,18 @@ SecurityService/
 ## How to Run
 
 ```bash
+# Automated (from project root)
+make setup    # Creates DBs, starts all services, seeds test data
+make start    # Start services only
+make status   # Check health
+
+# Manual
 cd src/backend/SecurityService/SecurityService.Api
-cp .env.example .env   # Edit with your values
 dotnet run
 ```
 
 Service starts at `http://localhost:5001`. Swagger UI at `/swagger`.
+Health checks at `/health` and `/ready` (checks PostgreSQL + Redis).
 
 ## Environment Variables
 
