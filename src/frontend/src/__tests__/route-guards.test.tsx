@@ -6,6 +6,7 @@ import { AuthGuard } from '@/components/guards/AuthGuard';
 import { GuestGuard } from '@/components/guards/GuestGuard';
 import { RoleGuard } from '@/components/guards/RoleGuard';
 import { FirstTimeGuard } from '@/components/guards/FirstTimeGuard';
+import { ToastProvider } from '@/components/common/Toast';
 import type { AuthUser } from '@/types/auth';
 
 /**
@@ -31,9 +32,11 @@ const testUser: AuthUser = {
 
 function renderWithRouter(ui: React.ReactElement, { route = '/' } = {}) {
     return render(
-        <MemoryRouter initialEntries={[route]}>
-            {ui}
-        </MemoryRouter>
+        <ToastProvider>
+            <MemoryRouter initialEntries={[route]}>
+                {ui}
+            </MemoryRouter>
+        </ToastProvider>
     );
 }
 
