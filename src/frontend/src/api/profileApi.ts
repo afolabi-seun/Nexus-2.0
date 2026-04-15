@@ -167,19 +167,19 @@ export const profileApi = {
 
     // PlatformAdmin
     getAllOrganizations: (): Promise<Organization[]> =>
-        client.get('/api/v1/admin/organizations').then((r) => r.data),
+        client.get('/api/v1/organizations').then((r) => r.data),
 
     createOrganization: (
         data: CreateOrganizationRequest
     ): Promise<Organization> =>
-        client.post('/api/v1/admin/organizations', data).then((r) => r.data),
+        client.post('/api/v1/organizations', data).then((r) => r.data),
 
     provisionAdmin: (
         orgId: string,
         data: ProvisionAdminRequest
     ): Promise<void> =>
         client
-            .post(`/api/v1/admin/organizations/${orgId}/provision`, data)
+            .post(`/api/v1/organizations/${orgId}/provision-admin`, data)
             .then(() => undefined),
 
     // Member Status & Availability

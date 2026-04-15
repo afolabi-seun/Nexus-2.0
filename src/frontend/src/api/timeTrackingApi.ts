@@ -81,8 +81,8 @@ export const timeTrackingApi = {
     // ── Time Policy ──
 
     getTimePolicy: (): Promise<TimePolicyResponse> =>
-        client.get('/api/v1/time-policy').then((r) => r.data),
+        client.get('/api/v1/time-policies').then((r) => r.data),
 
     updateTimePolicy: (data: UpdateTimePolicyRequest): Promise<TimePolicyResponse> =>
-        client.put('/api/v1/time-policy', data).then((r) => r.data),
+        client.put('/api/v1/time-policies', data).then((r) => r.data),
 };
