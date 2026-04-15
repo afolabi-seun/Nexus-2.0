@@ -144,12 +144,23 @@ BillingService/
 ## How to Run
 
 ```bash
+# Automated (from project root)
+make setup    # Creates DBs, starts all services, seeds test data
+make start    # Start services only
+make status   # Check health
+
+# Manual
 cd src/backend/BillingService/BillingService.Api
-cp .env.example .env   # Edit with your values
 dotnet run
 ```
 
 Service starts at `http://localhost:5300`. Swagger UI at `/swagger`.
+Health checks at `/health` and `/ready` (checks PostgreSQL + Redis).
+
+## Seed Data
+
+The seed scripts (`make seed`) create subscriptions (Professional for Acme, Starter for Globex).
+See [docs/setup-guide.md](../../docs/setup-guide.md) for full seed data details.
 
 ## Environment Variables
 
