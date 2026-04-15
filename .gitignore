@@ -36,3 +36,4 @@ dist/
 # --- OS ---
 Thumbs.db
 .seed-state.env
+.pids/

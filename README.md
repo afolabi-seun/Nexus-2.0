@@ -101,9 +101,25 @@ docker compose -f docker/docker-compose.server.yml up --build
 - Frontend: http://localhost:5173
 - Swagger: http://localhost:5001/swagger (Security), :5002 (Profile), :5003 (Work), :5200 (Utility), :5300 (Billing)
 - Seq Logs: http://localhost:5341
+- Mailpit (email): http://localhost:8025
 
 See [docker/README.md](docker/README.md) for details.
-### Option B: Run locally
+
+### Option B: Make commands (local development)
+
+```bash
+make setup          # Create DBs + start services + wait + seed
+make seed           # Run seed scripts (services must be running)
+make start          # Start all backend services
+make stop           # Stop all backend services
+make status         # Check service health
+make reset          # Full reset: stop + drop DBs + recreate + start + seed
+make test           # Run all tests (backend + frontend)
+make frontend       # Start frontend dev server
+make help           # Show all commands
+```
+
+### Option C: Run locally (manual)
 
 #### 1. Set up environment files
 
