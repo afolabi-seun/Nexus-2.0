@@ -228,6 +228,7 @@ GitHub Actions pipelines in `.github/workflows/`:
 
 | Resource | Path |
 |----------|------|
+| Architecture Documentation | [docs/architecture/README.md](docs/architecture/README.md) |
 | Environment Configuration | [config/README.md](config/README.md) |
 | Docker Compose | [docker/README.md](docker/README.md) |
 | Postman Collection | [postman/README.md](postman/README.md) |
