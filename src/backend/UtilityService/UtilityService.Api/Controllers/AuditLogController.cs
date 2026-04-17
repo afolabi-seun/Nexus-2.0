@@ -6,6 +6,7 @@ using UtilityService.Application.DTOs;
 using UtilityService.Application.DTOs.AuditLogs;
 using UtilityService.Domain.Exceptions;
 using UtilityService.Domain.Interfaces.Services.AuditLogs;
+using UtilityService.Application.Helpers;
 
 namespace UtilityService.Api.Controllers;
 
@@ -72,6 +73,7 @@ public class AuditLogController : ControllerBase
         [FromQuery] AuditLogFilterRequest filter,
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
+        PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
         var result = await _auditLogService.QueryAsync(orgId, filter, page, pageSize, ct);
         return ApiResponse<object>.Ok(result, "Audit logs retrieved.").ToActionResult(HttpContext);
@@ -94,6 +96,7 @@ public class AuditLogController : ControllerBase
         [FromQuery] AuditLogFilterRequest filter,
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
+        PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
         var result = await _auditLogService.QueryArchiveAsync(orgId, filter, page, pageSize, ct);
         return ApiResponse<object>.Ok(result, "Archived audit logs retrieved.").ToActionResult(HttpContext);

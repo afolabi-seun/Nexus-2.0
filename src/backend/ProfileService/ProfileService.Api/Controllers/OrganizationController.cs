@@ -5,6 +5,7 @@ using ProfileService.Api.Extensions;
 using ProfileService.Application.DTOs;
 using ProfileService.Application.DTOs.Organizations;
 using ProfileService.Domain.Interfaces.Services.Organizations;
+using ProfileService.Application.Helpers;
 
 
 namespace ProfileService.Api.Controllers;
@@ -68,6 +69,7 @@ public class OrganizationController : ControllerBase
     public async Task<IActionResult> List(
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
+        PaginationHelper.Normalize(ref page, ref pageSize);
         var result = await _organizationService.ListAllAsync(page, pageSize, ct);
         return ApiResponse<object>.Ok(result, "Organizations retrieved.").ToActionResult(HttpContext);
     }

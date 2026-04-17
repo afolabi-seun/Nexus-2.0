@@ -5,6 +5,7 @@ using BillingService.Application.DTOs.Admin;
 using BillingService.Domain.Interfaces.Services.AdminBilling;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using BillingService.Application.Helpers;
 
 namespace BillingService.Api.Controllers;
 
@@ -37,6 +38,7 @@ public class AdminBillingController : ControllerBase
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
+        PaginationHelper.Normalize(ref page, ref pageSize);
         var result = await _adminBillingService.GetAllSubscriptionsAsync(status, search, page, pageSize, ct);
         return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
     }
@@ -110,6 +112,7 @@ public class AdminBillingController : ControllerBase
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
+        PaginationHelper.Normalize(ref page, ref pageSize);
         var result = await _adminBillingService.GetOrganizationUsageListAsync(threshold, page, pageSize, ct);
         return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
     }

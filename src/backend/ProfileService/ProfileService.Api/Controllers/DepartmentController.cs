@@ -6,6 +6,7 @@ using ProfileService.Application.DTOs;
 using ProfileService.Application.DTOs.Departments;
 using ProfileService.Application.DTOs.Organizations;
 using ProfileService.Domain.Interfaces.Services.Departments;
+using ProfileService.Application.Helpers;
 
 namespace ProfileService.Api.Controllers;
 
@@ -35,6 +36,7 @@ public class DepartmentController : ControllerBase
     public async Task<IActionResult> List(
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
+        PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
         var result = await _departmentService.ListAsync(orgId, page, pageSize, ct);
         return ApiResponse<object>.Ok(result, "Departments retrieved.").ToActionResult(HttpContext);
@@ -69,6 +71,7 @@ public class DepartmentController : ControllerBase
     public async Task<IActionResult> ListMembers(
         Guid id, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
+        PaginationHelper.Normalize(ref page, ref pageSize);
         var result = await _departmentService.ListMembersAsync(id, page, pageSize, ct);
         return ApiResponse<object>.Ok(result, "Department members retrieved.").ToActionResult(HttpContext);
     }

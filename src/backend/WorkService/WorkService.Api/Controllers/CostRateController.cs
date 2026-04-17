@@ -5,6 +5,7 @@ using WorkService.Api.Extensions;
 using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.CostRates;
 using WorkService.Domain.Interfaces.Services.CostRates;
+using WorkService.Application.Helpers;
 
 namespace WorkService.Api.Controllers;
 
@@ -52,6 +53,7 @@ public class CostRateController : ControllerBase
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
+        PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = GetOrganizationId();
         var result = await _costRateService.ListAsync(orgId, rateType, memberId,
             departmentId, roleName, page, pageSize, ct);

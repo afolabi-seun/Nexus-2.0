@@ -5,6 +5,7 @@ using WorkService.Api.Extensions;
 using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.RiskRegisters;
 using WorkService.Domain.Interfaces.Services.RiskRegisters;
+using WorkService.Application.Helpers;
 
 namespace WorkService.Api.Controllers;
 
@@ -80,6 +81,7 @@ public class RiskRegisterController : ControllerBase
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
+        PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = GetOrganizationId();
         var result = await _riskService.ListAsync(orgId, projectId, sprintId, severity, mitigationStatus, page, pageSize, ct);
         return ApiResponse<object>.Ok(result, "Risk register entries retrieved.").ToActionResult(HttpContext);

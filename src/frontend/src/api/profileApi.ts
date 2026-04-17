@@ -166,8 +166,8 @@ export const profileApi = {
             .then(() => undefined),
 
     // PlatformAdmin
-    getAllOrganizations: (): Promise<Organization[]> =>
-        client.get('/api/v1/organizations').then((r) => r.data),
+    getAllOrganizations: (params?: PaginationParams): Promise<PaginatedResponse<Organization>> =>
+        client.get('/api/v1/organizations', { params }).then((r) => r.data),
 
     createOrganization: (
         data: CreateOrganizationRequest

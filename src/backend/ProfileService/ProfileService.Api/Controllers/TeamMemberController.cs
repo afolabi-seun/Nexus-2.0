@@ -6,6 +6,7 @@ using ProfileService.Application.DTOs;
 using ProfileService.Application.DTOs.Organizations;
 using ProfileService.Application.DTOs.TeamMembers;
 using ProfileService.Domain.Interfaces.Services.TeamMembers;
+using ProfileService.Application.Helpers;
 
 namespace ProfileService.Api.Controllers;
 
@@ -47,6 +48,7 @@ public class TeamMemberController : ControllerBase
         [FromQuery] string? availability = null,
         CancellationToken ct = default)
     {
+        PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
         var result = await _teamMemberService.ListAsync(orgId, page, pageSize, departmentId, role, status, availability, ct);
         return ApiResponse<object>.Ok(result, "Team members retrieved.").ToActionResult(HttpContext);

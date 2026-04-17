@@ -6,6 +6,7 @@ using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.Sprints;
 using WorkService.Domain.Interfaces.Services.Sprints;
 using WorkService.Domain.Interfaces.Services.TimeEntries;
+using WorkService.Application.Helpers;
 
 namespace WorkService.Api.Controllers;
 
@@ -79,6 +80,7 @@ public class SprintController : ControllerBase
         [FromQuery] string? status = null, [FromQuery] Guid? projectId = null,
         CancellationToken ct = default)
     {
+        PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = GetOrganizationId();
         var result = await _sprintService.ListAsync(orgId, page, pageSize, status, projectId, ct);
         return ApiResponse<object>.Ok(result, "Sprints retrieved.").ToActionResult(HttpContext);

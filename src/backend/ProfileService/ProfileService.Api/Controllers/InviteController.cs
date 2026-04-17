@@ -5,6 +5,7 @@ using ProfileService.Api.Extensions;
 using ProfileService.Application.DTOs;
 using ProfileService.Application.DTOs.Invites;
 using ProfileService.Domain.Interfaces.Services.Invites;
+using ProfileService.Application.Helpers;
 
 namespace ProfileService.Api.Controllers;
 
@@ -78,6 +79,7 @@ public class InviteController : ControllerBase
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
+        PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
         var roleName = HttpContext.Items["roleName"]?.ToString() ?? string.Empty;
 

@@ -5,8 +5,10 @@ import { DataTable, type Column } from '@/components/common/DataTable';
 import { Badge } from '@/components/common/Badge';
 import { Modal } from '@/components/common/Modal';
 import { FormField } from '@/components/forms/FormField';
+import { Pagination } from '@/components/common/Pagination';
 import { useToast } from '@/components/common/Toast';
 import { useAuth } from '@/hooks/useAuth';
+import { usePagination } from '@/hooks/usePagination';
 import { ListFilter } from '@/components/common/ListFilter';
 import { useListFilters } from '@/hooks/useListFilters';
 import { mapErrorCode } from '@/utils/errorMapping';
@@ -34,7 +36,9 @@ export function DepartmentListPage() {
     const isOrgAdmin = user?.roleName === 'OrgAdmin';
 
     const [departments, setDepartments] = useState<Department[]>([]);
+    const [totalCount, setTotalCount] = useState(0);
     const [loading, setLoading] = useState(true);
+    const { page, pageSize, setPage, setPageSize } = usePagination();
     const [createOpen, setCreateOpen] = useState(false);
     const [formName, setFormName] = useState('');
     const [formCode, setFormCode] = useState('');
@@ -49,15 +53,18 @@ export function DepartmentListPage() {
         setLoading(true);
         try {
             const res = await profileApi.getDepartments({
+                page,
+                pageSize,
                 status: filterValues.status as string | undefined,
             } as Record<string, unknown>);
             setDepartments(res.data);
+            setTotalCount(res.totalCount);
         } catch {
             addToast('error', 'Failed to load departments');
         } finally {
             setLoading(false);
         }
-    }, [filterValues, addToast]);
+    }, [page, pageSize, filterValues, addToast]);
 
     useEffect(() => { fetchDepartments(); }, [fetchDepartments]);
 
@@ -111,6 +118,8 @@ export function DepartmentListPage() {
             />
 
             <DataTable columns={columns} data={departments} loading={loading} keyExtractor={(d) => d.departmentId} onRowClick={(d) => navigate(`/departments/${d.departmentId}`)} />
+
+            <Pagination page={page} pageSize={pageSize} totalCount={totalCount} onPageChange={setPage} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
 
             <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="Create Department">
                 <div className="space-y-4">

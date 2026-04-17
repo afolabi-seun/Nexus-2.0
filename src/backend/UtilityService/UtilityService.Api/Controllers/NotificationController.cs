@@ -5,6 +5,7 @@ using UtilityService.Api.Extensions;
 using UtilityService.Application.DTOs;
 using UtilityService.Application.DTOs.Notifications;
 using UtilityService.Domain.Interfaces.Services.Notifications;
+using UtilityService.Application.Helpers;
 
 namespace UtilityService.Api.Controllers;
 
@@ -31,6 +32,7 @@ public class NotificationController : ControllerBase
         [FromQuery] NotificationLogFilterRequest filter,
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
+        PaginationHelper.Normalize(ref page, ref pageSize);
         var userId = Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
         var result = await _notificationService.GetUserHistoryAsync(userId, orgId, filter, page, pageSize, ct);

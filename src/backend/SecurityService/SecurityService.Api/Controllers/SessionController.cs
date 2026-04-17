@@ -4,6 +4,7 @@ using SecurityService.Api.Extensions;
 using SecurityService.Application.DTOs;
 using SecurityService.Application.DTOs.Session;
 using SecurityService.Domain.Interfaces.Services.Session;
+using SecurityService.Application.Helpers;
 
 namespace SecurityService.Api.Controllers;
 
@@ -23,6 +24,7 @@ public class SessionController : ControllerBase
     public async Task<IActionResult> GetSessions(
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
+        PaginationHelper.Normalize(ref page, ref pageSize);
         var userId = Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
         var sessions = await _sessionService.GetSessionsAsync(userId, page, pageSize, ct);
 
