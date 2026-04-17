@@ -4,7 +4,9 @@ import { DataTable, type Column } from '@/components/common/DataTable';
 import { Badge } from '@/components/common/Badge';
 import { Modal } from '@/components/common/Modal';
 import { FormField } from '@/components/forms/FormField';
+import { Pagination } from '@/components/common/Pagination';
 import { useToast } from '@/components/common/Toast';
+import { usePagination } from '@/hooks/usePagination';
 import { mapErrorCode } from '@/utils/errorMapping';
 import { ApiError } from '@/types/api';
 import { FlgStatus } from '@/types/enums';
@@ -21,7 +23,9 @@ export function PlatformAdminOrganizationsPage() {
     const { addToast } = useToast();
 
     const [orgs, setOrgs] = useState<Organization[]>([]);
+    const [totalCount, setTotalCount] = useState(0);
     const [loading, setLoading] = useState(true);
+    const { page, pageSize, setPage, setPageSize } = usePagination();
     const [createOpen, setCreateOpen] = useState(false);
     const [provisionOpen, setProvisionOpen] = useState(false);
     const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null);
@@ -29,14 +33,15 @@ export function PlatformAdminOrganizationsPage() {
     const fetchOrgs = useCallback(async () => {
         setLoading(true);
         try {
-            const data = await profileApi.getAllOrganizations();
-            setOrgs(data);
+            const res = await profileApi.getAllOrganizations({ page, pageSize });
+            setOrgs(res.data);
+            setTotalCount(res.totalCount);
         } catch {
             addToast('error', 'Failed to load organizations');
         } finally {
             setLoading(false);
         }
-    }, [addToast]);
+    }, [page, pageSize, addToast]);
 
     useEffect(() => { fetchOrgs(); }, [fetchOrgs]);
 
@@ -118,6 +123,8 @@ export function PlatformAdminOrganizationsPage() {
             </div>
 
             <DataTable columns={columns} data={orgs} loading={loading} keyExtractor={(o) => o.organizationId} />
+
+            <Pagination page={page} pageSize={pageSize} totalCount={totalCount} onPageChange={setPage} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
 
             <CreateOrganizationModal open={createOpen} onClose={() => setCreateOpen(false)} onCreated={() => { setCreateOpen(false); fetchOrgs(); }} />
             <ProvisionAdminModal open={provisionOpen} orgId={selectedOrgId} onClose={() => { setProvisionOpen(false); setSelectedOrgId(null); }} onProvisioned={() => { setProvisionOpen(false); setSelectedOrgId(null); }} />

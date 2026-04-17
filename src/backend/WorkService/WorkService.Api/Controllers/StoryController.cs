@@ -8,6 +8,7 @@ using WorkService.Application.DTOs.Stories;
 using WorkService.Domain.Interfaces.Services.ActivityLog;
 using WorkService.Domain.Interfaces.Services.Comments;
 using WorkService.Domain.Interfaces.Services.Stories;
+using WorkService.Application.Helpers;
 
 namespace WorkService.Api.Controllers;
 
@@ -94,6 +95,7 @@ public class StoryController : ControllerBase
         [FromQuery] DateTime? dateFrom = null, [FromQuery] DateTime? dateTo = null,
         CancellationToken ct = default)
     {
+        PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = GetOrganizationId();
         var result = await _storyService.ListAsync(orgId, page, pageSize, projectId, status, priority, departmentId, assigneeId, sprintId, labels, dateFrom, dateTo, ct);
         return ApiResponse<object>.Ok(result, "Stories retrieved.").ToActionResult(HttpContext);
@@ -314,6 +316,7 @@ public class StoryController : ControllerBase
     public async Task<IActionResult> GetActivityFeed(
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
+        PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = GetOrganizationId();
         var result = await _activityLogService.GetOrganizationFeedAsync(orgId, page, pageSize, ct);
         return ApiResponse<object>.Ok(result, "Activity feed retrieved.").ToActionResult(HttpContext);

@@ -5,6 +5,7 @@ using UtilityService.Api.Extensions;
 using UtilityService.Application.DTOs;
 using UtilityService.Application.DTOs.ErrorLogs;
 using UtilityService.Domain.Interfaces.Services.ErrorLogs;
+using UtilityService.Application.Helpers;
 
 namespace UtilityService.Api.Controllers;
 
@@ -31,6 +32,7 @@ public class ErrorLogController : ControllerBase
         [FromQuery] ErrorLogFilterRequest filter,
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
+        PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
         var result = await _errorLogService.QueryAsync(orgId, filter, page, pageSize, ct);
         return ApiResponse<object>.Ok(result, "Error logs retrieved.").ToActionResult(HttpContext);

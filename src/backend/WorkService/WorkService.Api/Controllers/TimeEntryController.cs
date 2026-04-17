@@ -6,6 +6,7 @@ using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.TimeEntries;
 using WorkService.Domain.Interfaces.Services.TimeEntries;
 using WorkService.Domain.Interfaces.Services.TimerSessions;
+using WorkService.Application.Helpers;
 
 namespace WorkService.Api.Controllers;
 
@@ -55,6 +56,7 @@ public class TimeEntryController : ControllerBase
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
+        PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = GetOrganizationId();
         var result = await _timeEntryService.ListAsync(orgId, storyId, projectId, sprintId,
             memberId, dateFrom, dateTo, isBillable, status, page, pageSize, ct);

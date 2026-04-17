@@ -9,6 +9,7 @@ using WorkService.Domain.Interfaces.Services.Projects;
 using WorkService.Domain.Interfaces.Services.TimeEntries;
 
 using WorkService.Domain.Interfaces.Services.Export;
+using WorkService.Application.Helpers;
 
 namespace WorkService.Api.Controllers;
 
@@ -82,6 +83,7 @@ public class ProjectController : ControllerBase
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20,
         [FromQuery] string? status = null, CancellationToken ct = default)
     {
+        PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = GetOrganizationId();
         var result = await _projectService.ListAsync(orgId, page, pageSize, status, ct);
         return ApiResponse<object>.Ok(result, "Projects retrieved.").ToActionResult(HttpContext);
@@ -180,6 +182,7 @@ public class ProjectController : ControllerBase
         [FromQuery] DateTime? dateTo = null, [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
+        PaginationHelper.Normalize(ref page, ref pageSize);
         var result = await _costSnapshotService.ListByProjectAsync(projectId, dateFrom, dateTo, page, pageSize, ct);
         return ApiResponse<object>.Ok(result, "Cost snapshots retrieved.").ToActionResult(HttpContext);
     }
