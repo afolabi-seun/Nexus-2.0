@@ -366,7 +366,7 @@ public class SprintService : ISprintService
                 {
                     StoryId = story.StoryId, StoryKey = story.StoryKey, Title = story.Title,
                     Priority = story.Priority, Status = story.Status, StoryPoints = story.StoryPoints,
-                    ProjectName = project?.ProjectName ?? "", DateCreated = story.DateCreated
+                    ProjectName = project?.ProjectName ?? "", DueDate = story.DueDate, DateCreated = story.DateCreated
                 });
             }
         }
