@@ -7,6 +7,8 @@ import { useOrg } from '@/hooks/useOrg';
 import { mapErrorCode } from '@/utils/errorMapping';
 import { ApiError } from '@/types/api';
 import type { OrganizationSettings, UpdateOrganizationSettingsRequest } from '@/types/profile';
+import { WorkflowSection } from '../components/WorkflowSection';
+import { SnapshotStatusSection } from '../components/SnapshotStatusSection';
 
 export function SettingsPage() {
     const { addToast } = useToast();
@@ -118,6 +120,9 @@ export function SettingsPage() {
                 </div>
             </section>
 
+            {/* Workflow Transitions (read-only view from WorkService) */}
+            <WorkflowSection />
+
             {/* Board */}
             <section className="space-y-4 rounded-md border border-border p-4">
                 <h2 className="text-lg font-medium text-foreground">Board</h2>
@@ -171,6 +176,9 @@ export function SettingsPage() {
                     <input type="number" min={1} value={form.auditRetentionDays ?? 90} onChange={(e) => updateField('auditRetentionDays', Number(e.target.value))} className="h-9 w-full max-w-xs rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
                 </FormField>
             </section>
+
+            {/* Analytics Snapshot Status */}
+            <SnapshotStatusSection />
 
             <div className="flex justify-end">
                 <button onClick={handleSave} disabled={saving} className="rounded-md bg-primary px-6 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50">

@@ -116,8 +116,8 @@ The project detail page is the natural hub for all project-scoped data. Currentl
 
 ### Settings Integration (Priority 8)
 
-- [ ] **Workflow management** — View/edit org-level workflow overrides on SettingsPage (`workApi.getWorkflows`, `workApi.saveOrgWorkflowOverride`)
-- [ ] **Snapshot status** — Show analytics snapshot status on admin settings (`analyticsApi.getSnapshotStatus`)
+- [x] **Workflow management** — View/edit org-level workflow overrides on SettingsPage (`workApi.getWorkflows`, `workApi.saveOrgWorkflowOverride`)
+- [x] **Snapshot status** — Show analytics snapshot status on admin settings (`analyticsApi.getSnapshotStatus`)
 
 ---
 
