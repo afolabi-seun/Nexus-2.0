@@ -46,6 +46,7 @@ References Domain and Application. Contains all implementations:
 | Folder | Contents |
 |--------|----------|
 | `Data/` | EF Core `DbContext`, entity configurations |
+| `Redis/` | `RedisKeys` static class (centralized key patterns with `nexus:` prefix) |
 | `Repositories/Generics/` | `GenericRepository<T>` base class |
 | `Repositories/{Entity}/` | Entity-specific repositories |
 | `Services/{Feature}/` | Service implementations |
@@ -107,6 +108,7 @@ ProfileService/
 │       └── CreateDepartmentRequestValidator.cs
 ├── ProfileService.Infrastructure/
 │   ├── Data/ProfileDbContext.cs
+│   ├── Redis/RedisKeys.cs
 │   ├── Repositories/
 │   │   ├── Generics/GenericRepository.cs
 │   │   ├── Organizations/OrganizationRepository.cs
@@ -201,6 +203,29 @@ Services/
 ├── Stripe/StripeWebhookService.cs          → ...Services.Stripe
 └── ServiceClients/ProfileServiceClient.cs  → ...Services.ServiceClients
 ```
+
+## Redis Key Management
+
+All Redis keys are centralized in `{Service}.Infrastructure/Redis/RedisKeys.cs`. Every key is prefixed with `nexus:` for namespace isolation in shared Redis clusters.
+
+```csharp
+public static class RedisKeys
+{
+    private const string P = "nexus:";
+
+    public static string Blacklist(string jti) => $"{P}blacklist:{jti}";
+    public static string Plan(Guid organizationId) => $"{P}plan:{organizationId}";
+    public const string Outbox = $"{P}outbox:billing";
+    public const string Dlq = $"{P}dlq:billing";
+}
+```
+
+Rules:
+- No inline Redis key strings in production code — always use `RedisKeys`
+- All keys start with `nexus:` prefix
+- Rate limiting uses `nexus:rate_limit:` consistently across all services
+- Each service has its own `RedisKeys` class (no shared package)
+- Outbox queues: `nexus:outbox:{service}`, DLQ: `nexus:dlq:{service}`
 
 ## Entity Status Pattern (FlgStatus)
 

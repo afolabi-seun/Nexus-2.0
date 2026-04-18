@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using SecurityService.Domain.Interfaces.Services.RateLimiter;
 using StackExchange.Redis;
+using SecurityService.Infrastructure.Redis;
 
 namespace SecurityService.Infrastructure.Services.RateLimiter;
 
@@ -44,7 +45,7 @@ public class RateLimiterService : IRateLimiterService
         string identity, string endpoint, int maxRequests, TimeSpan window, CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
-        var key = $"rate:{identity}:{endpoint}";
+        var key = RedisKeys.RateLimit(identity, endpoint);
         var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         var windowStartMs = nowMs - (long)window.TotalMilliseconds;
         var windowSeconds = (int)window.TotalSeconds;

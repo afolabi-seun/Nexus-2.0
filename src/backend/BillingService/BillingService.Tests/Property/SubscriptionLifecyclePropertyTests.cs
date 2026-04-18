@@ -331,7 +331,7 @@ public class SubscriptionLifecyclePropertyTests
         // Verify Redis cache was updated
         Assert.Contains(_redisDb.Invocations,
             inv => inv.Method.Name == "StringSetAsync" &&
-                   inv.Arguments[0].ToString()!.Contains($"plan:{orgId}"));
+                   inv.Arguments[0].ToString()!.Contains($"nexus:plan:{orgId}"));
 
         // Verify ProfileService was called
         _profileClient.Verify(p => p.UpdateOrganizationPlanTierAsync(orgId, freePlan.PlanCode, It.IsAny<CancellationToken>()), Times.Once);

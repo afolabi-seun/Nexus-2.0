@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using SecurityService.Domain.Exceptions;
 using SecurityService.Domain.Interfaces.Services.AnomalyDetection;
 using StackExchange.Redis;
+using SecurityService.Infrastructure.Redis;
 
 namespace SecurityService.Infrastructure.Services.AnomalyDetection;
 
@@ -21,7 +22,7 @@ public class AnomalyDetectionService : IAnomalyDetectionService
     public async Task<bool> CheckLoginAnomalyAsync(Guid userId, string ipAddress, CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
-        var key = $"trusted_ips:{userId}";
+        var key = RedisKeys.TrustedIps(userId);
 
         var isTrusted = await db.SetContainsAsync(key, ipAddress);
 
@@ -47,7 +48,7 @@ public class AnomalyDetectionService : IAnomalyDetectionService
     public async Task AddTrustedIpAsync(Guid userId, string ipAddress, CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
-        var key = $"trusted_ips:{userId}";
+        var key = RedisKeys.TrustedIps(userId);
 
         await db.SetAddAsync(key, ipAddress);
         await db.KeyExpireAsync(key, TrustedIpTtl);

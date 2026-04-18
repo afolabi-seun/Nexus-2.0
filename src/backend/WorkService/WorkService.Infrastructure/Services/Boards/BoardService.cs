@@ -7,6 +7,7 @@ using WorkService.Domain.Interfaces.Repositories.Stories;
 using WorkService.Domain.Interfaces.Repositories.Tasks;
 using WorkService.Domain.Interfaces.Services.Boards;
 using StackExchange.Redis;
+using WorkService.Infrastructure.Redis;
 
 namespace WorkService.Infrastructure.Services.Boards;
 
@@ -36,7 +37,7 @@ public class BoardService : IBoardService
         Guid? departmentId, Guid? assigneeId, string? priority, List<string>? labels, CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
-        var cacheKey = $"board_kanban:{organizationId}:{projectId}:{sprintId}";
+        var cacheKey = RedisKeys.BoardKanban(organizationId, projectId, sprintId);
         var cached = await db.StringGetAsync(cacheKey);
         if (cached.HasValue)
         {
@@ -107,7 +108,7 @@ public class BoardService : IBoardService
     public async Task<object> GetBacklogAsync(Guid organizationId, Guid? projectId, CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
-        var cacheKey = $"board_backlog:{organizationId}:{projectId}";
+        var cacheKey = RedisKeys.BoardBacklog(organizationId, projectId);
         var cached = await db.StringGetAsync(cacheKey);
         if (cached.HasValue)
         {
@@ -151,7 +152,7 @@ public class BoardService : IBoardService
     public async Task<object> GetDepartmentBoardAsync(Guid organizationId, Guid? projectId, Guid? sprintId, CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
-        var cacheKey = $"board_dept:{organizationId}:{projectId}:{sprintId}";
+        var cacheKey = RedisKeys.BoardDept(organizationId, projectId, sprintId);
         var cached = await db.StringGetAsync(cacheKey);
         if (cached.HasValue)
         {

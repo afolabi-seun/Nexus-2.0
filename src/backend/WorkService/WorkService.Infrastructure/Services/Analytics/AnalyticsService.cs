@@ -23,6 +23,7 @@ using WorkService.Domain.Interfaces.Services.Analytics;
 using WorkService.Domain.Interfaces.Services.CostRates;
 using WorkService.Infrastructure.Data;
 using WorkService.Infrastructure.Services.ServiceClients;
+using WorkService.Infrastructure.Redis;
 
 namespace WorkService.Infrastructure.Services.Analytics;
 
@@ -628,7 +629,7 @@ public class AnalyticsService : IAnalyticsService
     public async Task<object> GetDashboardAsync(Guid projectId, CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
-        var cacheKey = $"analytics:dashboard:{projectId}";
+        var cacheKey = RedisKeys.AnalyticsDashboard(projectId);
 
         var cached = await db.StringGetAsync(cacheKey);
         if (cached.HasValue)
@@ -741,7 +742,7 @@ public class AnalyticsService : IAnalyticsService
     public async Task<object> GetSnapshotStatusAsync(CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
-        var cached = await db.StringGetAsync("analytics:snapshot_status");
+        var cached = await db.StringGetAsync(RedisKeys.AnalyticsSnapshotStatus);
 
         if (cached.HasValue)
         {

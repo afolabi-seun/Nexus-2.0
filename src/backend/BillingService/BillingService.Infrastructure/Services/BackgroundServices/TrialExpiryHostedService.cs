@@ -5,6 +5,7 @@ using BillingService.Domain.Interfaces.Repositories.Plans;
 using BillingService.Domain.Interfaces.Repositories.Subscriptions;
 using BillingService.Domain.Interfaces.Services.Outbox;
 using BillingService.Infrastructure.Data;
+using BillingService.Infrastructure.Redis;
 using BillingService.Infrastructure.Services.ServiceClients;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -83,7 +84,7 @@ public class TrialExpiryHostedService : BackgroundService
                             freePlan.MaxTeamMembers, freePlan.MaxDepartments, freePlan.MaxStoriesPerMonth,
                             freePlan.FeaturesJson
                         });
-                        await db.StringSetAsync($"plan:{subscription.OrganizationId}", cacheValue, TimeSpan.FromMinutes(30));
+                        await db.StringSetAsync(RedisKeys.Plan(subscription.OrganizationId), cacheValue, TimeSpan.FromMinutes(30));
 
                         try { await profileClient.UpdateOrganizationPlanTierAsync(subscription.OrganizationId, "free", ct); }
                         catch (Exception ex) { _logger.LogWarning(ex, "Failed to notify ProfileService for trial expiry"); }

@@ -8,6 +8,7 @@ using ProfileService.Domain.Interfaces.Repositories.Organizations;
 using ProfileService.Domain.Interfaces.Repositories.UserPreferenceSettings;
 using ProfileService.Domain.Interfaces.Services.Preferences;
 using StackExchange.Redis;
+using ProfileService.Infrastructure.Redis;
 
 namespace ProfileService.Infrastructure.Services.Preferences;
 
@@ -50,7 +51,7 @@ public class PreferenceResolver : IPreferenceResolver
         var db = _redis.GetDatabase();
 
         // 1. Check resolved cache
-        var cachedResolved = await db.StringGetAsync($"resolved_prefs:{userId}");
+        var cachedResolved = await db.StringGetAsync(RedisKeys.ResolvedPrefs(userId));
         if (cachedResolved.HasValue)
         {
             var cached = JsonSerializer.Deserialize<ResolvedPreferencesResponse>(cachedResolved!, JsonOptions);
@@ -87,7 +88,7 @@ public class PreferenceResolver : IPreferenceResolver
 
         // 4. Cache resolved result
         await db.StringSetAsync(
-            $"resolved_prefs:{userId}",
+            RedisKeys.ResolvedPrefs(userId),
             JsonSerializer.Serialize(resolved, JsonOptions),
             ResolvedTtl);
 
@@ -96,7 +97,7 @@ public class PreferenceResolver : IPreferenceResolver
 
     private async Task<(OrganizationSettings? Settings, string? TimeZone)> GetOrgSettingsCachedAsync(IDatabase db, Guid organizationId, CancellationToken ct)
     {
-        var cacheKey = $"org_settings:{organizationId}";
+        var cacheKey = RedisKeys.OrgSettings(organizationId);
         var cached = await db.StringGetAsync(cacheKey);
         if (cached.HasValue)
         {
@@ -120,7 +121,7 @@ public class PreferenceResolver : IPreferenceResolver
 
     private async Task<DepartmentPreferences?> GetDeptPrefsCachedAsync(IDatabase db, Guid departmentId, CancellationToken ct)
     {
-        var cacheKey = $"dept_prefs:{departmentId}";
+        var cacheKey = RedisKeys.DeptPrefs(departmentId);
         var cached = await db.StringGetAsync(cacheKey);
         if (cached.HasValue)
         {
@@ -144,7 +145,7 @@ public class PreferenceResolver : IPreferenceResolver
 
     private async Task<UserPreferences?> GetUserPrefsCachedAsync(IDatabase db, Guid userId, CancellationToken ct)
     {
-        var cacheKey = $"user_prefs:{userId}";
+        var cacheKey = RedisKeys.UserPrefs(userId);
         var cached = await db.StringGetAsync(cacheKey);
         if (cached.HasValue)
         {

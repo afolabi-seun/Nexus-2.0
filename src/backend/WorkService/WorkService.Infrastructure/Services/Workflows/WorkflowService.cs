@@ -3,6 +3,7 @@ using WorkService.Application.DTOs.Workflows;
 using WorkService.Domain.Helpers;
 using WorkService.Domain.Interfaces.Services.Workflows;
 using StackExchange.Redis;
+using WorkService.Infrastructure.Redis;
 
 namespace WorkService.Infrastructure.Services.Workflows;
 
@@ -17,7 +18,7 @@ public class WorkflowService : IWorkflowService
         var db = _redis.GetDatabase();
 
         // Check for org-level overrides
-        var orgOverride = await db.StringGetAsync($"workflow_override:org:{organizationId}");
+        var orgOverride = await db.StringGetAsync(RedisKeys.WorkflowOrg(organizationId));
         if (orgOverride.HasValue)
         {
             var overrideResult = JsonSerializer.Deserialize<WorkflowDefinitionResponse>(orgOverride!);
@@ -48,7 +49,7 @@ public class WorkflowService : IWorkflowService
             TaskTransitions = req.TaskTransitions ?? new()
         };
         var json = JsonSerializer.Serialize(response);
-        await db.StringSetAsync($"workflow_override:org:{organizationId}", json);
+        await db.StringSetAsync(RedisKeys.WorkflowOrg(organizationId), json);
     }
 
     public async System.Threading.Tasks.Task SaveDepartmentOverrideAsync(
@@ -62,6 +63,6 @@ public class WorkflowService : IWorkflowService
             TaskTransitions = req.TaskTransitions ?? new()
         };
         var json = JsonSerializer.Serialize(response);
-        await db.StringSetAsync($"workflow_override:dept:{organizationId}:{departmentId}", json);
+        await db.StringSetAsync(RedisKeys.WorkflowDept(organizationId, departmentId), json);
     }
 }

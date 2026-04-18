@@ -77,8 +77,8 @@ public class AccountLockoutTests
     [Fact]
     public async Task AfterNFailedAttempts_LockoutFlagIsSet()
     {
-        var lockedKey = $"lockout:locked:{TestEmail}";
-        var lockoutKey = $"lockout:{TestEmail}";
+        var lockedKey = $"nexus:lockout:locked:{TestEmail}";
+        var lockoutKey = $"nexus:lockout:{TestEmail}";
         var passwordHash = BCrypt.Net.BCrypt.HashPassword("CorrectPassword1!");
 
         // Not locked initially
@@ -127,7 +127,7 @@ public class AccountLockoutTests
     [Fact]
     public async Task WhileLocked_Login_ThrowsAccountLockedException()
     {
-        var lockedKey = $"lockout:locked:{TestEmail}";
+        var lockedKey = $"nexus:lockout:locked:{TestEmail}";
 
         // Account is locked
         _dbMock.Setup(d => d.KeyExistsAsync(It.Is<RedisKey>(k => k.ToString() == lockedKey), It.IsAny<CommandFlags>()))
@@ -143,7 +143,7 @@ public class AccountLockoutTests
     [Fact]
     public async Task AfterLockoutExpiry_LoginProceeds()
     {
-        var lockedKey = $"lockout:locked:{TestEmail}";
+        var lockedKey = $"nexus:lockout:locked:{TestEmail}";
         var passwordHash = BCrypt.Net.BCrypt.HashPassword("CorrectPassword1!");
         var userId = Guid.NewGuid();
 

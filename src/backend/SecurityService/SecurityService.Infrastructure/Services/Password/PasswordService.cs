@@ -10,6 +10,7 @@ using SecurityService.Domain.Interfaces.Services.Password;
 using SecurityService.Infrastructure.Configuration;
 using SecurityService.Infrastructure.Data;
 using SecurityService.Infrastructure.Services.ServiceClients;
+using SecurityService.Infrastructure.Redis;
 
 namespace SecurityService.Infrastructure.Services.Password;
 
@@ -112,7 +113,7 @@ public class PasswordService : IPasswordService
             Timestamp = DateTime.UtcNow
         });
 
-        await _outboxService.PublishAsync("outbox:security", message, ct);
+        await _outboxService.PublishAsync(RedisKeys.Outbox, message, ct);
     }
 
     public async Task ResetConfirmAsync(string email, string otpCode, string newPassword,

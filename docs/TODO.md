@@ -61,7 +61,46 @@ Prioritized roadmap for hardening, features, and documentation before release.
 - [ ] **SLA tracking** — Time-to-resolution metrics, especially for bug stories.
 - [x] **Archival** — Archive completed sprints/projects to keep active views clean, preserve history.
 - [ ] **Webhook support** — Let orgs configure webhooks for key events (Slack, Teams integration).
-- [ ] **Global search** — Search across stories, projects, members.
+- [x] **Global search** — Search across stories, projects, members.
 - [ ] **Onboarding flow** — Guided setup for new orgs (create first project, invite members, create first sprint).
 - [ ] **Keyboard shortcuts** — For Kanban board and common frontend actions.
 - [ ] **Offline indicator** — Frontend shows connection status, queues actions when offline.
+
+---
+
+## ✅ Recently Completed
+
+### CI/CD
+- [x] **CI auto-merge fix** — Replaced `gh pr merge --auto --merge` with `--merge` (direct merge) in CI pipeline. The `--auto` flag failed because the PR's status checks hadn't registered yet ("unstable status" error). Since CI already passed before the merge job runs, auto-merge is unnecessary.
+
+### Redis & Caching
+- [x] **Cache TTL optimization** — Reduced cache durations across all services to improve data freshness:
+  - ProfileService: dept list 30→10min, dept prefs 30→10min, org settings 60→15min, user prefs 15→5min, resolved prefs 5→2min
+  - SecurityService: user cache 15→5min
+  - BillingService: plan cache 60→30min (SubscriptionService, StripeWebhookService, TrialExpiryHostedService)
+  - WorkService: sprint active 5→2min, sprint metrics 5→3min, analytics dashboard 5→3min
+  - Frontend: sprint metrics polling 5→3min (aligned with backend)
+- [x] **Redis key centralization** — Added `RedisKeys` static class to each service's `Infrastructure/Redis/` layer. All 42 inline Redis key patterns replaced with typed methods. Added `nexus:` namespace prefix to all keys for shared Redis cluster safety.
+- [x] **Rate limiter key inconsistency fix** — SecurityService used `rate:` while other services used `rate_limit:`. Unified to `nexus:rate_limit:` across all services.
+- [x] **BillingService outbox retry + DLQ** — Was fire-and-forget. Now has 3 retries with exponential backoff (1s, 2s, 4s) and dead-letter queue, matching ProfileService/WorkService pattern.
+- [x] **UtilityService outbox processor** — Added `outbox:billing` to the queue list (was only polling security, profile, work).
+
+### Error Handling & Database
+- [x] **PostgreSQL constraint mapping in middleware** — Added `DbUpdateException` handler to `GlobalExceptionHandlerMiddleware` in all 5 services. Maps SQL state `23505` (unique violation) and `23503` (FK violation) to 409 Conflict with constraint name in the response. Acts as safety net for race conditions.
+- [x] **Inner exception logging** — Added `InnerExceptionType` to structured log properties in `HandleUnhandledExceptionAsync` across all 5 services for better Seq diagnostics.
+- [x] **Database constraint error codes** — Added `UNIQUE_CONSTRAINT_VIOLATION` (9001) and `FOREIGN_KEY_VIOLATION` (9002) to all 5 services' `ErrorCodes.cs`.
+
+### Pagination
+- [x] **Pagination normalization** — Added `PaginationHelper.Normalize(ref page, ref pageSize)` to all 5 services' Application layer. Clamps `pageSize` to 1–100 and `page` to minimum 1. Applied to all 22 paginated controller methods across 16 controllers.
+- [x] **Frontend pagination gaps** — Added pagination to `DepartmentListPage` and `PlatformAdminOrganizationsPage` (both were fetching all records without page/pageSize). Updated `getAllOrganizations` API to accept `PaginationParams` and return `PaginatedResponse`.
+
+### Documentation
+- [x] **Architecture documentation** — 8 guides in `docs/architecture/`:
+  - ERROR_HANDLING.md — DomainException hierarchy, GlobalExceptionHandler, PostgreSQL constraint mapping
+  - ERROR_CODES.md — Error code registry, per-service ranges, 3-tier resolution
+  - API_RESPONSES.md — ApiResponse envelope, correlation ID flow, status code mapping
+  - VALIDATION.md — FluentValidation patterns, validation error response shape
+  - AUTHENTICATION_AND_SECURITY.md — Login flow, JWT, refresh tokens, OTP, lockout, service-to-service auth
+  - AUTHORIZATION_RBAC.md — Role hierarchy, middleware enforcement, department/org scoping
+  - INTER_SERVICE_COMMUNICATION.md — Service clients, Polly resilience, outbox pattern, error propagation
+  - CODE_STRUCTURE.md — Clean Architecture layers, GenericRepository, folder conventions, FlgStatus pattern

@@ -6,6 +6,7 @@ using ProfileService.Domain.Interfaces.Repositories.UserPreferenceSettings;
 using ProfileService.Domain.Interfaces.Services.Preferences;
 using ProfileService.Infrastructure.Data;
 using StackExchange.Redis;
+using ProfileService.Infrastructure.Redis;
 
 namespace ProfileService.Infrastructure.Services.Preferences;
 
@@ -75,8 +76,8 @@ public class PreferenceService : IPreferenceService
 
         // Invalidate cache
         var db = _redis.GetDatabase();
-        await db.KeyDeleteAsync($"user_prefs:{memberId}");
-        await db.KeyDeleteAsync($"resolved_prefs:{memberId}");
+        await db.KeyDeleteAsync(RedisKeys.UserPrefs(memberId));
+        await db.KeyDeleteAsync(RedisKeys.ResolvedPrefs(memberId));
 
         return MapToResponse(prefs);
     }

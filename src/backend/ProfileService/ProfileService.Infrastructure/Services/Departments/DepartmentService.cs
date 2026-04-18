@@ -12,6 +12,7 @@ using ProfileService.Domain.Interfaces.Repositories.TeamMembers;
 using ProfileService.Domain.Interfaces.Services.Departments;
 using ProfileService.Infrastructure.Data;
 using StackExchange.Redis;
+using ProfileService.Infrastructure.Redis;
 
 namespace ProfileService.Infrastructure.Services.Departments;
 
@@ -78,7 +79,7 @@ public class DepartmentService : IDepartmentService
 
         // Invalidate cache
         var db = _redis.GetDatabase();
-        await db.KeyDeleteAsync($"dept_list:{organizationId}");
+        await db.KeyDeleteAsync(RedisKeys.DeptList(organizationId));
 
         return MapToResponse(dept, 0);
     }
@@ -86,7 +87,7 @@ public class DepartmentService : IDepartmentService
     public async Task<object> ListAsync(Guid organizationId, int page, int pageSize, CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
-        var cacheKey = $"dept_list:{organizationId}:{page}:{pageSize}";
+        var cacheKey = RedisKeys.DeptListPaged(organizationId, page, pageSize);
 
         var cached = await db.StringGetAsync(cacheKey);
         if (cached.HasValue)
@@ -151,7 +152,7 @@ public class DepartmentService : IDepartmentService
 
         // Invalidate cache
         var db = _redis.GetDatabase();
-        await db.KeyDeleteAsync($"dept_list:{dept.OrganizationId}");
+        await db.KeyDeleteAsync(RedisKeys.DeptList(dept.OrganizationId));
 
         var memberCount = await _deptRepo.GetActiveMemberCountAsync(departmentId, ct);
         return MapToResponse(dept, memberCount);
@@ -181,7 +182,7 @@ public class DepartmentService : IDepartmentService
 
         // Invalidate cache
         var db = _redis.GetDatabase();
-        await db.KeyDeleteAsync($"dept_list:{dept.OrganizationId}");
+        await db.KeyDeleteAsync(RedisKeys.DeptList(dept.OrganizationId));
     }
 
     public async Task<object> ListMembersAsync(Guid departmentId, int page, int pageSize, CancellationToken ct = default)
@@ -259,7 +260,7 @@ public class DepartmentService : IDepartmentService
 
         // Invalidate cache
         var db = _redis.GetDatabase();
-        await db.KeyDeleteAsync($"dept_prefs:{departmentId}");
+        await db.KeyDeleteAsync(RedisKeys.DeptPrefs(departmentId));
 
         return MapPrefsToResponse(prefs);
     }

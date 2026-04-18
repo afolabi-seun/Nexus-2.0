@@ -1,5 +1,6 @@
 using StackExchange.Redis;
 using UtilityService.Application.DTOs;
+using UtilityService.Infrastructure.Redis;
 
 namespace UtilityService.Api.Middleware;
 
@@ -18,7 +19,7 @@ public class TokenBlacklistMiddleware
         {
             var redis = context.RequestServices.GetRequiredService<IConnectionMultiplexer>();
             var db = redis.GetDatabase();
-            var isBlacklisted = await db.KeyExistsAsync($"blacklist:{jti}");
+            var isBlacklisted = await db.KeyExistsAsync(RedisKeys.Blacklist(jti));
 
             if (isBlacklisted)
             {

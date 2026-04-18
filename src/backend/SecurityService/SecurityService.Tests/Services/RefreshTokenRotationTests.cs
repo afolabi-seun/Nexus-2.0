@@ -80,7 +80,7 @@ public class RefreshTokenRotationTests
         var deviceId = "device-1";
         var oldRefreshToken = "old-refresh-token";
         var oldRefreshHash = BCrypt.Net.BCrypt.HashPassword(oldRefreshToken);
-        var refreshKey = $"refresh:{userId}:{deviceId}";
+        var refreshKey = $"nexus:refresh:{userId}:{deviceId}";
 
         // Setup server to return the matching key
         _serverMock.Setup(s => s.KeysAsync(
@@ -95,9 +95,9 @@ public class RefreshTokenRotationTests
             .ReturnsAsync(true);
 
         // Setup user cache scan to return email
-        var userCacheKey = $"user_cache:{userId}";
+        var userCacheKey = $"nexus:user_cache:{userId}";
         _serverMock.Setup(s => s.KeysAsync(
-            It.IsAny<int>(), It.Is<RedisValue>(v => v.ToString() == "user_cache:*"),
+            It.IsAny<int>(), It.Is<RedisValue>(v => v.ToString() == "nexus:user_cache:*"),
             It.IsAny<int>(), It.IsAny<long>(), It.IsAny<int>(), It.IsAny<CommandFlags>()))
             .Returns(ToAsyncEnumerable(new RedisKey[] { userCacheKey }));
 
@@ -126,7 +126,7 @@ public class RefreshTokenRotationTests
         _jwtServiceMock.Setup(j => j.GetTokenExpiry(It.IsAny<string>())).Returns(DateTime.UtcNow.AddMinutes(15));
 
         _dbMock.Setup(d => d.StringSetAsync(
-            It.Is<RedisKey>(k => k.ToString().StartsWith("refresh:")),
+            It.Is<RedisKey>(k => k.ToString().StartsWith("nexus:refresh:")),
             It.IsAny<RedisValue>(), It.IsAny<TimeSpan?>(),
             It.IsAny<When>(), It.IsAny<CommandFlags>()))
             .ReturnsAsync(true);
@@ -154,7 +154,7 @@ public class RefreshTokenRotationTests
         var deviceId = "device-1";
         var oldRefreshToken = "already-used-token";
         var userId = Guid.NewGuid();
-        var refreshKey = $"refresh:{userId}:{deviceId}";
+        var refreshKey = $"nexus:refresh:{userId}:{deviceId}";
 
         // First scan: no matching hash (token was already rotated)
         _serverMock.Setup(s => s.KeysAsync(

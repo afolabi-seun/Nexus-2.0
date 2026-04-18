@@ -5,6 +5,7 @@ using BillingService.Domain.Enums;
 using BillingService.Domain.Interfaces.Repositories.Plans;
 using BillingService.Domain.Interfaces.Repositories.Subscriptions;
 using BillingService.Domain.Interfaces.Services.FeatureGates;
+using BillingService.Infrastructure.Redis;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 
@@ -51,7 +52,7 @@ public class FeatureGateService : IFeatureGateService
         try
         {
             var db = _redis.GetDatabase();
-            var cached = await db.StringGetAsync($"plan:{organizationId}");
+            var cached = await db.StringGetAsync(RedisKeys.Plan(organizationId));
             if (cached.HasValue)
             {
                 var data = JsonSerializer.Deserialize<CachedPlanData>(cached!);
@@ -111,7 +112,7 @@ public class FeatureGateService : IFeatureGateService
 
             if (metricKey is not null)
             {
-                var val = await db.StringGetAsync($"usage:{organizationId}:{metricKey}");
+                var val = await db.StringGetAsync(RedisKeys.Usage(organizationId, metricKey));
                 if (val.HasValue && long.TryParse(val, out var parsed))
                     currentUsage = parsed;
             }

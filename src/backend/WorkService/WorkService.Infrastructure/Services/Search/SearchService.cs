@@ -6,6 +6,7 @@ using WorkService.Domain.Exceptions;
 using WorkService.Domain.Interfaces.Repositories.Stories;
 using WorkService.Domain.Interfaces.Services.Search;
 using StackExchange.Redis;
+using WorkService.Infrastructure.Redis;
 
 namespace WorkService.Infrastructure.Services.Search;
 
@@ -28,7 +29,7 @@ public class SearchService : ISearchService
             throw new SearchQueryTooShortException();
 
         var db = _redis.GetDatabase();
-        var cacheKey = $"search_results:{ComputeHash(organizationId, req)}";
+        var cacheKey = RedisKeys.SearchResults(ComputeHash(organizationId, req));
         var cached = await db.StringGetAsync(cacheKey);
         if (cached.HasValue)
         {

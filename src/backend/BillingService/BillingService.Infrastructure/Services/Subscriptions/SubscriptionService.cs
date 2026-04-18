@@ -16,6 +16,7 @@ using BillingService.Infrastructure.Data;
 using BillingService.Infrastructure.Services.ServiceClients;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
+using BillingService.Infrastructure.Redis;
 
 namespace BillingService.Infrastructure.Services.Subscriptions;
 
@@ -252,7 +253,7 @@ public class SubscriptionService : ISubscriptionService
                 plan.MaxStoriesPerMonth,
                 plan.FeaturesJson
             });
-            await db.StringSetAsync($"plan:{organizationId}", cacheValue, TimeSpan.FromMinutes(30));
+            await db.StringSetAsync(RedisKeys.Plan(organizationId), cacheValue, TimeSpan.FromMinutes(30));
         }
         catch (Exception ex)
         {

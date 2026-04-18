@@ -5,6 +5,7 @@ using SecurityService.Domain.Exceptions;
 using SecurityService.Domain.Interfaces.Services.Otp;
 using SecurityService.Infrastructure.Configuration;
 using StackExchange.Redis;
+using SecurityService.Infrastructure.Redis;
 
 namespace SecurityService.Infrastructure.Services.Otp;
 
@@ -29,7 +30,7 @@ public class OtpService : IOtpService
     public async Task<string> GenerateOtpAsync(string identity, CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
-        var key = $"otp:{identity}";
+        var key = RedisKeys.Otp(identity);
 
         var code = GenerateSecureCode();
         var otpData = new OtpData { Code = code, Attempts = 0 };
@@ -45,7 +46,7 @@ public class OtpService : IOtpService
     public async Task<bool> VerifyOtpAsync(string identity, string code, CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
-        var key = $"otp:{identity}";
+        var key = RedisKeys.Otp(identity);
 
         var json = await db.StringGetAsync(key);
         if (json.IsNullOrEmpty)

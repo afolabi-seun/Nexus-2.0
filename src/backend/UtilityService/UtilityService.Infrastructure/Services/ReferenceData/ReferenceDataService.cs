@@ -9,6 +9,7 @@ using UtilityService.Domain.Interfaces.Repositories.TaskTypeRefs;
 using UtilityService.Domain.Interfaces.Repositories.WorkflowStates;
 using UtilityService.Domain.Interfaces.Services.ReferenceData;
 using UtilityService.Infrastructure.Data;
+using UtilityService.Infrastructure.Redis;
 
 namespace UtilityService.Infrastructure.Services.ReferenceData;
 
@@ -37,7 +38,7 @@ public class ReferenceDataService : IReferenceDataService
 
     public async Task<IEnumerable<object>> GetDepartmentTypesAsync(CancellationToken ct = default)
     {
-        return await GetCachedOrFetchAsync("ref:department_types", async () =>
+        return await GetCachedOrFetchAsync(RedisKeys.Ref("department_types"), async () =>
         {
             var items = await _deptRepo.ListAsync(ct);
             return items.Select(e => new DepartmentTypeResponse
@@ -49,7 +50,7 @@ public class ReferenceDataService : IReferenceDataService
 
     public async Task<IEnumerable<object>> GetPriorityLevelsAsync(CancellationToken ct = default)
     {
-        return await GetCachedOrFetchAsync("ref:priority_levels", async () =>
+        return await GetCachedOrFetchAsync(RedisKeys.Ref("priority_levels"), async () =>
         {
             var items = await _priorityRepo.ListAsync(ct);
             return items.Select(e => new PriorityLevelResponse
@@ -61,7 +62,7 @@ public class ReferenceDataService : IReferenceDataService
 
     public async Task<IEnumerable<object>> GetTaskTypesAsync(CancellationToken ct = default)
     {
-        return await GetCachedOrFetchAsync("ref:task_types", async () =>
+        return await GetCachedOrFetchAsync(RedisKeys.Ref("task_types"), async () =>
         {
             var items = await _taskTypeRepo.ListAsync(ct);
             return items.Select(e => new TaskTypeRefResponse
@@ -73,7 +74,7 @@ public class ReferenceDataService : IReferenceDataService
 
     public async Task<IEnumerable<object>> GetWorkflowStatesAsync(CancellationToken ct = default)
     {
-        return await GetCachedOrFetchAsync("ref:workflow_states", async () =>
+        return await GetCachedOrFetchAsync(RedisKeys.Ref("workflow_states"), async () =>
         {
             var items = await _workflowRepo.ListAsync(ct);
             return items.Select(e => new WorkflowStateResponse
@@ -92,7 +93,7 @@ public class ReferenceDataService : IReferenceDataService
         var entity = new DepartmentType { TypeName = req.TypeName, TypeCode = req.TypeCode };
         var created = await _deptRepo.AddAsync(entity, ct);
         await _dbContext.SaveChangesAsync(ct);
-        await InvalidateCacheAsync("ref:department_types");
+        await InvalidateCacheAsync(RedisKeys.Ref("department_types"));
 
         return new DepartmentTypeResponse
         {
@@ -109,7 +110,7 @@ public class ReferenceDataService : IReferenceDataService
         var entity = new PriorityLevel { Name = req.Name, SortOrder = req.SortOrder, Color = req.Color };
         var created = await _priorityRepo.AddAsync(entity, ct);
         await _dbContext.SaveChangesAsync(ct);
-        await InvalidateCacheAsync("ref:priority_levels");
+        await InvalidateCacheAsync(RedisKeys.Ref("priority_levels"));
 
         return new PriorityLevelResponse
         {

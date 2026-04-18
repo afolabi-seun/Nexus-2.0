@@ -19,6 +19,7 @@ using ProfileService.Infrastructure.Configuration;
 using ProfileService.Infrastructure.Data;
 using ProfileService.Infrastructure.Services.ServiceClients;
 using StackExchange.Redis;
+using ProfileService.Infrastructure.Redis;
 
 namespace ProfileService.Infrastructure.Services.Invites;
 
@@ -249,8 +250,8 @@ public class InviteService : IInviteService
 
         // Invalidate caches
         var db = _redis.GetDatabase();
-        await db.KeyDeleteAsync($"dept_list:{invite.OrganizationId}");
-        await db.KeyDeleteAsync($"member_profile:{member.TeamMemberId}");
+        await db.KeyDeleteAsync(RedisKeys.DeptList(invite.OrganizationId));
+        await db.KeyDeleteAsync(RedisKeys.MemberProfile(member.TeamMemberId));
 
         // Publish audit event
         await _outbox.PublishAsync(new OutboxMessage

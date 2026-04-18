@@ -1,4 +1,5 @@
 using StackExchange.Redis;
+using BillingService.Infrastructure.Redis;
 
 namespace BillingService.Api.Middleware;
 
@@ -29,7 +30,7 @@ public class RateLimiterMiddleware
         var redis = context.RequestServices.GetRequiredService<IConnectionMultiplexer>();
         var db = redis.GetDatabase();
 
-        var key = $"rate_limit:{ipAddress}:{path}";
+        var key = RedisKeys.RateLimit(ipAddress, path);
         var count = await db.StringIncrementAsync(key);
 
         if (count == 1)

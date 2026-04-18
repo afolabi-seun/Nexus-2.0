@@ -58,7 +58,7 @@ public class OtpServiceTests
         var otpData = JsonSerializer.Serialize(new { code, attempts = 0 },
             new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
-        _dbMock.Setup(d => d.StringGetAsync(It.Is<RedisKey>(k => k.ToString() == $"otp:{identity}"), It.IsAny<CommandFlags>()))
+        _dbMock.Setup(d => d.StringGetAsync(It.Is<RedisKey>(k => k.ToString() == $"nexus:otp:{identity}"), It.IsAny<CommandFlags>()))
             .ReturnsAsync(new RedisValue(otpData));
         _dbMock.Setup(d => d.KeyDeleteAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
             .ReturnsAsync(true);
@@ -66,7 +66,7 @@ public class OtpServiceTests
         var result = await _service.VerifyOtpAsync(identity, code);
 
         Assert.True(result);
-        _dbMock.Verify(d => d.KeyDeleteAsync(It.Is<RedisKey>(k => k.ToString() == $"otp:{identity}"), It.IsAny<CommandFlags>()), Times.Once);
+        _dbMock.Verify(d => d.KeyDeleteAsync(It.Is<RedisKey>(k => k.ToString() == $"nexus:otp:{identity}"), It.IsAny<CommandFlags>()), Times.Once);
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public class OtpServiceTests
         var otpData = JsonSerializer.Serialize(new { code = "123456", attempts = 0 },
             new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
-        _dbMock.Setup(d => d.StringGetAsync(It.Is<RedisKey>(k => k.ToString() == $"otp:{identity}"), It.IsAny<CommandFlags>()))
+        _dbMock.Setup(d => d.StringGetAsync(It.Is<RedisKey>(k => k.ToString() == $"nexus:otp:{identity}"), It.IsAny<CommandFlags>()))
             .ReturnsAsync(new RedisValue(otpData));
         _dbMock.Setup(d => d.KeyTimeToLiveAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
             .ReturnsAsync(TimeSpan.FromMinutes(4));
@@ -97,7 +97,7 @@ public class OtpServiceTests
         var otpData = JsonSerializer.Serialize(new { code = "123456", attempts = 2 },
             new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
-        _dbMock.Setup(d => d.StringGetAsync(It.Is<RedisKey>(k => k.ToString() == $"otp:{identity}"), It.IsAny<CommandFlags>()))
+        _dbMock.Setup(d => d.StringGetAsync(It.Is<RedisKey>(k => k.ToString() == $"nexus:otp:{identity}"), It.IsAny<CommandFlags>()))
             .ReturnsAsync(new RedisValue(otpData));
         _dbMock.Setup(d => d.KeyDeleteAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
             .ReturnsAsync(true);
@@ -111,7 +111,7 @@ public class OtpServiceTests
     {
         var identity = "user@test.com";
 
-        _dbMock.Setup(d => d.StringGetAsync(It.Is<RedisKey>(k => k.ToString() == $"otp:{identity}"), It.IsAny<CommandFlags>()))
+        _dbMock.Setup(d => d.StringGetAsync(It.Is<RedisKey>(k => k.ToString() == $"nexus:otp:{identity}"), It.IsAny<CommandFlags>()))
             .ReturnsAsync(RedisValue.Null);
 
         await Assert.ThrowsAsync<OtpExpiredException>(

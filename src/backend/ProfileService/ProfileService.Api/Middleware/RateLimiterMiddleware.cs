@@ -1,5 +1,6 @@
 using ProfileService.Domain.Exceptions;
 using StackExchange.Redis;
+using ProfileService.Infrastructure.Redis;
 
 namespace ProfileService.Api.Middleware;
 
@@ -31,7 +32,7 @@ public class RateLimiterMiddleware
         var redis = context.RequestServices.GetRequiredService<IConnectionMultiplexer>();
         var db = redis.GetDatabase();
 
-        var key = $"rate_limit:{ipAddress}:{path}";
+        var key = RedisKeys.RateLimit(ipAddress, path);
         var count = await db.StringIncrementAsync(key);
 
         if (count == 1)

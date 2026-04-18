@@ -9,7 +9,6 @@ import {
     Users,
     Building2,
     BarChart3,
-    Search,
     Settings,
     Mail,
     ChevronLeft,
@@ -20,6 +19,10 @@ import {
     CalendarDays,
     Archive,
     CreditCard,
+    Clock,
+    TrendingUp,
+    Bell,
+    ClipboardList,
     type LucideIcon,
 } from 'lucide-react';
 import { useOrgStore } from '@/stores/orgStore';
@@ -34,32 +37,66 @@ interface SidebarProps {
 // Icon registry — maps icon name strings from the DB to lucide-react components
 const iconMap: Record<string, LucideIcon> = {
     LayoutDashboard, FolderKanban, BookOpen, Columns3, Timer, Users,
-    Building2, BarChart3, Search, Settings, Mail, Kanban, CalendarDays, Archive, CreditCard,
+    Building2, BarChart3, Settings, Mail, Kanban, CalendarDays, Archive,
+    CreditCard, Clock, TrendingUp, Bell, ClipboardList,
 };
+
+interface NavSection {
+    label: string;
+    minPermissionLevel: number;
+    items: NavItemType[];
+}
 
 // Fallback navigation used when the API is unreachable.
 // Once the backend responds, these are replaced by DB-driven items.
-const fallbackNavigation: NavItemType[] = [
-    { navigationItemId: 'f-1', label: 'Dashboard', path: '/', icon: 'LayoutDashboard', sortOrder: 1, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
-    { navigationItemId: 'f-2', label: 'Projects', path: '/projects', icon: 'FolderKanban', sortOrder: 2, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
-    { navigationItemId: 'f-3', label: 'Stories', path: '/stories', icon: 'BookOpen', sortOrder: 3, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
+const fallbackSections: NavSection[] = [
     {
-        navigationItemId: 'f-4', label: 'Boards', path: '/boards', icon: 'Columns3', sortOrder: 4, parentId: null, minPermissionLevel: 25, isEnabled: true,
-        children: [
-            { navigationItemId: 'f-4a', label: 'Kanban', path: '/boards/kanban', icon: 'Kanban', sortOrder: 1, parentId: 'f-4', minPermissionLevel: 25, isEnabled: true, children: [] },
-            { navigationItemId: 'f-4b', label: 'Sprint Board', path: '/boards/sprint', icon: 'CalendarDays', sortOrder: 2, parentId: 'f-4', minPermissionLevel: 25, isEnabled: true, children: [] },
-            { navigationItemId: 'f-4c', label: 'Dept Board', path: '/boards/department', icon: 'Building2', sortOrder: 3, parentId: 'f-4', minPermissionLevel: 25, isEnabled: true, children: [] },
-            { navigationItemId: 'f-4d', label: 'Backlog', path: '/boards/backlog', icon: 'Archive', sortOrder: 4, parentId: 'f-4', minPermissionLevel: 25, isEnabled: true, children: [] },
+        label: 'Work',
+        minPermissionLevel: 25,
+        items: [
+            { navigationItemId: 'f-1', label: 'Dashboard', path: '/', icon: 'LayoutDashboard', sortOrder: 1, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
+            { navigationItemId: 'f-2', label: 'Projects', path: '/projects', icon: 'FolderKanban', sortOrder: 2, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
+            { navigationItemId: 'f-3', label: 'Stories', path: '/stories', icon: 'BookOpen', sortOrder: 3, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
+            {
+                navigationItemId: 'f-4', label: 'Boards', path: '/boards', icon: 'Columns3', sortOrder: 4, parentId: null, minPermissionLevel: 25, isEnabled: true,
+                children: [
+                    { navigationItemId: 'f-4a', label: 'Kanban', path: '/boards/kanban', icon: 'Kanban', sortOrder: 1, parentId: 'f-4', minPermissionLevel: 25, isEnabled: true, children: [] },
+                    { navigationItemId: 'f-4b', label: 'Sprint Board', path: '/boards/sprint', icon: 'CalendarDays', sortOrder: 2, parentId: 'f-4', minPermissionLevel: 25, isEnabled: true, children: [] },
+                    { navigationItemId: 'f-4c', label: 'Dept Board', path: '/boards/department', icon: 'Building2', sortOrder: 3, parentId: 'f-4', minPermissionLevel: 25, isEnabled: true, children: [] },
+                    { navigationItemId: 'f-4d', label: 'Backlog', path: '/boards/backlog', icon: 'Archive', sortOrder: 4, parentId: 'f-4', minPermissionLevel: 25, isEnabled: true, children: [] },
+                ],
+            },
+            { navigationItemId: 'f-5', label: 'Sprints', path: '/sprints', icon: 'Timer', sortOrder: 5, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
         ],
     },
-    { navigationItemId: 'f-5', label: 'Sprints', path: '/sprints', icon: 'Timer', sortOrder: 5, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
-    { navigationItemId: 'f-6', label: 'Members', path: '/members', icon: 'Users', sortOrder: 6, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
-    { navigationItemId: 'f-7', label: 'Departments', path: '/departments', icon: 'Building2', sortOrder: 7, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
-    { navigationItemId: 'f-8', label: 'Reports', path: '/reports', icon: 'BarChart3', sortOrder: 8, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
-    { navigationItemId: 'f-9', label: 'Search', path: '/search', icon: 'Search', sortOrder: 9, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
-    { navigationItemId: 'f-10', label: 'Settings', path: '/settings', icon: 'Settings', sortOrder: 10, parentId: null, minPermissionLevel: 100, isEnabled: true, children: [] },
-    { navigationItemId: 'f-11', label: 'Invites', path: '/invites', icon: 'Mail', sortOrder: 11, parentId: null, minPermissionLevel: 75, isEnabled: true, children: [] },
-    { navigationItemId: 'f-12', label: 'Billing', path: '/billing', icon: 'CreditCard', sortOrder: 12, parentId: null, minPermissionLevel: 100, isEnabled: true, children: [] },
+    {
+        label: 'Tracking',
+        minPermissionLevel: 25,
+        items: [
+            { navigationItemId: 'f-6', label: 'Time Tracking', path: '/time-tracking', icon: 'Clock', sortOrder: 1, parentId: null, minPermissionLevel: 50, isEnabled: true, children: [] },
+            { navigationItemId: 'f-7', label: 'Analytics', path: '/analytics', icon: 'TrendingUp', sortOrder: 2, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
+            { navigationItemId: 'f-8', label: 'Reports', path: '/reports', icon: 'BarChart3', sortOrder: 3, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
+        ],
+    },
+    {
+        label: 'Team',
+        minPermissionLevel: 25,
+        items: [
+            { navigationItemId: 'f-9', label: 'Members', path: '/members', icon: 'Users', sortOrder: 1, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
+            { navigationItemId: 'f-10', label: 'Departments', path: '/departments', icon: 'Building2', sortOrder: 2, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
+            { navigationItemId: 'f-11', label: 'Invites', path: '/invites', icon: 'Mail', sortOrder: 3, parentId: null, minPermissionLevel: 75, isEnabled: true, children: [] },
+        ],
+    },
+    {
+        label: 'Organization',
+        minPermissionLevel: 75,
+        items: [
+            { navigationItemId: 'f-12', label: 'Settings', path: '/settings', icon: 'Settings', sortOrder: 1, parentId: null, minPermissionLevel: 100, isEnabled: true, children: [] },
+            { navigationItemId: 'f-13', label: 'Billing', path: '/billing', icon: 'CreditCard', sortOrder: 2, parentId: null, minPermissionLevel: 100, isEnabled: true, children: [] },
+            { navigationItemId: 'f-14', label: 'Audit Logs', path: '/audit-logs', icon: 'ClipboardList', sortOrder: 3, parentId: null, minPermissionLevel: 100, isEnabled: true, children: [] },
+            { navigationItemId: 'f-15', label: 'Notifications', path: '/notifications', icon: 'Bell', sortOrder: 4, parentId: null, minPermissionLevel: 75, isEnabled: true, children: [] },
+        ],
+    },
 ];
 
 const rolePermissionLevel: Record<string, number> = {
@@ -87,6 +124,23 @@ function filterByPermission(items: NavItemType[], permLevel: number): NavItemTyp
         }));
 }
 
+function buildSections(dbNavigation: NavItemType[], navigationLoaded: boolean, permLevel: number): NavSection[] {
+    // If DB navigation is loaded and has items, use flat list in a single section (DB-driven)
+    if (navigationLoaded && dbNavigation.length > 0) {
+        const filtered = filterByPermission(dbNavigation, permLevel);
+        return [{ label: '', minPermissionLevel: 25, items: filtered }];
+    }
+
+    // Otherwise use the structured fallback sections
+    return fallbackSections
+        .filter((s) => s.minPermissionLevel <= permLevel)
+        .map((s) => ({
+            ...s,
+            items: filterByPermission(s.items, permLevel),
+        }))
+        .filter((s) => s.items.length > 0);
+}
+
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     const location = useLocation();
     const { user } = useAuth();
@@ -98,10 +152,8 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         setExpandedGroups((prev) => ({ ...prev, [label]: !prev[label] }));
     };
 
-    // Use DB items if available, otherwise fall back to hardcoded defaults
-    const rawItems = navigationLoaded && dbNavigation.length > 0 ? dbNavigation : fallbackNavigation;
     const permLevel = rolePermissionLevel[user?.roleName ?? 'Viewer'] ?? 25;
-    const items = filterByPermission(rawItems, permLevel);
+    const sections = buildSections(dbNavigation, navigationLoaded, permLevel);
 
     return (
         <nav className="flex h-full flex-col bg-card" aria-label="Main navigation">
@@ -118,69 +170,83 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                 </button>
             </div>
 
-            <ul className="flex-1 space-y-1 overflow-y-auto px-2 py-3">
-                {items.map((item) => {
-                    const active = isActiveRoute(location.pathname, item.path);
-                    const hasChildren = item.children && item.children.length > 0;
-                    const expanded = expandedGroups[item.label] ?? active;
+            <div className="flex-1 overflow-y-auto px-2 py-3">
+                {sections.map((section, sectionIdx) => (
+                    <div key={section.label || sectionIdx}>
+                        {sectionIdx > 0 && (
+                            <div className="my-3 border-t border-border" />
+                        )}
+                        {!collapsed && section.label && (
+                            <p className="mb-1 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                {section.label}
+                            </p>
+                        )}
+                        <ul className="space-y-1">
+                            {section.items.map((item) => {
+                                const active = isActiveRoute(location.pathname, item.path);
+                                const hasChildren = item.children && item.children.length > 0;
+                                const expanded = expandedGroups[item.label] ?? active;
 
-                    if (hasChildren) {
-                        return (
-                            <li key={item.navigationItemId}>
-                                <button
-                                    onClick={() => toggleGroup(item.label)}
-                                    className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${active ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                                        } ${collapsed ? 'justify-center' : ''}`}
-                                    title={collapsed ? item.label : undefined}
-                                >
-                                    {getIcon(item.icon)}
-                                    {!collapsed && (
-                                        <>
-                                            <span className="flex-1 text-left">{item.label}</span>
-                                            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                                        </>
-                                    )}
-                                </button>
-                                {!collapsed && expanded && (
-                                    <ul className="ml-5 mt-1 space-y-1">
-                                        {item.children.map((child) => (
-                                            <li key={child.navigationItemId}>
-                                                <NavLink
-                                                    to={child.path}
-                                                    className={({ isActive }) =>
-                                                        `flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ${isActive ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                                                        }`
-                                                    }
-                                                >
-                                                    {getIcon(child.icon, 18)}
-                                                    <span>{child.label}</span>
-                                                </NavLink>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </li>
-                        );
-                    }
-
-                    return (
-                        <li key={item.navigationItemId}>
-                            <NavLink
-                                to={item.path}
-                                end={item.path === '/'}
-                                className={({ isActive }) =>
-                                    `flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                                    } ${collapsed ? 'justify-center' : ''}`
+                                if (hasChildren) {
+                                    return (
+                                        <li key={item.navigationItemId}>
+                                            <button
+                                                onClick={() => toggleGroup(item.label)}
+                                                className={`flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${active ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                                                    } ${collapsed ? 'justify-center' : ''}`}
+                                                title={collapsed ? item.label : undefined}
+                                            >
+                                                {getIcon(item.icon)}
+                                                {!collapsed && (
+                                                    <>
+                                                        <span className="flex-1 text-left">{item.label}</span>
+                                                        {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                                    </>
+                                                )}
+                                            </button>
+                                            {!collapsed && expanded && (
+                                                <ul className="ml-5 mt-1 space-y-1">
+                                                    {item.children.map((child) => (
+                                                        <li key={child.navigationItemId}>
+                                                            <NavLink
+                                                                to={child.path}
+                                                                className={({ isActive }) =>
+                                                                    `flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ${isActive ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                                                                    }`
+                                                                }
+                                                            >
+                                                                {getIcon(child.icon, 18)}
+                                                                <span>{child.label}</span>
+                                                            </NavLink>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                        </li>
+                                    );
                                 }
-                                title={collapsed ? item.label : undefined}
-                            >
-                                {getIcon(item.icon)}
-                                {!collapsed && <span>{item.label}</span>}
-                            </NavLink>
-                        </li>
-                    );
-                })}
-            </ul>
+
+                                return (
+                                    <li key={item.navigationItemId}>
+                                        <NavLink
+                                            to={item.path}
+                                            end={item.path === '/'}
+                                            className={({ isActive }) =>
+                                                `flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                                                } ${collapsed ? 'justify-center' : ''}`
+                                            }
+                                            title={collapsed ? item.label : undefined}
+                                        >
+                                            {getIcon(item.icon)}
+                                            {!collapsed && <span>{item.label}</span>}
+                                        </NavLink>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </div>
+                ))}
+            </div>
         </nav>
     );
 }

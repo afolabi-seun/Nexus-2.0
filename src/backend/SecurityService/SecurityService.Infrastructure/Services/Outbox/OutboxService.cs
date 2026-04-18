@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SecurityService.Domain.Interfaces.Services.Outbox;
+using SecurityService.Infrastructure.Redis;
 using StackExchange.Redis;
 
 namespace SecurityService.Infrastructure.Services.Outbox;
@@ -43,29 +44,18 @@ public class OutboxService : IOutboxService
             }
         }
 
-        // All retries exhausted — push to dead-letter queue
-        var serviceName = ExtractServiceName(queueKey);
-        var dlqKey = $"dlq:{serviceName}";
-
         try
         {
-            await db.ListLeftPushAsync(dlqKey, serializedMessage);
+            await db.ListLeftPushAsync(RedisKeys.Dlq, serializedMessage);
             _logger.LogError(
                 "Message moved to dead-letter queue {DlqKey} after {MaxRetries} failed attempts on {QueueKey}",
-                dlqKey, MaxRetries, queueKey);
+                RedisKeys.Dlq, MaxRetries, queueKey);
         }
         catch (RedisException ex)
         {
             _logger.LogError(ex,
                 "Failed to publish to dead-letter queue {DlqKey}. Message lost for {QueueKey}",
-                dlqKey, queueKey);
+                RedisKeys.Dlq, queueKey);
         }
-    }
-
-    private static string ExtractServiceName(string queueKey)
-    {
-        // Expected pattern: "outbox:{service}"
-        var parts = queueKey.Split(':');
-        return parts.Length >= 2 ? parts[1] : "unknown";
     }
 }

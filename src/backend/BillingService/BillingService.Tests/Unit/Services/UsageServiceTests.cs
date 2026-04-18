@@ -60,7 +60,7 @@ public class UsageServiceTests
         await service.IncrementAsync(orgId, MetricName.StoriesCreated, 5, CancellationToken.None);
 
         mockDb.Verify(d => d.StringIncrementAsync(
-            It.Is<RedisKey>(k => k.ToString() == $"usage:{orgId}:{MetricName.StoriesCreated}"),
+            It.Is<RedisKey>(k => k.ToString() == $"nexus:usage:{orgId}:{MetricName.StoriesCreated}"),
             5, It.IsAny<CommandFlags>()), Times.Once);
     }
 
