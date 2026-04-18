@@ -68,7 +68,131 @@ Prioritized roadmap for hardening, features, and documentation before release.
 
 ---
 
+## Phase 6 — Frontend: Page Integration & Data Gaps
+
+Backend APIs exist for analytics, cost, time tracking, and export — but the frontend pages don't use them. These items connect existing backend capabilities to the UI where users expect to find them.
+
+### ProjectDetailPage — Tabs (Priority 1)
+
+The project detail page is the natural hub for all project-scoped data. Currently shows only stats + stories + sprints. Add tabbed layout:
+
+- [ ] **Overview tab** — Current content (stats, stories table, sprints table)
+- [ ] **Analytics tab** — Project health score/trend (`analyticsApi.getProjectHealth`), velocity trends chart (`analyticsApi.getVelocityTrends`), bug metrics (`analyticsApi.getBugMetrics`), active risks count, blocked stories, dependency analysis (`analyticsApi.getDependencies`)
+- [ ] **Cost & Time tab** — Cost summary + burn rate (`workApi.getProjectCostSummary`), resource utilization (`workApi.getProjectUtilization`), cost trend over time (`workApi.getProjectCostSnapshots`), time entries filtered by project (`timeTrackingApi.listTimeEntries`)
+- [ ] **Export tab** — CSV export for stories (`workApi.exportStoriesCsv`) and time entries (`workApi.exportTimeEntriesCsv`) scoped to this project
+
+### StoryDetailPage — Time Tracking (Priority 2)
+
+- [ ] **Time Logged section** — Show time entries logged against this story (`timeTrackingApi.listTimeEntries({storyId})`). Display total time logged vs estimate. Add between tasks and labels sections.
+
+### SprintDetailPage — Sprint Analytics (Priority 3)
+
+- [ ] **Bug metrics section** — Bug count, open/closed, bug rate scoped to sprint (`analyticsApi.getBugMetrics({projectId, sprintId})`)
+- [ ] **Time logged section** — Total time logged during sprint, per-member breakdown
+- [ ] **Velocity comparison** — Compare this sprint's velocity with previous sprints (`workApi.getSprintVelocity`)
+
+### MemberProfilePage — Workload & Time (Priority 4)
+
+- [ ] **Time logged section** — Time entries logged by this member (`timeTrackingApi.listTimeEntries({memberId})`), total hours this week/month
+- [ ] **Assigned stories section** — Stories currently assigned to this member with status badges
+- [ ] **Resource utilization** — Utilization percentage from `analyticsApi.getResourceManagement`
+
+### DepartmentDetailPage — Workload Summary (Priority 5)
+
+- [ ] **Workload summary** — Department workload chart (`workApi.getDepartmentWorkloadReport({departmentId})`)
+- [ ] **Task overview** — Tasks by status for this department (from department board data)
+- [ ] **Workflow overrides** — View/edit department workflow overrides (`workApi.saveDeptWorkflowOverride`)
+
+### DashboardPage — Additional Widgets (Priority 6)
+
+- [ ] **Project health widget** — Health scores across all projects with trend indicators
+- [ ] **Active bugs widget** — Total open bugs across projects
+- [ ] **Pending approvals widget** — Time entry approvals pending (DeptLead/OrgAdmin)
+
+### List Pages — Export Buttons (Priority 7)
+
+- [ ] **StoryListPage** — Add CSV export button (`workApi.exportStoriesCsv`)
+- [ ] **TimeTrackingPage** — Add CSV export button (`workApi.exportTimeEntriesCsv`)
+
+### Settings Integration (Priority 8)
+
+- [ ] **Workflow management** — View/edit org-level workflow overrides on SettingsPage (`workApi.getWorkflows`, `workApi.saveOrgWorkflowOverride`)
+- [ ] **Snapshot status** — Show analytics snapshot status on admin settings (`analyticsApi.getSnapshotStatus`)
+
+---
+
+## Phase 7 — Frontend: User Help System
+
+No contextual help exists in the UI. Users have no guidance on what features do, what actions to take, or how to get started.
+
+### Reusable Components (build first)
+
+- [ ] **PageHeader component** — Title + optional description line + optional dismiss (stored in localStorage). Replaces raw `<h1>` on every page.
+- [ ] **HelpTooltip component** — Small `(?)` icon with popover text for field-level help. Used next to non-obvious metrics and form fields.
+- [ ] **Enhanced EmptyState usage** — Replace all inline "No data" / "No tasks yet" text with the existing `EmptyState` component + contextual action buttons.
+
+### Layer 1: Contextual Empty States (highest impact)
+
+Replace generic "no data" messages with guidance on what to do next:
+
+- [ ] **ProjectListPage** — "No projects yet. Create your first project to start tracking stories and sprints." + Create Project button
+- [ ] **StoryListPage** — "No stories found. Stories represent work items your team needs to complete." + Create Story button
+- [ ] **SprintListPage** — "No sprints yet. Sprints are time-boxed iterations for delivering stories." + Create Sprint button
+- [ ] **SprintDetailPage (no stories)** — "This sprint has no stories. Add stories from the backlog or story list."
+- [ ] **KanbanBoardPage** — "No stories on the board. Create stories and assign them to a project to see them here."
+- [ ] **TimeTrackingPage** — "No time entries yet. Start the timer on a story or log time manually."
+- [ ] **AnalyticsDashboardPage** — "Analytics data is generated when sprints are completed. Complete your first sprint to see velocity trends."
+- [ ] **MemberListPage** — "No team members yet. Invite members to your organization to get started." + Invite button
+- [ ] **DepartmentDetailPage (no members)** — "No members in this department. Add members from the team member list."
+- [ ] **ReportsPage** — "Reports require completed sprint data. Complete a sprint to generate velocity, workload, and capacity reports."
+
+### Layer 2: Page-Level Descriptions (medium impact)
+
+One-line help text below each page title. Dismissible per user via localStorage.
+
+- [ ] **Dashboard** — "Your overview of active sprints, assigned tasks, and team velocity."
+- [ ] **Projects** — "Manage your organization's projects. Each project contains stories, sprints, and boards."
+- [ ] **Stories** — "Work items that represent features, bugs, or tasks. Filter by project, status, or assignee."
+- [ ] **Kanban Board** — "Drag stories between columns to update their status. Filter by project or sprint."
+- [ ] **Sprint Board** — "View and manage tasks in the active sprint. Drag tasks between status columns."
+- [ ] **Sprints** — "Time-boxed iterations for delivering stories. Plan, start, and complete sprints here."
+- [ ] **Time Tracking** — "Log time against stories. Use the timer for real-time tracking or add entries manually."
+- [ ] **Analytics** — "Project health, velocity trends, bug metrics, and cost analysis. Select a project to view."
+- [ ] **Reports** — "Charts showing team performance across sprints. Select a date range to filter."
+- [ ] **Members** — "Your organization's team members. Manage roles, departments, and availability."
+- [ ] **Departments** — "Organizational units that own tasks. Each department has its own workflow preferences."
+- [ ] **Settings** — "Organization-wide settings including sprint duration, story point scale, and notification channels."
+- [ ] **Billing** — "Manage your subscription plan, view usage, and update payment details."
+
+### Layer 3: Field-Level Help Tooltips (nice to have)
+
+- [ ] **Story points** — "Relative estimate of effort. Common scales: 1, 2, 3, 5, 8, 13."
+- [ ] **Health score** — "Composite score (0–100) based on velocity consistency, bug rate, overdue stories, and active risks."
+- [ ] **Burn rate** — "Average daily cost based on billable time entries and cost rates."
+- [ ] **WIP limit** — "Maximum stories allowed in this status column. Helps prevent overloading."
+- [ ] **Velocity** — "Story points completed per sprint. Higher is better, but consistency matters more."
+- [ ] **Completion rate** — "Percentage of committed stories completed in the sprint."
+- [ ] **Capacity utilization** — "Percentage of available working hours that were logged as time entries."
+- [ ] **Cost rate** — "Hourly rate used to calculate project costs from time entries."
+
+---
+
+## Phase 8 — Future Enhancements
+
+- [ ] **Story templates** — Reusable templates for common story types (bug report, feature request, tech debt).
+- [ ] **SLA tracking** — Time-to-resolution metrics, especially for bug stories.
+- [ ] **Webhook support** — Let orgs configure webhooks for key events (Slack, Teams integration).
+- [ ] **Onboarding flow** — Guided setup for new orgs (create first project, invite members, create first sprint).
+- [ ] **Keyboard shortcuts** — For Kanban board and common frontend actions.
+- [ ] **Offline indicator** — Frontend shows connection status, queues actions when offline.
+- [ ] **Update QA email templates** — Include role restriction context in QA-related email communications.
+
+---
+
 ## ✅ Recently Completed
+
+### Frontend Navigation
+- [x] **Sidebar restructure** — Reorganized from flat entity-centric list into 4 workflow-based sections (Work, Tracking, Team, Organization). Added Time Tracking, Analytics, Audit Logs, and Notifications to sidebar. Removed Search (header search bar is sufficient). Section-level permission filtering.
 
 ### CI/CD
 - [x] **CI auto-merge fix** — Replaced `gh pr merge --auto --merge` with `--merge` (direct merge) in CI pipeline. The `--auto` flag failed because the PR's status checks hadn't registered yet ("unstable status" error). Since CI already passed before the merge job runs, auto-merge is unnecessary.
