@@ -6,6 +6,7 @@ public class NavigationItemResponse
     public string Label { get; set; } = string.Empty;
     public string Path { get; set; } = string.Empty;
     public string Icon { get; set; } = string.Empty;
+    public string Section { get; set; } = string.Empty;
     public int SortOrder { get; set; }
     public Guid? ParentId { get; set; }
     public int MinPermissionLevel { get; set; }
@@ -18,6 +19,7 @@ public class CreateNavigationItemRequest
     public string Label { get; set; } = string.Empty;
     public string Path { get; set; } = string.Empty;
     public string Icon { get; set; } = string.Empty;
+    public string Section { get; set; } = string.Empty;
     public int SortOrder { get; set; }
     public Guid? ParentId { get; set; }
     public int MinPermissionLevel { get; set; }

@@ -293,6 +293,7 @@ public class ProfileDbContext : DbContext
             entity.Property(e => e.Label).IsRequired().HasMaxLength(100);
             entity.Property(e => e.Path).IsRequired().HasMaxLength(200);
             entity.Property(e => e.Icon).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Section).IsRequired().HasMaxLength(50).HasDefaultValue("");
 
             entity.HasOne(e => e.Parent)
                 .WithMany(e => e.Children)
@@ -301,5 +302,34 @@ public class ProfileDbContext : DbContext
 
             entity.HasIndex(e => new { e.Path, e.ParentId }).IsUnique();
         });
+
+        // Seed navigation items
+        var boardsId = new Guid("a0000000-0000-0000-0000-000000000004");
+
+        modelBuilder.Entity<NavigationItem>().HasData(
+            // Work section
+            new { NavigationItemId = new Guid("a0000000-0000-0000-0000-000000000001"), Label = "Dashboard", Path = "/", Icon = "LayoutDashboard", Section = "Work", SortOrder = 1, MinPermissionLevel = 25, IsEnabled = true, DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), ParentId = (Guid?)null },
+            new { NavigationItemId = new Guid("a0000000-0000-0000-0000-000000000002"), Label = "Projects", Path = "/projects", Icon = "FolderKanban", Section = "Work", SortOrder = 2, MinPermissionLevel = 25, IsEnabled = true, DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), ParentId = (Guid?)null },
+            new { NavigationItemId = new Guid("a0000000-0000-0000-0000-000000000003"), Label = "Stories", Path = "/stories", Icon = "BookOpen", Section = "Work", SortOrder = 3, MinPermissionLevel = 25, IsEnabled = true, DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), ParentId = (Guid?)null },
+            new { NavigationItemId = boardsId, Label = "Boards", Path = "/boards", Icon = "Columns3", Section = "Work", SortOrder = 4, MinPermissionLevel = 25, IsEnabled = true, DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), ParentId = (Guid?)null },
+            new { NavigationItemId = new Guid("a0000000-0000-0000-0000-000000000041"), Label = "Kanban", Path = "/boards/kanban", Icon = "Kanban", Section = "Work", SortOrder = 1, MinPermissionLevel = 25, IsEnabled = true, DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), ParentId = (Guid?)boardsId },
+            new { NavigationItemId = new Guid("a0000000-0000-0000-0000-000000000042"), Label = "Sprint Board", Path = "/boards/sprint", Icon = "CalendarDays", Section = "Work", SortOrder = 2, MinPermissionLevel = 25, IsEnabled = true, DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), ParentId = (Guid?)boardsId },
+            new { NavigationItemId = new Guid("a0000000-0000-0000-0000-000000000043"), Label = "Dept Board", Path = "/boards/department", Icon = "Building2", Section = "Work", SortOrder = 3, MinPermissionLevel = 25, IsEnabled = true, DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), ParentId = (Guid?)boardsId },
+            new { NavigationItemId = new Guid("a0000000-0000-0000-0000-000000000044"), Label = "Backlog", Path = "/boards/backlog", Icon = "Archive", Section = "Work", SortOrder = 4, MinPermissionLevel = 25, IsEnabled = true, DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), ParentId = (Guid?)boardsId },
+            new { NavigationItemId = new Guid("a0000000-0000-0000-0000-000000000005"), Label = "Sprints", Path = "/sprints", Icon = "Timer", Section = "Work", SortOrder = 5, MinPermissionLevel = 25, IsEnabled = true, DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), ParentId = (Guid?)null },
+            // Tracking section
+            new { NavigationItemId = new Guid("a0000000-0000-0000-0000-000000000006"), Label = "Time Tracking", Path = "/time-tracking", Icon = "Clock", Section = "Tracking", SortOrder = 1, MinPermissionLevel = 50, IsEnabled = true, DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), ParentId = (Guid?)null },
+            new { NavigationItemId = new Guid("a0000000-0000-0000-0000-000000000007"), Label = "Analytics", Path = "/analytics", Icon = "TrendingUp", Section = "Tracking", SortOrder = 2, MinPermissionLevel = 25, IsEnabled = true, DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), ParentId = (Guid?)null },
+            new { NavigationItemId = new Guid("a0000000-0000-0000-0000-000000000008"), Label = "Reports", Path = "/reports", Icon = "BarChart3", Section = "Tracking", SortOrder = 3, MinPermissionLevel = 25, IsEnabled = true, DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), ParentId = (Guid?)null },
+            // Team section
+            new { NavigationItemId = new Guid("a0000000-0000-0000-0000-000000000009"), Label = "Members", Path = "/members", Icon = "Users", Section = "Team", SortOrder = 1, MinPermissionLevel = 25, IsEnabled = true, DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), ParentId = (Guid?)null },
+            new { NavigationItemId = new Guid("a0000000-0000-0000-0000-000000000010"), Label = "Departments", Path = "/departments", Icon = "Building2", Section = "Team", SortOrder = 2, MinPermissionLevel = 25, IsEnabled = true, DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), ParentId = (Guid?)null },
+            new { NavigationItemId = new Guid("a0000000-0000-0000-0000-000000000011"), Label = "Invites", Path = "/invites", Icon = "Mail", Section = "Team", SortOrder = 3, MinPermissionLevel = 75, IsEnabled = true, DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), ParentId = (Guid?)null },
+            // Organization section
+            new { NavigationItemId = new Guid("a0000000-0000-0000-0000-000000000012"), Label = "Settings", Path = "/settings", Icon = "Settings", Section = "Organization", SortOrder = 1, MinPermissionLevel = 100, IsEnabled = true, DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), ParentId = (Guid?)null },
+            new { NavigationItemId = new Guid("a0000000-0000-0000-0000-000000000013"), Label = "Billing", Path = "/billing", Icon = "CreditCard", Section = "Organization", SortOrder = 2, MinPermissionLevel = 100, IsEnabled = true, DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), ParentId = (Guid?)null },
+            new { NavigationItemId = new Guid("a0000000-0000-0000-0000-000000000014"), Label = "Audit Logs", Path = "/audit-logs", Icon = "ClipboardList", Section = "Organization", SortOrder = 3, MinPermissionLevel = 100, IsEnabled = true, DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), ParentId = (Guid?)null },
+            new { NavigationItemId = new Guid("a0000000-0000-0000-0000-000000000015"), Label = "Notifications", Path = "/notifications", Icon = "Bell", Section = "Organization", SortOrder = 4, MinPermissionLevel = 75, IsEnabled = true, DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), ParentId = (Guid?)null }
+        );
     }
 }

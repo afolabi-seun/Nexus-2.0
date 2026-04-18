@@ -54,47 +54,47 @@ const fallbackSections: NavSection[] = [
         label: 'Work',
         minPermissionLevel: 25,
         items: [
-            { navigationItemId: 'f-1', label: 'Dashboard', path: '/', icon: 'LayoutDashboard', sortOrder: 1, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
-            { navigationItemId: 'f-2', label: 'Projects', path: '/projects', icon: 'FolderKanban', sortOrder: 2, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
-            { navigationItemId: 'f-3', label: 'Stories', path: '/stories', icon: 'BookOpen', sortOrder: 3, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
+            { navigationItemId: 'f-1', section: 'Work', label: 'Dashboard', path: '/', icon: 'LayoutDashboard', sortOrder: 1, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
+            { navigationItemId: 'f-2', section: 'Work', label: 'Projects', path: '/projects', icon: 'FolderKanban', sortOrder: 2, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
+            { navigationItemId: 'f-3', section: 'Work', label: 'Stories', path: '/stories', icon: 'BookOpen', sortOrder: 3, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
             {
-                navigationItemId: 'f-4', label: 'Boards', path: '/boards', icon: 'Columns3', sortOrder: 4, parentId: null, minPermissionLevel: 25, isEnabled: true,
+                navigationItemId: 'f-4', section: 'Work', label: 'Boards', path: '/boards', icon: 'Columns3', sortOrder: 4, parentId: null, minPermissionLevel: 25, isEnabled: true,
                 children: [
-                    { navigationItemId: 'f-4a', label: 'Kanban', path: '/boards/kanban', icon: 'Kanban', sortOrder: 1, parentId: 'f-4', minPermissionLevel: 25, isEnabled: true, children: [] },
-                    { navigationItemId: 'f-4b', label: 'Sprint Board', path: '/boards/sprint', icon: 'CalendarDays', sortOrder: 2, parentId: 'f-4', minPermissionLevel: 25, isEnabled: true, children: [] },
-                    { navigationItemId: 'f-4c', label: 'Dept Board', path: '/boards/department', icon: 'Building2', sortOrder: 3, parentId: 'f-4', minPermissionLevel: 25, isEnabled: true, children: [] },
-                    { navigationItemId: 'f-4d', label: 'Backlog', path: '/boards/backlog', icon: 'Archive', sortOrder: 4, parentId: 'f-4', minPermissionLevel: 25, isEnabled: true, children: [] },
+                    { navigationItemId: 'f-4a', section: 'Work', label: 'Kanban', path: '/boards/kanban', icon: 'Kanban', sortOrder: 1, parentId: 'f-4', minPermissionLevel: 25, isEnabled: true, children: [] },
+                    { navigationItemId: 'f-4b', section: 'Work', label: 'Sprint Board', path: '/boards/sprint', icon: 'CalendarDays', sortOrder: 2, parentId: 'f-4', minPermissionLevel: 25, isEnabled: true, children: [] },
+                    { navigationItemId: 'f-4c', section: 'Work', label: 'Dept Board', path: '/boards/department', icon: 'Building2', sortOrder: 3, parentId: 'f-4', minPermissionLevel: 25, isEnabled: true, children: [] },
+                    { navigationItemId: 'f-4d', section: 'Work', label: 'Backlog', path: '/boards/backlog', icon: 'Archive', sortOrder: 4, parentId: 'f-4', minPermissionLevel: 25, isEnabled: true, children: [] },
                 ],
             },
-            { navigationItemId: 'f-5', label: 'Sprints', path: '/sprints', icon: 'Timer', sortOrder: 5, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
+            { navigationItemId: 'f-5', section: 'Work', label: 'Sprints', path: '/sprints', icon: 'Timer', sortOrder: 5, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
         ],
     },
     {
         label: 'Tracking',
         minPermissionLevel: 25,
         items: [
-            { navigationItemId: 'f-6', label: 'Time Tracking', path: '/time-tracking', icon: 'Clock', sortOrder: 1, parentId: null, minPermissionLevel: 50, isEnabled: true, children: [] },
-            { navigationItemId: 'f-7', label: 'Analytics', path: '/analytics', icon: 'TrendingUp', sortOrder: 2, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
-            { navigationItemId: 'f-8', label: 'Reports', path: '/reports', icon: 'BarChart3', sortOrder: 3, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
+            { navigationItemId: 'f-6', section: 'Tracking', label: 'Time Tracking', path: '/time-tracking', icon: 'Clock', sortOrder: 1, parentId: null, minPermissionLevel: 50, isEnabled: true, children: [] },
+            { navigationItemId: 'f-7', section: 'Tracking', label: 'Analytics', path: '/analytics', icon: 'TrendingUp', sortOrder: 2, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
+            { navigationItemId: 'f-8', section: 'Tracking', label: 'Reports', path: '/reports', icon: 'BarChart3', sortOrder: 3, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
         ],
     },
     {
         label: 'Team',
         minPermissionLevel: 25,
         items: [
-            { navigationItemId: 'f-9', label: 'Members', path: '/members', icon: 'Users', sortOrder: 1, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
-            { navigationItemId: 'f-10', label: 'Departments', path: '/departments', icon: 'Building2', sortOrder: 2, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
-            { navigationItemId: 'f-11', label: 'Invites', path: '/invites', icon: 'Mail', sortOrder: 3, parentId: null, minPermissionLevel: 75, isEnabled: true, children: [] },
+            { navigationItemId: 'f-9', section: 'Team', label: 'Members', path: '/members', icon: 'Users', sortOrder: 1, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
+            { navigationItemId: 'f-10', section: 'Team', label: 'Departments', path: '/departments', icon: 'Building2', sortOrder: 2, parentId: null, minPermissionLevel: 25, isEnabled: true, children: [] },
+            { navigationItemId: 'f-11', section: 'Team', label: 'Invites', path: '/invites', icon: 'Mail', sortOrder: 3, parentId: null, minPermissionLevel: 75, isEnabled: true, children: [] },
         ],
     },
     {
         label: 'Organization',
         minPermissionLevel: 75,
         items: [
-            { navigationItemId: 'f-12', label: 'Settings', path: '/settings', icon: 'Settings', sortOrder: 1, parentId: null, minPermissionLevel: 100, isEnabled: true, children: [] },
-            { navigationItemId: 'f-13', label: 'Billing', path: '/billing', icon: 'CreditCard', sortOrder: 2, parentId: null, minPermissionLevel: 100, isEnabled: true, children: [] },
-            { navigationItemId: 'f-14', label: 'Audit Logs', path: '/audit-logs', icon: 'ClipboardList', sortOrder: 3, parentId: null, minPermissionLevel: 100, isEnabled: true, children: [] },
-            { navigationItemId: 'f-15', label: 'Notifications', path: '/notifications', icon: 'Bell', sortOrder: 4, parentId: null, minPermissionLevel: 75, isEnabled: true, children: [] },
+            { navigationItemId: 'f-12', section: 'Organization', label: 'Settings', path: '/settings', icon: 'Settings', sortOrder: 1, parentId: null, minPermissionLevel: 100, isEnabled: true, children: [] },
+            { navigationItemId: 'f-13', section: 'Organization', label: 'Billing', path: '/billing', icon: 'CreditCard', sortOrder: 2, parentId: null, minPermissionLevel: 100, isEnabled: true, children: [] },
+            { navigationItemId: 'f-14', section: 'Organization', label: 'Audit Logs', path: '/audit-logs', icon: 'ClipboardList', sortOrder: 3, parentId: null, minPermissionLevel: 100, isEnabled: true, children: [] },
+            { navigationItemId: 'f-15', section: 'Organization', label: 'Notifications', path: '/notifications', icon: 'Bell', sortOrder: 4, parentId: null, minPermissionLevel: 75, isEnabled: true, children: [] },
         ],
     },
 ];
@@ -125,10 +125,33 @@ function filterByPermission(items: NavItemType[], permLevel: number): NavItemTyp
 }
 
 function buildSections(dbNavigation: NavItemType[], navigationLoaded: boolean, permLevel: number): NavSection[] {
-    // If DB navigation is loaded and has items, use flat list in a single section (DB-driven)
+    // If DB navigation is loaded and has items, group by section
     if (navigationLoaded && dbNavigation.length > 0) {
         const filtered = filterByPermission(dbNavigation, permLevel);
-        return [{ label: '', minPermissionLevel: 25, items: filtered }];
+        const sectionMap = new Map<string, NavItemType[]>();
+        const sectionOrder = ['Work', 'Tracking', 'Team', 'Organization'];
+
+        for (const item of filtered) {
+            const section = item.section || '';
+            if (!sectionMap.has(section)) sectionMap.set(section, []);
+            sectionMap.get(section)!.push(item);
+        }
+
+        const sections: NavSection[] = [];
+        for (const name of sectionOrder) {
+            const items = sectionMap.get(name);
+            if (items && items.length > 0) {
+                const minPerm = Math.min(...items.map((i) => i.minPermissionLevel));
+                sections.push({ label: name, minPermissionLevel: minPerm, items });
+            }
+        }
+        // Include any sections not in the predefined order
+        for (const [name, items] of sectionMap) {
+            if (!sectionOrder.includes(name) && items.length > 0) {
+                sections.push({ label: name, minPermissionLevel: 25, items });
+            }
+        }
+        return sections;
     }
 
     // Otherwise use the structured fallback sections
