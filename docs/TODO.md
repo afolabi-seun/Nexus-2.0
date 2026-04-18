@@ -189,10 +189,25 @@ One-line help text below each page title. Dismissible per user via localStorage.
 
 ---
 
+## Phase 9 — Security Hardening (from code review)
+
+- [ ] **Refresh token httpOnly cookie** — Move refresh token from `localStorage` to an `httpOnly` cookie to mitigate XSS risk (CWE-79). Currently the refresh token is an opaque string stored in `localStorage` via `authStore.ts`. Requires:
+  - SecurityService: set refresh token as `httpOnly`, `Secure`, `SameSite=Strict` cookie on login/refresh responses
+  - SecurityService: read refresh token from cookie on `/api/v1/auth/refresh` instead of request body
+  - Frontend `authStore.ts`: remove `localStorage` read/write for refresh token
+  - Frontend `api/client.ts`: add `withCredentials: true` to Axios config for auth endpoints
+  - CORS config: add `credentials: true` to all services
+  - Update `AUTHENTICATION_AND_SECURITY.md` architecture doc
+
+---
+
 ## ✅ Recently Completed
 
 ### Frontend Navigation
 - [x] **Sidebar restructure** — Reorganized from flat entity-centric list into 4 workflow-based sections (Work, Tracking, Team, Organization). Added Time Tracking, Analytics, Audit Logs, and Notifications to sidebar. Removed Search (header search bar is sufficient). Section-level permission filtering.
+
+### Frontend Performance
+- [x] **Route-level code splitting** — Added `React.lazy()` for 26 less-frequently-accessed routes. Main bundle reduced from 1,169 kB to 1,002 kB (-14%). 33 lazy chunks load on demand (2–12 kB each). Core pages (Dashboard, Projects, Stories, Sprints, Kanban, Sprint Board) remain static for instant navigation.
 
 ### CI/CD
 - [x] **CI auto-merge fix** — Replaced `gh pr merge --auto --merge` with `--merge` (direct merge) in CI pipeline. The `--auto` flag failed because the PR's status checks hadn't registered yet ("unstable status" error). Since CI already passed before the merge job runs, auto-merge is unnecessary.
