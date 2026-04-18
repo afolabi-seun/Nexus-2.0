@@ -6,6 +6,7 @@ import { workApi } from '@/api/workApi';
 import { DataTable, type Column } from '@/components/common/DataTable';
 import { Badge } from '@/components/common/Badge';
 import { Modal } from '@/components/common/Modal';
+import { Tabs, useTab } from '@/components/common/Tabs';
 import { useToast } from '@/components/common/Toast';
 import { SkeletonLoader } from '@/components/common/SkeletonLoader';
 import { FormField } from '@/components/forms/FormField';
@@ -13,13 +14,24 @@ import { MemberSelector } from '@/components/forms/MemberSelector';
 import { mapErrorCode } from '@/utils/errorMapping';
 import { ApiError } from '@/types/api';
 import type { ProjectDetail, StoryListItem, SprintListItem } from '@/types/work';
+import { ProjectAnalyticsTab } from '../components/ProjectAnalyticsTab';
+import { ProjectCostTimeTab } from '../components/ProjectCostTimeTab';
+import { ProjectExportTab } from '../components/ProjectExportTab';
 import { updateProjectSchema, type UpdateProjectFormData } from '../schemas';
-import { ArrowLeft, Pencil } from 'lucide-react';
+import { ArrowLeft, Pencil, LayoutDashboard, TrendingUp, DollarSign, Download } from 'lucide-react';
+
+const PROJECT_TABS = [
+    { key: 'overview', label: 'Overview', icon: <LayoutDashboard size={14} /> },
+    { key: 'analytics', label: 'Analytics', icon: <TrendingUp size={14} /> },
+    { key: 'cost-time', label: 'Cost & Time', icon: <DollarSign size={14} /> },
+    { key: 'export', label: 'Export', icon: <Download size={14} /> },
+];
 
 export function ProjectDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { addToast } = useToast();
+    const { activeTab, setActiveTab } = useTab('overview');
 
     const [project, setProject] = useState<ProjectDetail | null>(null);
     const [stories, setStories] = useState<StoryListItem[]>([]);
@@ -174,35 +186,49 @@ export function ProjectDetailPage() {
                 <p className="text-sm text-muted-foreground">{project.description}</p>
             )}
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                <StatCard label="Stories" value={project.storyCount} />
-                <StatCard label="Sprints" value={project.sprintCount} />
-                <StatCard label="Key" value={project.projectKey} />
-                <StatCard label="Status" value={project.status} />
+            {/* Tabs */}
+            <Tabs tabs={PROJECT_TABS} activeTab={activeTab} onTabChange={setActiveTab} />
+
+            {/* Tab Content */}
+            <div role="tabpanel">
+                {activeTab === 'overview' && (
+                    <div className="space-y-6">
+                        {/* Stats */}
+                        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                            <StatCard label="Stories" value={project.storyCount} />
+                            <StatCard label="Sprints" value={project.sprintCount} />
+                            <StatCard label="Key" value={project.projectKey} />
+                            <StatCard label="Status" value={project.status} />
+                        </div>
+
+                        {/* Stories */}
+                        <section className="space-y-2">
+                            <h2 className="text-lg font-medium text-foreground">Stories</h2>
+                            <DataTable
+                                columns={storyColumns}
+                                data={stories}
+                                onRowClick={(row) => navigate(`/stories/${row.storyId}`)}
+                                keyExtractor={(row) => row.storyId}
+                            />
+                        </section>
+
+                        {/* Sprints */}
+                        <section className="space-y-2">
+                            <h2 className="text-lg font-medium text-foreground">Sprints</h2>
+                            <DataTable
+                                columns={sprintColumns}
+                                data={sprints}
+                                onRowClick={(row) => navigate(`/sprints/${row.sprintId}`)}
+                                keyExtractor={(row) => row.sprintId}
+                            />
+                        </section>
+                    </div>
+                )}
+
+                {activeTab === 'analytics' && <ProjectAnalyticsTab projectId={id!} />}
+                {activeTab === 'cost-time' && <ProjectCostTimeTab projectId={id!} />}
+                {activeTab === 'export' && <ProjectExportTab projectId={id!} projectName={project.name} />}
             </div>
-
-            {/* Stories */}
-            <section className="space-y-2">
-                <h2 className="text-lg font-medium text-foreground">Stories</h2>
-                <DataTable
-                    columns={storyColumns}
-                    data={stories}
-                    onRowClick={(row) => navigate(`/stories/${row.storyId}`)}
-                    keyExtractor={(row) => row.storyId}
-                />
-            </section>
-
-            {/* Sprints */}
-            <section className="space-y-2">
-                <h2 className="text-lg font-medium text-foreground">Sprints</h2>
-                <DataTable
-                    columns={sprintColumns}
-                    data={sprints}
-                    onRowClick={(row) => navigate(`/sprints/${row.sprintId}`)}
-                    keyExtractor={(row) => row.sprintId}
-                />
-            </section>
 
             {/* Edit Modal */}
             <Modal open={editOpen} onClose={() => setEditOpen(false)} title="Edit Project">
