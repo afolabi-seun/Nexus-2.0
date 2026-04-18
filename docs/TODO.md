@@ -217,11 +217,11 @@ Current search only covers stories (full-text search on title/description/storyK
 
 Current dashboard is identical for all roles. Each role should see widgets relevant to their responsibilities.
 
-- [ ] **OrgAdmin dashboard** — Add: pending time entry approvals count, billing alerts (plan usage near limit), member activity summary, organization-wide story completion rate.
-- [ ] **DeptLead dashboard** — Add: department workload summary, pending time approvals for their department, team capacity utilization, department-scoped sprint progress.
-- [ ] **Member dashboard** — Customize: emphasize "My Tasks" and "My Time Logged This Week" widgets. Add: stories assigned to me count, upcoming due dates.
-- [ ] **Viewer dashboard** — Simplify: show project summaries and sprint progress only. Hide action-oriented widgets (My Tasks timer, etc.).
-- [ ] **Dashboard widget visibility** — Use `useAuth()` role to conditionally render widgets. No backend changes needed — all data APIs already exist.
+- [x] **OrgAdmin dashboard** — Add: pending time entry approvals count, billing alerts (plan usage near limit), member activity summary, organization-wide story completion rate.
+- [x] **DeptLead dashboard** — Add: department workload summary, pending time approvals for their department, team capacity utilization, department-scoped sprint progress.
+- [x] **Member dashboard** — Customize: emphasize "My Tasks" and "My Time Logged This Week" widgets. Add: stories assigned to me count, upcoming due dates.
+- [x] **Viewer dashboard** — Simplify: show project summaries and sprint progress only. Hide action-oriented widgets (My Tasks timer, etc.).
+- [x] **Dashboard widget visibility** — Use `useAuth()` role to conditionally render widgets. No backend changes needed — all data APIs already exist.
 
 ### Navigation — DB Seed & Section Support
 
