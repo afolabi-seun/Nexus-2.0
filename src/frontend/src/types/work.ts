@@ -23,6 +23,7 @@ export interface StoryListItem {
     sprintName: string | null;
     departmentName: string | null;
     labels: Label[];
+    dueDate: string | null;
     dateCreated: string;
 }
 

@@ -128,7 +128,7 @@ public class StoryService : IStoryService
         {
             StoryId = s.StoryId, StoryKey = s.StoryKey, Title = s.Title,
             Priority = s.Priority, Status = s.Status, StoryPoints = s.StoryPoints,
-            DateCreated = s.DateCreated
+            DueDate = s.DueDate, DateCreated = s.DateCreated
         }).ToList();
 
         return new PaginatedResponse<StoryListResponse>

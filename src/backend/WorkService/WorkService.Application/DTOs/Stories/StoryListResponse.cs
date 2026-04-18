@@ -16,5 +16,6 @@ public class StoryListResponse
     public int TaskCount { get; set; }
     public int CompletedTaskCount { get; set; }
     public List<LabelResponse> Labels { get; set; } = new();
+    public DateTime? DueDate { get; set; }
     public DateTime DateCreated { get; set; }
 }

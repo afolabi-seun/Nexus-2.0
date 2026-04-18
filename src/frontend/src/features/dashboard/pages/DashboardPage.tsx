@@ -7,6 +7,7 @@ import { PendingApprovalsWidget } from '../components/PendingApprovalsWidget';
 import { BillingUsageWidget } from '../components/BillingUsageWidget';
 import { MyTimeWidget } from '../components/MyTimeWidget';
 import { MyStoriesWidget } from '../components/MyStoriesWidget';
+import { UpcomingDueDatesWidget } from '../components/UpcomingDueDatesWidget';
 import { PageHeader } from '@/components/common/PageHeader';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -72,6 +73,13 @@ export function DashboardPage() {
                 {role === 'Member' && (
                     <WidgetCard title="My Stories">
                         <MyStoriesWidget />
+                    </WidgetCard>
+                )}
+
+                {/* Upcoming Due Dates — OrgAdmin, DeptLead, Member (anyone with assigned work) */}
+                {role !== 'Viewer' && (
+                    <WidgetCard title="Upcoming Due Dates">
+                        <UpcomingDueDatesWidget />
                     </WidgetCard>
                 )}
 
