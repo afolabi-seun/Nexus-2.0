@@ -72,9 +72,12 @@ See [docs/endpoint-restrictions.md](docs/endpoint-restrictions.md) for the compl
 - **Email Integration:** SMTP-based email delivery (Mailpit for dev, SES/SendGrid for production)
 - **Sprint Notifications:** background service checks for sprints due soon, overdue, and at risk
 - **Activity Feed:** org-wide activity feed with paginated history
-- **CSV Export:** export stories and time entries as CSV
+- **CSV Export:** export stories and time entries as CSV (from project detail, story list, and time tracking pages)
 - **Bulk Operations:** bulk status update and bulk assign for stories
 - **Health Checks:** `/health` and `/ready` endpoints on all services with DB + Redis checks
+- **Project Analytics Tabs:** project detail page with Overview, Analytics, Cost & Time, and Export tabs
+- **Contextual Help:** dismissible page descriptions, field-level help tooltips, contextual empty states
+- **Code Splitting:** lazy loading for 26 routes, reducing initial bundle by 14%
 
 ## Prerequisites
 
