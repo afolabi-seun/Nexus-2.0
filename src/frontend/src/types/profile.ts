@@ -251,6 +251,7 @@ export interface NavigationItem {
     label: string;
     path: string;
     icon: string;
+    section: string;
     sortOrder: number;
     parentId: string | null;
     minPermissionLevel: number;
