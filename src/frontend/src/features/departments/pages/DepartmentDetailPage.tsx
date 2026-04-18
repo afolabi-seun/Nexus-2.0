@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { mapErrorCode } from '@/utils/errorMapping';
 import { ApiError } from '@/types/api';
 import type { Department, DepartmentPreferences, TeamMember } from '@/types/profile';
+import { DepartmentWorkloadSection } from '../components/DepartmentWorkloadSection';
 
 export function DepartmentDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -88,6 +89,9 @@ export function DepartmentDetailPage() {
                     <p className="text-lg font-semibold text-card-foreground">{dept.memberCount}</p>
                 </div>
             </div>
+
+            {/* Workload */}
+            <DepartmentWorkloadSection departmentId={id!} />
 
             {/* Members */}
             <section className="space-y-2">

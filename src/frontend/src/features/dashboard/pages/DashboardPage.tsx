@@ -2,6 +2,7 @@ import { SprintProgressWidget } from '../components/SprintProgressWidget.js';
 import { MyTasksWidget } from '../components/MyTasksWidget.js';
 import { RecentActivityWidget } from '../components/RecentActivityWidget.js';
 import { VelocityChartWidget } from '../components/VelocityChartWidget.js';
+import { ProjectHealthWidget } from '../components/ProjectHealthWidget';
 
 interface WidgetCardProps {
     title: string;
@@ -31,13 +32,19 @@ export function DashboardPage() {
                     <MyTasksWidget />
                 </WidgetCard>
 
-                <WidgetCard title="Recent Activity">
-                    <RecentActivityWidget />
+                <WidgetCard title="Project Health">
+                    <ProjectHealthWidget />
                 </WidgetCard>
 
                 <WidgetCard title="Velocity">
                     <VelocityChartWidget />
                 </WidgetCard>
+
+                <div className="md:col-span-2">
+                    <WidgetCard title="Recent Activity">
+                        <RecentActivityWidget />
+                    </WidgetCard>
+                </div>
             </div>
         </div>
     );
