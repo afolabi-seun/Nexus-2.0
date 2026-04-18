@@ -12,4 +12,5 @@ public interface ITeamMemberService
     Task ChangeDepartmentRoleAsync(Guid memberId, Guid departmentId, object request, CancellationToken ct = default);
     Task<object> GetByEmailAsync(string email, CancellationToken ct = default);
     Task UpdatePasswordAsync(Guid memberId, string passwordHash, CancellationToken ct = default);
+    Task<object> SearchAsync(Guid organizationId, string query, int page, int pageSize, CancellationToken ct = default);
 }

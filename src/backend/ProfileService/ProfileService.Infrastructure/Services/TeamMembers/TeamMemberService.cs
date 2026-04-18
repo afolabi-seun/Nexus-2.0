@@ -305,4 +305,31 @@ public class TeamMemberService : ITeamMemberService
         DateCreated = m.DateCreated,
         DateUpdated = m.DateUpdated
     };
+
+    public async Task<object> SearchAsync(Guid organizationId, string query, int page, int pageSize, CancellationToken ct = default)
+    {
+        var (items, totalCount) = await _memberRepo.SearchAsync(organizationId, query, page, pageSize, ct);
+        var responses = items.Select(m => new TeamMemberResponse
+        {
+            TeamMemberId = m.TeamMemberId,
+            Email = m.Email,
+            FirstName = m.FirstName,
+            LastName = m.LastName,
+            DisplayName = m.DisplayName,
+            AvatarUrl = m.AvatarUrl,
+            Title = m.Title,
+            ProfessionalId = m.ProfessionalId,
+            Availability = m.Availability,
+            FlgStatus = m.FlgStatus
+        }).ToList();
+
+        return new PaginatedResponse<TeamMemberResponse>
+        {
+            Data = responses,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize,
+            TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+        };
+    }
 }

@@ -106,4 +106,28 @@ public class TeamMemberRepository : GenericRepository<TeamMember>, ITeamMemberRe
             .CountAsync(ct);
         return count + 1;
     }
+
+    public async Task<(IEnumerable<TeamMember> Items, int TotalCount)> SearchAsync(
+        Guid organizationId, string query, int page, int pageSize, CancellationToken ct = default)
+    {
+        var lowerQuery = query.ToLower();
+
+        var searchQuery = _db.TeamMembers
+            .Where(t => t.OrganizationId == organizationId)
+            .Where(t =>
+                t.FirstName.ToLower().Contains(lowerQuery) ||
+                t.LastName.ToLower().Contains(lowerQuery) ||
+                t.Email.ToLower().Contains(lowerQuery) ||
+                (t.DisplayName != null && t.DisplayName.ToLower().Contains(lowerQuery)) ||
+                t.ProfessionalId.ToLower().Contains(lowerQuery));
+
+        var totalCount = await searchQuery.CountAsync(ct);
+        var items = await searchQuery
+            .OrderBy(t => t.LastName).ThenBy(t => t.FirstName)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return (items, totalCount);
+    }
 }
