@@ -76,43 +76,43 @@ Backend APIs exist for analytics, cost, time tracking, and export — but the fr
 
 The project detail page is the natural hub for all project-scoped data. Currently shows only stats + stories + sprints. Add tabbed layout:
 
-- [ ] **Overview tab** — Current content (stats, stories table, sprints table)
-- [ ] **Analytics tab** — Project health score/trend (`analyticsApi.getProjectHealth`), velocity trends chart (`analyticsApi.getVelocityTrends`), bug metrics (`analyticsApi.getBugMetrics`), active risks count, blocked stories, dependency analysis (`analyticsApi.getDependencies`)
-- [ ] **Cost & Time tab** — Cost summary + burn rate (`workApi.getProjectCostSummary`), resource utilization (`workApi.getProjectUtilization`), cost trend over time (`workApi.getProjectCostSnapshots`), time entries filtered by project (`timeTrackingApi.listTimeEntries`)
-- [ ] **Export tab** — CSV export for stories (`workApi.exportStoriesCsv`) and time entries (`workApi.exportTimeEntriesCsv`) scoped to this project
+- [x] **Overview tab** — Current content (stats, stories table, sprints table)
+- [x] **Analytics tab** — Project health score/trend (`analyticsApi.getProjectHealth`), velocity trends chart (`analyticsApi.getVelocityTrends`), bug metrics (`analyticsApi.getBugMetrics`), active risks count, blocked stories, dependency analysis (`analyticsApi.getDependencies`)
+- [x] **Cost & Time tab** — Cost summary + burn rate (`workApi.getProjectCostSummary`), resource utilization (`workApi.getProjectUtilization`), cost trend over time (`workApi.getProjectCostSnapshots`), time entries filtered by project (`timeTrackingApi.listTimeEntries`)
+- [x] **Export tab** — CSV export for stories (`workApi.exportStoriesCsv`) and time entries (`workApi.exportTimeEntriesCsv`) scoped to this project
 
 ### StoryDetailPage — Time Tracking (Priority 2)
 
-- [ ] **Time Logged section** — Show time entries logged against this story (`timeTrackingApi.listTimeEntries({storyId})`). Display total time logged vs estimate. Add between tasks and labels sections.
+- [x] **Time Logged section** — Show time entries logged against this story (`timeTrackingApi.listTimeEntries({storyId})`). Display total time logged vs estimate. Add between tasks and labels sections.
 
 ### SprintDetailPage — Sprint Analytics (Priority 3)
 
-- [ ] **Bug metrics section** — Bug count, open/closed, bug rate scoped to sprint (`analyticsApi.getBugMetrics({projectId, sprintId})`)
-- [ ] **Time logged section** — Total time logged during sprint, per-member breakdown
-- [ ] **Velocity comparison** — Compare this sprint's velocity with previous sprints (`workApi.getSprintVelocity`)
+- [x] **Bug metrics section** — Bug count, open/closed, bug rate scoped to sprint (`analyticsApi.getBugMetrics({projectId, sprintId})`)
+- [x] **Time logged section** — Total time logged during sprint, per-member breakdown
+- [x] **Velocity comparison** — Compare this sprint's velocity with previous sprints (`workApi.getSprintVelocity`)
 
 ### MemberProfilePage — Workload & Time (Priority 4)
 
-- [ ] **Time logged section** — Time entries logged by this member (`timeTrackingApi.listTimeEntries({memberId})`), total hours this week/month
-- [ ] **Assigned stories section** — Stories currently assigned to this member with status badges
-- [ ] **Resource utilization** — Utilization percentage from `analyticsApi.getResourceManagement`
+- [x] **Time logged section** — Time entries logged by this member (`timeTrackingApi.listTimeEntries({memberId})`), total hours this week/month
+- [x] **Assigned stories section** — Stories currently assigned to this member with status badges
+- [x] **Resource utilization** — Utilization percentage from `analyticsApi.getResourceManagement`
 
 ### DepartmentDetailPage — Workload Summary (Priority 5)
 
-- [ ] **Workload summary** — Department workload chart (`workApi.getDepartmentWorkloadReport({departmentId})`)
+- [x] **Workload summary** — Department workload chart (`workApi.getDepartmentWorkloadReport({departmentId})`)
 - [ ] **Task overview** — Tasks by status for this department (from department board data)
 - [ ] **Workflow overrides** — View/edit department workflow overrides (`workApi.saveDeptWorkflowOverride`)
 
 ### DashboardPage — Additional Widgets (Priority 6)
 
-- [ ] **Project health widget** — Health scores across all projects with trend indicators
+- [x] **Project health widget** — Health scores across all projects with trend indicators
 - [ ] **Active bugs widget** — Total open bugs across projects
 - [ ] **Pending approvals widget** — Time entry approvals pending (DeptLead/OrgAdmin)
 
 ### List Pages — Export Buttons (Priority 7)
 
-- [ ] **StoryListPage** — Add CSV export button (`workApi.exportStoriesCsv`)
-- [ ] **TimeTrackingPage** — Add CSV export button (`workApi.exportTimeEntriesCsv`)
+- [x] **StoryListPage** — Add CSV export button (`workApi.exportStoriesCsv`)
+- [x] **TimeTrackingPage** — Add CSV export button (`workApi.exportTimeEntriesCsv`)
 
 ### Settings Integration (Priority 8)
 
@@ -136,11 +136,11 @@ No contextual help exists in the UI. Users have no guidance on what features do,
 Replace generic "no data" messages with guidance on what to do next:
 
 - [ ] **ProjectListPage** — "No projects yet. Create your first project to start tracking stories and sprints." + Create Project button
-- [ ] **StoryListPage** — "No stories found. Stories represent work items your team needs to complete." + Create Story button
+- [x] **StoryListPage** — "No stories found. Stories represent work items your team needs to complete." + Create Story button
 - [ ] **SprintListPage** — "No sprints yet. Sprints are time-boxed iterations for delivering stories." + Create Sprint button
 - [ ] **SprintDetailPage (no stories)** — "This sprint has no stories. Add stories from the backlog or story list."
 - [ ] **KanbanBoardPage** — "No stories on the board. Create stories and assign them to a project to see them here."
-- [ ] **TimeTrackingPage** — "No time entries yet. Start the timer on a story or log time manually."
+- [x] **TimeTrackingPage** — "No time entries yet. Start the timer on a story or log time manually."
 - [ ] **AnalyticsDashboardPage** — "Analytics data is generated when sprints are completed. Complete your first sprint to see velocity trends."
 - [ ] **MemberListPage** — "No team members yet. Invite members to your organization to get started." + Invite button
 - [ ] **DepartmentDetailPage (no members)** — "No members in this department. Add members from the team member list."
