@@ -9,6 +9,7 @@ import { ApiError } from '@/types/api';
 import type { OrganizationSettings, UpdateOrganizationSettingsRequest } from '@/types/profile';
 import { WorkflowSection } from '../components/WorkflowSection';
 import { SnapshotStatusSection } from '../components/SnapshotStatusSection';
+import { PageHeader } from '@/components/common/PageHeader';
 
 export function SettingsPage() {
     const { addToast } = useToast();
@@ -72,7 +73,7 @@ export function SettingsPage() {
 
     return (
         <div className="space-y-6">
-            <h1 className="text-2xl font-semibold text-foreground">Organization Settings</h1>
+            <PageHeader title="Organization Settings" description="Organization-wide settings including sprint duration, story point scale, and notification channels." dismissKey="settings" />
             <p className="text-sm text-muted-foreground">{organization.name}</p>
 
             {/* General */}

@@ -42,7 +42,7 @@ export function ProjectHealthWidget() {
     }, []);
 
     if (loading) return <p className="text-sm text-muted-foreground">Loading…</p>;
-    if (projects.length === 0) return <p className="text-sm text-muted-foreground">No projects yet.</p>;
+    if (projects.length === 0) return <p className="text-sm text-muted-foreground">No projects yet. Create a project to see health scores here.</p>;
 
     return (
         <div className="space-y-2">

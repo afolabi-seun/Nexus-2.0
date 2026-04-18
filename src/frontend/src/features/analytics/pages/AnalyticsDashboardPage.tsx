@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAnalyticsStore } from '@/stores/analyticsStore';
 import { workApi } from '@/api/workApi';
+import { PageHeader } from '@/components/common/PageHeader';
+import { HelpTooltip } from '@/components/common/HelpTooltip';
 
 interface ProjectOption {
     projectId: string;
@@ -51,7 +53,7 @@ export function AnalyticsDashboardPage() {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-semibold text-foreground">Analytics Dashboard</h1>
+                <PageHeader title="Analytics Dashboard" description="Project health, velocity trends, bug metrics, and cost analysis. Select a project to view." dismissKey="analytics" />
                 <select
                     value={selectedProjectId}
                     onChange={(e) => setSelectedProjectId(e.target.value)}
@@ -73,7 +75,7 @@ export function AnalyticsDashboardPage() {
                 <>
                     <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-7">
                         <div className="rounded-lg border border-border bg-card p-4">
-                            <p className="text-xs text-muted-foreground">Health Score</p>
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">Health Score <HelpTooltip text="Composite score (0–100) based on velocity consistency, bug rate, overdue stories, and active risks." /></p>
                             <p className={`mt-1 text-2xl font-semibold ${healthScore != null ? scoreColor(healthScore) : 'text-foreground'}`}>
                                 {healthScore != null ? Math.round(healthScore) : '—'}
                             </p>
@@ -81,7 +83,7 @@ export function AnalyticsDashboardPage() {
                         </div>
 
                         <div className="rounded-lg border border-border bg-card p-4">
-                            <p className="text-xs text-muted-foreground">Velocity</p>
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">Velocity <HelpTooltip text="Story points completed per sprint. Higher is better, but consistency matters more." /></p>
                             <p className="mt-1 text-2xl font-semibold text-foreground">
                                 {dashboard.velocitySnapshot
                                     ? dashboard.velocitySnapshot.completedPoints
@@ -123,7 +125,7 @@ export function AnalyticsDashboardPage() {
                         </div>
 
                         <div className="rounded-lg border border-border bg-card p-4">
-                            <p className="text-xs text-muted-foreground">Burn Rate / Day</p>
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">Burn Rate / Day <HelpTooltip text="Average daily cost based on billable time entries and cost rates." /></p>
                             <p className="mt-1 text-2xl font-semibold text-foreground">
                                 {fmt(dashboard.burnRatePerDay)}
                             </p>

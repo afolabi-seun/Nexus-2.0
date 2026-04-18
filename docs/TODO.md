@@ -127,9 +127,9 @@ No contextual help exists in the UI. Users have no guidance on what features do,
 
 ### Reusable Components (build first)
 
-- [ ] **PageHeader component** — Title + optional description line + optional dismiss (stored in localStorage). Replaces raw `<h1>` on every page.
-- [ ] **HelpTooltip component** — Small `(?)` icon with popover text for field-level help. Used next to non-obvious metrics and form fields.
-- [ ] **Enhanced EmptyState usage** — Replace all inline "No data" / "No tasks yet" text with the existing `EmptyState` component + contextual action buttons.
+- [x] **PageHeader component** — Title + optional description line + optional dismiss (stored in localStorage). Replaces raw `<h1>` on every page.
+- [x] **HelpTooltip component** — Small `(?)` icon with popover text for field-level help. Used next to non-obvious metrics and form fields.
+- [x] **Enhanced EmptyState usage** — Replace all inline "No data" / "No tasks yet" text with the existing `EmptyState` component + contextual action buttons.
 
 ### Layer 1: Contextual Empty States (highest impact)
 
@@ -150,27 +150,27 @@ Replace generic "no data" messages with guidance on what to do next:
 
 One-line help text below each page title. Dismissible per user via localStorage.
 
-- [ ] **Dashboard** — "Your overview of active sprints, assigned tasks, and team velocity."
-- [ ] **Projects** — "Manage your organization's projects. Each project contains stories, sprints, and boards."
-- [ ] **Stories** — "Work items that represent features, bugs, or tasks. Filter by project, status, or assignee."
-- [ ] **Kanban Board** — "Drag stories between columns to update their status. Filter by project or sprint."
-- [ ] **Sprint Board** — "View and manage tasks in the active sprint. Drag tasks between status columns."
-- [ ] **Sprints** — "Time-boxed iterations for delivering stories. Plan, start, and complete sprints here."
-- [ ] **Time Tracking** — "Log time against stories. Use the timer for real-time tracking or add entries manually."
-- [ ] **Analytics** — "Project health, velocity trends, bug metrics, and cost analysis. Select a project to view."
-- [ ] **Reports** — "Charts showing team performance across sprints. Select a date range to filter."
-- [ ] **Members** — "Your organization's team members. Manage roles, departments, and availability."
-- [ ] **Departments** — "Organizational units that own tasks. Each department has its own workflow preferences."
-- [ ] **Settings** — "Organization-wide settings including sprint duration, story point scale, and notification channels."
-- [ ] **Billing** — "Manage your subscription plan, view usage, and update payment details."
+- [x] **Dashboard** — "Your overview of active sprints, assigned tasks, and team velocity."
+- [x] **Projects** — "Manage your organization's projects. Each project contains stories, sprints, and boards."
+- [x] **Stories** — "Work items that represent features, bugs, or tasks. Filter by project, status, or assignee."
+- [x] **Kanban Board** — "Drag stories between columns to update their status. Filter by project or sprint."
+- [x] **Sprint Board** — "View and manage tasks in the active sprint. Drag tasks between status columns."
+- [x] **Sprints** — "Time-boxed iterations for delivering stories. Plan, start, and complete sprints here."
+- [x] **Time Tracking** — "Log time against stories. Use the timer for real-time tracking or add entries manually."
+- [x] **Analytics** — "Project health, velocity trends, bug metrics, and cost analysis. Select a project to view."
+- [x] **Reports** — "Charts showing team performance across sprints. Select a date range to filter."
+- [x] **Members** — "Your organization's team members. Manage roles, departments, and availability."
+- [x] **Departments** — "Organizational units that own tasks. Each department has its own workflow preferences."
+- [x] **Settings** — "Organization-wide settings including sprint duration, story point scale, and notification channels."
+- [x] **Billing** — "Manage your subscription plan, view usage, and update payment details."
 
 ### Layer 3: Field-Level Help Tooltips (nice to have)
 
 - [ ] **Story points** — "Relative estimate of effort. Common scales: 1, 2, 3, 5, 8, 13."
-- [ ] **Health score** — "Composite score (0–100) based on velocity consistency, bug rate, overdue stories, and active risks."
-- [ ] **Burn rate** — "Average daily cost based on billable time entries and cost rates."
+- [x] **Health score** — "Composite score (0–100) based on velocity consistency, bug rate, overdue stories, and active risks."
+- [x] **Burn rate** — "Average daily cost based on billable time entries and cost rates."
 - [ ] **WIP limit** — "Maximum stories allowed in this status column. Helps prevent overloading."
-- [ ] **Velocity** — "Story points completed per sprint. Higher is better, but consistency matters more."
+- [x] **Velocity** — "Story points completed per sprint. Higher is better, but consistency matters more."
 - [ ] **Completion rate** — "Percentage of committed stories completed in the sprint."
 - [ ] **Capacity utilization** — "Percentage of available working hours that were logged as time entries."
 - [ ] **Cost rate** — "Hourly rate used to calculate project costs from time entries."

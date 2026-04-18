@@ -8,6 +8,7 @@ import { SubscriptionOverview } from '../components/SubscriptionOverview';
 import { PlanDetailsCard } from '../components/PlanDetailsCard';
 import { UsageMeter } from '../components/UsageMeter';
 import { SubscriptionActions } from '../components/SubscriptionActions';
+import { PageHeader } from '@/components/common/PageHeader';
 
 type PageState =
     | { kind: 'loading' }
@@ -37,7 +38,7 @@ export function BillingPage() {
     if (state.kind === 'loading') {
         return (
             <div className="space-y-6 p-6">
-                <h1 className="text-2xl font-bold text-foreground">Billing</h1>
+                <PageHeader title="Billing" description="Manage your subscription plan, view usage, and update payment details." dismissKey="billing" />
                 <SkeletonLoader variant="form" />
             </div>
         );
@@ -46,7 +47,7 @@ export function BillingPage() {
     if (state.kind === 'empty') {
         return (
             <div className="space-y-6 p-6">
-                <h1 className="text-2xl font-bold text-foreground">Billing</h1>
+                <PageHeader title="Billing" description="Manage your subscription plan, view usage, and update payment details." dismissKey="billing" />
                 <div className="rounded-lg border border-border bg-card p-8 text-center">
                     <p className="mb-4 text-muted-foreground">No subscription found</p>
                     <Link
@@ -63,7 +64,7 @@ export function BillingPage() {
     if (state.kind === 'error') {
         return (
             <div className="space-y-6 p-6">
-                <h1 className="text-2xl font-bold text-foreground">Billing</h1>
+                <PageHeader title="Billing" description="Manage your subscription plan, view usage, and update payment details." dismissKey="billing" />
                 <div className="rounded-lg border border-border bg-card p-8 text-center">
                     <p className="mb-4 text-muted-foreground">{state.message}</p>
                     <button
@@ -81,7 +82,7 @@ export function BillingPage() {
 
     return (
         <div className="space-y-6 p-6">
-            <h1 className="text-2xl font-bold text-foreground">Billing</h1>
+            <PageHeader title="Billing" description="Manage your subscription plan, view usage, and update payment details." dismissKey="billing" />
 
             <div className="grid gap-6 lg:grid-cols-2">
                 <SubscriptionOverview subscription={subscription} />

@@ -11,6 +11,7 @@ import { ListFilter } from '@/components/common/ListFilter';
 import { useListFilters } from '@/hooks/useListFilters';
 import type { FilterConfig } from '@/types/filters';
 import type { TeamMember } from '@/types/profile';
+import { PageHeader } from '@/components/common/PageHeader';
 
 export function MemberListPage() {
     const navigate = useNavigate();
@@ -100,7 +101,7 @@ export function MemberListPage() {
 
     return (
         <div className="space-y-4">
-            <h1 className="text-2xl font-semibold text-foreground">Members</h1>
+            <PageHeader title="Members" description="Your organization's team members. Manage roles, departments, and availability." dismissKey="members" />
 
             <ListFilter
                 configs={filterConfigs}

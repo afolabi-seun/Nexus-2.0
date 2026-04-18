@@ -16,6 +16,7 @@ import { ApiError } from '@/types/api';
 import type { FilterConfig } from '@/types/filters';
 import type { Department } from '@/types/profile';
 import { Plus } from 'lucide-react';
+import { PageHeader } from '@/components/common/PageHeader';
 
 const filterConfigs: FilterConfig[] = [
     {
@@ -100,7 +101,7 @@ export function DepartmentListPage() {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-semibold text-foreground">Departments</h1>
+                <PageHeader title="Departments" description="Organizational units that own tasks. Each department has its own workflow preferences." dismissKey="departments" />
                 {isOrgAdmin && (
                     <button onClick={() => setCreateOpen(true)} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
                         <Plus size={16} /> Create Department

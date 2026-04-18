@@ -14,6 +14,7 @@ import type { ProjectListItem } from '@/types/work';
 import type { CreateProjectFormData } from '../schemas';
 import { ProjectForm } from '../components/ProjectForm.js';
 import { Plus } from 'lucide-react';
+import { PageHeader } from '@/components/common/PageHeader';
 
 export function ProjectListPage() {
     const navigate = useNavigate();
@@ -102,7 +103,7 @@ export function ProjectListPage() {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-semibold text-foreground">Projects</h1>
+                <PageHeader title="Projects" description="Manage your organization's projects. Each project contains stories, sprints, and boards." dismissKey="projects" />
                 {canCreate && (
                     <button
                         onClick={() => { setServerError(''); setModalOpen(true); }}

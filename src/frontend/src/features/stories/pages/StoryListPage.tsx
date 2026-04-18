@@ -16,6 +16,7 @@ import type { FilterConfig } from '@/types/filters';
 import type { StoryListItem } from '@/types/work';
 import { StoryForm } from '../components/StoryForm.js';
 import { Plus, Download } from 'lucide-react';
+import { PageHeader } from '@/components/common/PageHeader';
 
 const storyFilterConfigs: FilterConfig[] = [
     {
@@ -167,7 +168,7 @@ export function StoryListPage() {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-semibold text-foreground">Stories</h1>
+                <PageHeader title="Stories" description="Work items that represent features, bugs, or tasks. Filter by project, status, or assignee." dismissKey="stories" />
                 <div className="flex items-center gap-2">
                     <button
                         onClick={async () => {

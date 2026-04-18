@@ -156,7 +156,10 @@ export function BacklogPage() {
             />
 
             {!backlog || backlog.items.length === 0 ? (
-                <div className="py-12 text-center text-muted-foreground">No stories in backlog</div>
+                <div className="py-12 text-center text-muted-foreground">
+                    <p className="text-lg font-medium">No stories in backlog</p>
+                    <p className="mt-1 text-sm">Stories without a sprint assignment appear here. Create stories and leave them unassigned to a sprint.</p>
+                </div>
             ) : (
                 <DataTable
                     columns={backlogColumns}

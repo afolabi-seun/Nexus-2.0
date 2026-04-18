@@ -12,6 +12,7 @@ import type { KanbanBoard, KanbanCard } from '@/types/work';
 import { BoardColumn } from '../components/BoardColumn.js';
 import { DraggableCard, StoryCardContent } from '../components/DraggableCard.js';
 import { useBoardDragDrop } from '../hooks/useBoardDragDrop';
+import { PageHeader } from '@/components/common/PageHeader';
 
 const KANBAN_COLUMNS = [
     StoryStatus.Backlog,
@@ -109,7 +110,7 @@ export function KanbanBoardPage() {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-semibold text-foreground">Kanban Board</h1>
+                <PageHeader title="Kanban Board" description="Drag stories between columns to update their status. Filter by project or sprint." dismissKey="kanban" />
             </div>
 
             <ListFilter
