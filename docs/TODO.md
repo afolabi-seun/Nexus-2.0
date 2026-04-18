@@ -201,6 +201,38 @@ One-line help text below each page title. Dismissible per user via localStorage.
 
 ---
 
+## Phase 10 — Search, Dashboard & Navigation Improvements
+
+### Search Expansion
+
+Current search only covers stories (full-text search on title/description/storyKey). Backend `SearchService` queries only the `Stories` table.
+
+- [ ] **Extend backend search to projects** — Add project name/key search to `SearchService`. Return mixed results with `entityType` field.
+- [ ] **Extend backend search to tasks** — Add task title search. Include task results in search response.
+- [ ] **Extend backend search to members** — Add member name/email search via ProfileService. Either cross-service call or separate search endpoint.
+- [ ] **Frontend search results grouping** — Group search results by entity type (Stories, Projects, Tasks, Members) with section headers.
+- [ ] **Search suggestions/autocomplete** — Dropdown suggestions as user types in the header search bar (debounced, top 5 results).
+
+### Role-Based Dashboard
+
+Current dashboard is identical for all roles. Each role should see widgets relevant to their responsibilities.
+
+- [ ] **OrgAdmin dashboard** — Add: pending time entry approvals count, billing alerts (plan usage near limit), member activity summary, organization-wide story completion rate.
+- [ ] **DeptLead dashboard** — Add: department workload summary, pending time approvals for their department, team capacity utilization, department-scoped sprint progress.
+- [ ] **Member dashboard** — Customize: emphasize "My Tasks" and "My Time Logged This Week" widgets. Add: stories assigned to me count, upcoming due dates.
+- [ ] **Viewer dashboard** — Simplify: show project summaries and sprint progress only. Hide action-oriented widgets (My Tasks timer, etc.).
+- [ ] **Dashboard widget visibility** — Use `useAuth()` role to conditionally render widgets. No backend changes needed — all data APIs already exist.
+
+### Navigation — DB Seed & Section Support
+
+The DB-driven navigation table (`NavigationItems`) is never seeded. All deployments use the static fallback. If DB items are seeded, they render as a flat list without section grouping.
+
+- [ ] **Seed navigation items** — Add navigation seed script (batch-6 or separate) that populates `NavigationItems` table with the same structure as the static fallback, including section grouping.
+- [ ] **Add `section` field to NavigationItem entity** — Add a `Section` string field (e.g., "Work", "Tracking", "Team", "Organization") to the `NavigationItem` entity and DB schema. Update `buildSections()` to group DB items by section.
+- [ ] **Navigation admin UI** — Add a navigation management page under PlatformAdmin or OrgAdmin settings to reorder, enable/disable, and group navigation items without code changes.
+
+---
+
 ## ✅ Recently Completed
 
 ### Frontend Navigation

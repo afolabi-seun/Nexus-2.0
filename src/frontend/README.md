@@ -45,6 +45,8 @@ React 18 single-page application for the Nexus 2.0 platform.
 - **Time Tracking** — Time entries, start/stop timer widget, cost rate management, time entry approval
 - **Analytics** — Velocity trends, project health, resource utilization, bug metrics, risk register, cost analytics, dashboard
 - **Pagination** — Reusable `usePagination` hook and `Pagination` component on all list pages
+- **Code Splitting** — Lazy loading for 26 routes via `React.lazy()`, reducing initial bundle by 14%
+- **Contextual Help** — `PageHeader` with dismissible descriptions on 13 pages, `HelpTooltip` on analytics metrics, improved empty states
 
 ### DB-Driven Sidebar Navigation
 
