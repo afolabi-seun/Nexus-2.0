@@ -35,7 +35,7 @@ public class NavigationController : ControllerBase
     }
 
     [HttpGet("all")]
-    [ServiceAuth]
+    [PlatformAdmin]
     public async Task<ActionResult<ApiResponse<object>>> GetAll(CancellationToken ct)
     {
         var items = await _navigationService.GetAllNavigationItemsAsync(ct);
@@ -43,7 +43,7 @@ public class NavigationController : ControllerBase
     }
 
     [HttpPost]
-    [ServiceAuth]
+    [PlatformAdmin]
     public async Task<ActionResult<ApiResponse<object>>> Create(
         [FromBody] CreateNavigationItemRequest request, CancellationToken ct)
     {
@@ -63,7 +63,7 @@ public class NavigationController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    [ServiceAuth]
+    [PlatformAdmin]
     public async Task<ActionResult<ApiResponse<object>>> Update(
         Guid id, [FromBody] UpdateNavigationItemRequest request, CancellationToken ct)
     {
@@ -80,7 +80,7 @@ public class NavigationController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [ServiceAuth]
+    [PlatformAdmin]
     public async Task<ActionResult<ApiResponse<object>>> Delete(Guid id, CancellationToken ct)
     {
         await _navigationService.DeleteAsync(id, ct);
