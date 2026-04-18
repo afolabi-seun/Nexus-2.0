@@ -11,6 +11,7 @@ import { useOrg } from '@/hooks/useOrg';
 import { mapErrorCode } from '@/utils/errorMapping';
 import { ApiError } from '@/types/api';
 import type { TeamMemberDetail } from '@/types/profile';
+import { MemberWorkSection } from '../components/MemberWorkSection';
 import { User, Briefcase, Calendar } from 'lucide-react';
 
 export function MemberProfilePage() {
@@ -189,6 +190,9 @@ export function MemberProfilePage() {
                     </div>
                 </section>
             )}
+
+            {/* Time Logged & Assigned Stories */}
+            <MemberWorkSection memberId={id!} />
 
             {/* Self-edit section */}
             {isSelf && (

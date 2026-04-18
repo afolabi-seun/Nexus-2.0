@@ -15,7 +15,7 @@ import { StoryStatus, Priority } from '@/types/enums';
 import type { FilterConfig } from '@/types/filters';
 import type { StoryListItem } from '@/types/work';
 import { StoryForm } from '../components/StoryForm.js';
-import { Plus } from 'lucide-react';
+import { Plus, Download } from 'lucide-react';
 
 const storyFilterConfigs: FilterConfig[] = [
     {
@@ -168,15 +168,36 @@ export function StoryListPage() {
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-semibold text-foreground">Stories</h1>
-                {canCreate && (
+                <div className="flex items-center gap-2">
                     <button
-                        onClick={() => setCreateOpen(true)}
-                        className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                        onClick={async () => {
+                            try {
+                                const blob = await workApi.exportStoriesCsv({});
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `stories_${new Date().toISOString().slice(0, 10)}.csv`;
+                                a.click();
+                                URL.revokeObjectURL(url);
+                                addToast('success', 'Stories exported');
+                            } catch {
+                                addToast('error', 'Failed to export stories');
+                            }
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"
                     >
-                        <Plus size={16} />
-                        Create Story
+                        <Download size={14} /> Export CSV
                     </button>
-                )}
+                    {canCreate && (
+                        <button
+                            onClick={() => setCreateOpen(true)}
+                            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                        >
+                            <Plus size={16} />
+                            Create Story
+                        </button>
+                    )}
+                </div>
             </div>
 
             <ListFilter

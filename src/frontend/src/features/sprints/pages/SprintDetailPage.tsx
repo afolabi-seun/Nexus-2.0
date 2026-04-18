@@ -15,6 +15,7 @@ import type { StoryListItem } from '@/types/work';
 import { SprintPlanningView } from '../components/SprintPlanningView.js';
 import { SprintMetricsPanel } from '../components/SprintMetricsPanel.js';
 import { BurndownChart } from '../components/BurndownChart.js';
+import { SprintAnalyticsSection } from '../components/SprintAnalyticsSection';
 import { ArrowLeft, Play, CheckCircle2, XCircle, Pencil } from 'lucide-react';
 
 function SprintEditModal({
@@ -309,6 +310,7 @@ export function SprintDetailPage() {
                     {metrics.burndownData.length > 0 && (
                         <BurndownChart data={metrics.burndownData} />
                     )}
+                    <SprintAnalyticsSection projectId={sprint.projectId} sprintId={sprint.sprintId} />
                 </>
             )}
 
