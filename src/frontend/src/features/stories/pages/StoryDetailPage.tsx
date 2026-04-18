@@ -14,6 +14,7 @@ import { StatusTransitionButtons } from '../components/StatusTransitionButtons.j
 import { LabelManager } from '../components/LabelManager.js';
 import { StoryLinkDialog } from '../components/StoryLinkDialog.js';
 import { StoryForm } from '../components/StoryForm.js';
+import { StoryTimeEntries } from '../components/StoryTimeEntries';
 import { CommentSection } from '@/features/comments/components/CommentSection';
 import { ActivityLog } from '@/features/activity/components/ActivityLog';
 import {
@@ -247,6 +248,14 @@ export function StoryDetailPage() {
                         ))}
                     </div>
                 )}
+            </section>
+
+            {/* Time Logged */}
+            <section className="space-y-2">
+                <h2 className="text-lg font-medium text-foreground flex items-center gap-2">
+                    <Clock size={18} /> Time Logged
+                </h2>
+                <StoryTimeEntries storyId={story.storyId} />
             </section>
 
             {/* Labels */}
