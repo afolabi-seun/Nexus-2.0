@@ -9,4 +9,5 @@ public interface ITaskRepository : IGenericRepository<Entities.Task>
     Task<int> CountActiveByAssigneeAsync(Guid assigneeId, CancellationToken ct = default);
     Task<IEnumerable<Entities.Task>> ListBySprintAsync(Guid sprintId, CancellationToken ct = default);
     Task<IEnumerable<Entities.Task>> ListByDepartmentAsync(Guid organizationId, Guid? sprintId, CancellationToken ct = default);
+    Task<(IEnumerable<Entities.Task> Items, int TotalCount)> SearchAsync(Guid organizationId, string query, int page, int pageSize, CancellationToken ct = default);
 }

@@ -11,4 +11,5 @@ public interface IProjectRepository : IGenericRepository<Project>
     Task<(IEnumerable<Project> Items, int TotalCount)> ListAsync(Guid organizationId, int page, int pageSize, string? status, CancellationToken ct = default);
     Task<int> GetStoryCountAsync(Guid projectId, CancellationToken ct = default);
     Task<int> GetSprintCountAsync(Guid projectId, CancellationToken ct = default);
+    Task<(IEnumerable<Project> Items, int TotalCount)> SearchAsync(Guid organizationId, string query, int page, int pageSize, CancellationToken ct = default);
 }

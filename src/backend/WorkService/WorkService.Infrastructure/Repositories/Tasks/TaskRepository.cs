@@ -46,4 +46,25 @@ public class TaskRepository : GenericRepository<Domain.Entities.Task>, ITaskRepo
 
         return await query.ToListAsync(ct);
     }
+
+    public async Task<(IEnumerable<Domain.Entities.Task> Items, int TotalCount)> SearchAsync(
+        Guid organizationId, string query, int page, int pageSize, CancellationToken ct = default)
+    {
+        var tsQuery = string.Join(" & ", query.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries));
+
+        var searchQuery = _db.Tasks
+            .Where(t => t.OrganizationId == organizationId)
+            .Where(t => EF.Functions.ToTsVector("english",
+                (t.Title ?? "") + " " + (t.Description ?? ""))
+                .Matches(EF.Functions.ToTsQuery("english", tsQuery)));
+
+        var totalCount = await searchQuery.CountAsync(ct);
+        var items = await searchQuery
+            .OrderByDescending(t => t.DateCreated)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return (items, totalCount);
+    }
 }
