@@ -1,24 +1,25 @@
+import { lazy, Suspense } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 
-// Guards
+// Guards (always loaded — used on every route)
 import { AuthGuard } from '@/components/guards/AuthGuard';
 import { GuestGuard } from '@/components/guards/GuestGuard';
 import { RoleGuard } from '@/components/guards/RoleGuard';
 import { OrgUserGuard } from '@/components/guards/OrgUserGuard';
 import { FirstTimeGuard } from '@/components/guards/FirstTimeGuard';
 
-// Layouts
+// Layouts (always loaded — structural)
 import { AppShell } from '@/components/layout/AppShell';
 import { AuthLayout } from '@/components/layout/AuthLayout';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 
-// Pages — Auth
+// Auth pages (always loaded — entry point)
 import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { PlatformAdminLoginPage } from '@/features/auth/pages/PlatformAdminLoginPage';
 import { ForcedPasswordChangePage } from '@/features/auth/pages/ForcedPasswordChangePage';
 import { PasswordResetPage } from '@/features/auth/pages/PasswordResetPage';
 
-// Pages — App
+// Core pages (static — high-traffic, loaded immediately)
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
 import { ProjectListPage } from '@/features/projects/pages/ProjectListPage';
 import { ProjectDetailPage } from '@/features/projects/pages/ProjectDetailPage';
@@ -27,35 +28,49 @@ import { StoryDetailPage } from '@/features/stories/pages/StoryDetailPage';
 import { StoryByKeyRedirect } from '@/features/stories/pages/StoryByKeyRedirect';
 import { KanbanBoardPage } from '@/features/boards/pages/KanbanBoardPage';
 import { SprintBoardPage } from '@/features/boards/pages/SprintBoardPage';
-import { DepartmentBoardPage } from '@/features/boards/pages/DepartmentBoardPage';
-import { BacklogPage } from '@/features/boards/pages/BacklogPage';
 import { SprintListPage } from '@/features/sprints/pages/SprintListPage';
 import { SprintDetailPage } from '@/features/sprints/pages/SprintDetailPage';
-import { MemberListPage } from '@/features/members/pages/MemberListPage';
-import { MemberProfilePage } from '@/features/members/pages/MemberProfilePage';
-import { DepartmentListPage } from '@/features/departments/pages/DepartmentListPage';
-import { DepartmentDetailPage } from '@/features/departments/pages/DepartmentDetailPage';
-import { SettingsPage } from '@/features/settings/pages/SettingsPage';
-import { PreferencesPage } from '@/features/preferences/pages/PreferencesPage';
-import { InviteManagementPage } from '@/features/invites/pages/InviteManagementPage';
-import { AcceptInvitePage } from '@/features/invites/pages/AcceptInvitePage';
-import { SessionManagementPage } from '@/features/sessions/pages/SessionManagementPage';
-import { SearchPage } from '@/features/search/pages/SearchPage';
-import { ReportsPage } from '@/features/reports/pages/ReportsPage';
-import { PlatformAdminOrganizationsPage } from '@/features/admin/pages/PlatformAdminOrganizationsPage';
-import { PlatformAdminBillingPage } from '@/features/admin/pages/PlatformAdminBillingPage';
-import { PlatformAdminOrgBillingDetailPage } from '@/features/admin/pages/PlatformAdminOrgBillingDetailPage';
-import { PlatformAdminPlansPage } from '@/features/admin/pages/PlatformAdminPlansPage';
-import { NotificationHistoryPage } from '@/features/notifications/pages/NotificationHistoryPage';
-import { AuditLogsPage } from '@/features/admin/pages/AuditLogsPage';
-import { ErrorLogsPage } from '@/features/admin/pages/ErrorLogsPage';
-import { ReferenceDataPage } from '@/features/admin/pages/ReferenceDataPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
-import { BillingPage } from '@/features/billing/pages/BillingPage';
-import { PlanComparisonPage } from '@/features/billing/pages/PlanComparisonPage';
-import { AnalyticsDashboardPage } from '@/features/analytics/pages/AnalyticsDashboardPage';
-import { TimeTrackingPage } from '@/features/time-tracking/pages/TimeTrackingPage';
-import { TimeTrackingSettingsPage } from '@/features/time-tracking/pages/TimeTrackingSettingsPage';
+
+// Lazy-loaded pages (less frequent access — split into separate chunks)
+const DepartmentBoardPage = lazy(() => import('@/features/boards/pages/DepartmentBoardPage').then(m => ({ default: m.DepartmentBoardPage })));
+const BacklogPage = lazy(() => import('@/features/boards/pages/BacklogPage').then(m => ({ default: m.BacklogPage })));
+const MemberListPage = lazy(() => import('@/features/members/pages/MemberListPage').then(m => ({ default: m.MemberListPage })));
+const MemberProfilePage = lazy(() => import('@/features/members/pages/MemberProfilePage').then(m => ({ default: m.MemberProfilePage })));
+const DepartmentListPage = lazy(() => import('@/features/departments/pages/DepartmentListPage').then(m => ({ default: m.DepartmentListPage })));
+const DepartmentDetailPage = lazy(() => import('@/features/departments/pages/DepartmentDetailPage').then(m => ({ default: m.DepartmentDetailPage })));
+const SettingsPage = lazy(() => import('@/features/settings/pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const PreferencesPage = lazy(() => import('@/features/preferences/pages/PreferencesPage').then(m => ({ default: m.PreferencesPage })));
+const InviteManagementPage = lazy(() => import('@/features/invites/pages/InviteManagementPage').then(m => ({ default: m.InviteManagementPage })));
+const AcceptInvitePage = lazy(() => import('@/features/invites/pages/AcceptInvitePage').then(m => ({ default: m.AcceptInvitePage })));
+const SessionManagementPage = lazy(() => import('@/features/sessions/pages/SessionManagementPage').then(m => ({ default: m.SessionManagementPage })));
+const SearchPage = lazy(() => import('@/features/search/pages/SearchPage').then(m => ({ default: m.SearchPage })));
+const ReportsPage = lazy(() => import('@/features/reports/pages/ReportsPage').then(m => ({ default: m.ReportsPage })));
+const NotificationHistoryPage = lazy(() => import('@/features/notifications/pages/NotificationHistoryPage').then(m => ({ default: m.NotificationHistoryPage })));
+const BillingPage = lazy(() => import('@/features/billing/pages/BillingPage').then(m => ({ default: m.BillingPage })));
+const PlanComparisonPage = lazy(() => import('@/features/billing/pages/PlanComparisonPage').then(m => ({ default: m.PlanComparisonPage })));
+const AnalyticsDashboardPage = lazy(() => import('@/features/analytics/pages/AnalyticsDashboardPage').then(m => ({ default: m.AnalyticsDashboardPage })));
+const TimeTrackingPage = lazy(() => import('@/features/time-tracking/pages/TimeTrackingPage').then(m => ({ default: m.TimeTrackingPage })));
+const TimeTrackingSettingsPage = lazy(() => import('@/features/time-tracking/pages/TimeTrackingSettingsPage').then(m => ({ default: m.TimeTrackingSettingsPage })));
+const AuditLogsPage = lazy(() => import('@/features/admin/pages/AuditLogsPage').then(m => ({ default: m.AuditLogsPage })));
+const ErrorLogsPage = lazy(() => import('@/features/admin/pages/ErrorLogsPage').then(m => ({ default: m.ErrorLogsPage })));
+const ReferenceDataPage = lazy(() => import('@/features/admin/pages/ReferenceDataPage').then(m => ({ default: m.ReferenceDataPage })));
+const PlatformAdminOrganizationsPage = lazy(() => import('@/features/admin/pages/PlatformAdminOrganizationsPage').then(m => ({ default: m.PlatformAdminOrganizationsPage })));
+const PlatformAdminBillingPage = lazy(() => import('@/features/admin/pages/PlatformAdminBillingPage').then(m => ({ default: m.PlatformAdminBillingPage })));
+const PlatformAdminOrgBillingDetailPage = lazy(() => import('@/features/admin/pages/PlatformAdminOrgBillingDetailPage').then(m => ({ default: m.PlatformAdminOrgBillingDetailPage })));
+const PlatformAdminPlansPage = lazy(() => import('@/features/admin/pages/PlatformAdminPlansPage').then(m => ({ default: m.PlatformAdminPlansPage })));
+
+function LazyFallback() {
+    return (
+        <div className="flex h-32 items-center justify-center">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        </div>
+    );
+}
+
+function L({ children }: { children: React.ReactNode }) {
+    return <Suspense fallback={<LazyFallback />}>{children}</Suspense>;
+}
 
 export const router = createBrowserRouter([
     // --- Guest routes (redirect away if already authenticated) ---
@@ -77,7 +92,7 @@ export const router = createBrowserRouter([
     {
         element: <AuthLayout />,
         children: [
-            { path: '/invites/:token', element: <AcceptInvitePage /> },
+            { path: '/invites/:token', element: <L><AcceptInvitePage /></L> },
         ],
     },
 
@@ -109,7 +124,7 @@ export const router = createBrowserRouter([
                     {
                         element: <AppShell />,
                         children: [
-                            // General app routes
+                            // Core routes (static imports — instant navigation)
                             { path: '/', element: <DashboardPage /> },
                             { path: '/projects', element: <ProjectListPage /> },
                             { path: '/projects/:id', element: <ProjectDetailPage /> },
@@ -118,41 +133,43 @@ export const router = createBrowserRouter([
                             { path: '/stories/key/:key', element: <StoryByKeyRedirect /> },
                             { path: '/boards/kanban', element: <KanbanBoardPage /> },
                             { path: '/boards/sprint', element: <SprintBoardPage /> },
-                            { path: '/boards/department', element: <DepartmentBoardPage /> },
-                            { path: '/boards/backlog', element: <BacklogPage /> },
                             { path: '/sprints', element: <SprintListPage /> },
                             { path: '/sprints/:id', element: <SprintDetailPage /> },
-                            { path: '/members', element: <MemberListPage /> },
-                            { path: '/members/:id', element: <MemberProfilePage /> },
-                            { path: '/departments', element: <DepartmentListPage /> },
-                            { path: '/departments/:id', element: <DepartmentDetailPage /> },
-                            { path: '/preferences', element: <PreferencesPage /> },
-                            { path: '/sessions', element: <SessionManagementPage /> },
-                            { path: '/search', element: <SearchPage /> },
-                            { path: '/reports', element: <ReportsPage /> },
-                            { path: '/analytics', element: <AnalyticsDashboardPage /> },
-                            { path: '/time-tracking', element: <TimeTrackingPage /> },
-                            { path: '/notifications', element: <NotificationHistoryPage /> },
 
-                            // OrgAdmin-only routes
+                            // Lazy-loaded routes
+                            { path: '/boards/department', element: <L><DepartmentBoardPage /></L> },
+                            { path: '/boards/backlog', element: <L><BacklogPage /></L> },
+                            { path: '/members', element: <L><MemberListPage /></L> },
+                            { path: '/members/:id', element: <L><MemberProfilePage /></L> },
+                            { path: '/departments', element: <L><DepartmentListPage /></L> },
+                            { path: '/departments/:id', element: <L><DepartmentDetailPage /></L> },
+                            { path: '/preferences', element: <L><PreferencesPage /></L> },
+                            { path: '/sessions', element: <L><SessionManagementPage /></L> },
+                            { path: '/search', element: <L><SearchPage /></L> },
+                            { path: '/reports', element: <L><ReportsPage /></L> },
+                            { path: '/analytics', element: <L><AnalyticsDashboardPage /></L> },
+                            { path: '/time-tracking', element: <L><TimeTrackingPage /></L> },
+                            { path: '/notifications', element: <L><NotificationHistoryPage /></L> },
+
+                            // OrgAdmin-only routes (lazy)
                             {
                                 element: <RoleGuard allowedRoles={['OrgAdmin']} />,
                                 children: [
-                                    { path: '/settings', element: <SettingsPage /> },
-                                    { path: '/billing', element: <BillingPage /> },
-                                    { path: '/billing/plans', element: <PlanComparisonPage /> },
-                                    { path: '/time-tracking/settings', element: <TimeTrackingSettingsPage /> },
-                                    { path: '/audit-logs', element: <AuditLogsPage /> },
-                                    { path: '/settings/error-logs', element: <ErrorLogsPage /> },
-                                    { path: '/settings/reference-data', element: <ReferenceDataPage /> },
+                                    { path: '/settings', element: <L><SettingsPage /></L> },
+                                    { path: '/billing', element: <L><BillingPage /></L> },
+                                    { path: '/billing/plans', element: <L><PlanComparisonPage /></L> },
+                                    { path: '/time-tracking/settings', element: <L><TimeTrackingSettingsPage /></L> },
+                                    { path: '/audit-logs', element: <L><AuditLogsPage /></L> },
+                                    { path: '/settings/error-logs', element: <L><ErrorLogsPage /></L> },
+                                    { path: '/settings/reference-data', element: <L><ReferenceDataPage /></L> },
                                 ],
                             },
 
-                            // OrgAdmin + DeptLead routes
+                            // OrgAdmin + DeptLead routes (lazy)
                             {
                                 element: <RoleGuard allowedRoles={['OrgAdmin', 'DeptLead']} />,
                                 children: [
-                                    { path: '/invites', element: <InviteManagementPage /> },
+                                    { path: '/invites', element: <L><InviteManagementPage /></L> },
                                 ],
                             },
                         ],
@@ -160,18 +177,18 @@ export const router = createBrowserRouter([
                 ],
             },
 
-            // PlatformAdmin routes (wrapped in AdminLayout)
+            // PlatformAdmin routes (lazy, wrapped in AdminLayout)
             {
                 element: <RoleGuard allowedRoles={['PlatformAdmin']} />,
                 children: [
                     {
                         element: <AdminLayout />,
                         children: [
-                            { path: '/admin/organizations', element: <PlatformAdminOrganizationsPage /> },
-                            { path: '/admin/billing', element: <PlatformAdminBillingPage /> },
-                            { path: '/admin/billing/organizations/:id', element: <PlatformAdminOrgBillingDetailPage /> },
-                            { path: '/admin/billing/plans', element: <PlatformAdminPlansPage /> },
-                            { path: '/admin/audit-logs', element: <AuditLogsPage /> },
+                            { path: '/admin/organizations', element: <L><PlatformAdminOrganizationsPage /></L> },
+                            { path: '/admin/billing', element: <L><PlatformAdminBillingPage /></L> },
+                            { path: '/admin/billing/organizations/:id', element: <L><PlatformAdminOrgBillingDetailPage /></L> },
+                            { path: '/admin/billing/plans', element: <L><PlatformAdminPlansPage /></L> },
+                            { path: '/admin/audit-logs', element: <L><AuditLogsPage /></L> },
                         ],
                     },
                 ],
