@@ -16,6 +16,7 @@ namespace UtilityService.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/v1/audit-logs")]
+[Authorize]
 public class AuditLogController : ControllerBase
 {
     private readonly IAuditLogService _auditLogService;

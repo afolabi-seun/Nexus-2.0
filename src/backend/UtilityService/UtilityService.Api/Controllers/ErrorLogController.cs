@@ -11,6 +11,7 @@ namespace UtilityService.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/error-logs")]
+[Authorize]
 public class ErrorLogController : ControllerBase
 {
     private readonly IErrorLogService _errorLogService;
