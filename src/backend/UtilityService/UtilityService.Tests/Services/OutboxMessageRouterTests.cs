@@ -42,7 +42,7 @@ public class OutboxMessageRouterTests
             Payload = JsonSerializer.Serialize(auditPayload)
         };
 
-        await _sut.RouteAsync(JsonSerializer.Serialize(message), "outbox:profile");
+        await _sut.RouteAsync(JsonSerializer.Serialize(message), "nexus:outbox:profile");
 
         _auditMock.Verify(a => a.CreateAsync(It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Once);
         _notifMock.Verify(n => n.DispatchAsync(It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -62,7 +62,7 @@ public class OutboxMessageRouterTests
             Payload = JsonSerializer.Serialize(notifPayload)
         };
 
-        await _sut.RouteAsync(JsonSerializer.Serialize(message), "outbox:work");
+        await _sut.RouteAsync(JsonSerializer.Serialize(message), "nexus:outbox:work");
 
         _notifMock.Verify(n => n.DispatchAsync(It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Once);
         _auditMock.Verify(a => a.CreateAsync(It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -74,10 +74,10 @@ public class OutboxMessageRouterTests
         var message = new OutboxMessage { Type = "unknown", Payload = "{}" };
         var raw = JsonSerializer.Serialize(message);
 
-        await _sut.RouteAsync(raw, "outbox:security");
+        await _sut.RouteAsync(raw, "nexus:outbox:security");
 
         _dbMock.Verify(d => d.ListLeftPushAsync(
-            (RedisKey)"dlq:security",
+            (RedisKey)"nexus:dlq:security",
             (RedisValue)raw,
             It.IsAny<When>(),
             It.IsAny<CommandFlags>()), Times.Once);
@@ -90,10 +90,10 @@ public class OutboxMessageRouterTests
     {
         var raw = "not valid json {{{";
 
-        await _sut.RouteAsync(raw, "outbox:profile");
+        await _sut.RouteAsync(raw, "nexus:outbox:profile");
 
         _dbMock.Verify(d => d.ListLeftPushAsync(
-            (RedisKey)"dlq:profile",
+            (RedisKey)"nexus:dlq:profile",
             (RedisValue)raw,
             It.IsAny<When>(),
             It.IsAny<CommandFlags>()), Times.Once);

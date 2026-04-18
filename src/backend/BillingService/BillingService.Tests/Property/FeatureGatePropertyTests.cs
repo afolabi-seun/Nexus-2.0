@@ -91,9 +91,9 @@ public class FeatureGatePropertyTests
         mockRedis.Setup(r => r.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(mockDb.Object);
 
         // Simulate usage below limit
-        mockDb.Setup(d => d.StringGetAsync(It.Is<RedisKey>(k => k.ToString().Contains("plan:")), It.IsAny<CommandFlags>()))
+        mockDb.Setup(d => d.StringGetAsync(It.Is<RedisKey>(k => k.ToString().Contains("nexus:plan:")), It.IsAny<CommandFlags>()))
             .ReturnsAsync(RedisValue.Null);
-        mockDb.Setup(d => d.StringGetAsync(It.Is<RedisKey>(k => k.ToString().Contains("usage:")), It.IsAny<CommandFlags>()))
+        mockDb.Setup(d => d.StringGetAsync(It.Is<RedisKey>(k => k.ToString().Contains("nexus:usage:")), It.IsAny<CommandFlags>()))
             .ReturnsAsync(new RedisValue("3")); // 3 < 5 limit
 
         var mockLogger = new Mock<ILogger<FeatureGateService>>();
@@ -107,7 +107,7 @@ public class FeatureGatePropertyTests
         Assert.Equal(5, response.Limit);
 
         // Now simulate usage at limit
-        mockDb.Setup(d => d.StringGetAsync(It.Is<RedisKey>(k => k.ToString().Contains("usage:")), It.IsAny<CommandFlags>()))
+        mockDb.Setup(d => d.StringGetAsync(It.Is<RedisKey>(k => k.ToString().Contains("nexus:usage:")), It.IsAny<CommandFlags>()))
             .ReturnsAsync(new RedisValue("5")); // 5 >= 5 limit
 
         result = await service.CheckFeatureAsync(orgId, "max_team_members", CancellationToken.None);
@@ -167,6 +167,6 @@ public class FeatureGatePropertyTests
         // Redis should still have been called
         Assert.Contains(mockDb.Invocations,
             inv => inv.Method.Name == "StringSetAsync" &&
-                   inv.Arguments[0].ToString()!.Contains($"plan:{orgId}"));
+                   inv.Arguments[0].ToString()!.Contains($"nexus:plan:{orgId}"));
     }
 }

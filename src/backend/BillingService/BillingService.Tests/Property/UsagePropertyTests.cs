@@ -48,7 +48,7 @@ public class UsagePropertyTests
         await service.IncrementAsync(orgId, metricName, incrementValue, CancellationToken.None);
 
         mockDb.Verify(d => d.StringIncrementAsync(
-            It.Is<RedisKey>(k => k.ToString() == $"usage:{orgId}:{metricName}"),
+            It.Is<RedisKey>(k => k.ToString() == $"nexus:usage:{orgId}:{metricName}"),
             incrementValue,
             It.IsAny<CommandFlags>()), Times.Once);
     }
