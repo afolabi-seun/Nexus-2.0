@@ -46,4 +46,25 @@ public class ProjectRepository : GenericRepository<Project>, IProjectRepository
 
     public async Task<int> GetSprintCountAsync(Guid projectId, CancellationToken ct = default)
         => await _db.Sprints.CountAsync(s => s.ProjectId == projectId, ct);
+
+    public async Task<(IEnumerable<Project> Items, int TotalCount)> SearchAsync(
+        Guid organizationId, string query, int page, int pageSize, CancellationToken ct = default)
+    {
+        var tsQuery = string.Join(" & ", query.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries));
+
+        var searchQuery = _db.Projects
+            .Where(p => p.OrganizationId == organizationId)
+            .Where(p => EF.Functions.ToTsVector("english",
+                (p.ProjectKey ?? "") + " " + (p.ProjectName ?? "") + " " + (p.Description ?? ""))
+                .Matches(EF.Functions.ToTsQuery("english", tsQuery)));
+
+        var totalCount = await searchQuery.CountAsync(ct);
+        var items = await searchQuery
+            .OrderByDescending(p => p.DateCreated)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return (items, totalCount);
+    }
 }

@@ -207,10 +207,10 @@ One-line help text below each page title. Dismissible per user via localStorage.
 
 Current search only covers stories (full-text search on title/description/storyKey). Backend `SearchService` queries only the `Stories` table.
 
-- [ ] **Extend backend search to projects** — Add project name/key search to `SearchService`. Return mixed results with `entityType` field.
-- [ ] **Extend backend search to tasks** — Add task title search. Include task results in search response.
+- [x] **Extend backend search to projects** — Add project name/key search to `SearchService`. Return mixed results with `entityType` field.
+- [x] **Extend backend search to tasks** — Add task title search. Include task results in search response.
 - [ ] **Extend backend search to members** — Add member name/email search via ProfileService. Either cross-service call or separate search endpoint.
-- [ ] **Frontend search results grouping** — Group search results by entity type (Stories, Projects, Tasks, Members) with section headers.
+- [x] **Frontend search results grouping** — Group search results by entity type (Stories, Projects, Tasks, Members) with section headers.
 - [ ] **Search suggestions/autocomplete** — Dropdown suggestions as user types in the header search bar (debounced, top 5 results).
 
 ### Role-Based Dashboard

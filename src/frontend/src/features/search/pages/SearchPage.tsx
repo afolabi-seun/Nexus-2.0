@@ -7,7 +7,7 @@ import { useToast } from '@/components/common/Toast';
 import { useDebounce } from '@/hooks/useDebounce';
 import { usePagination } from '@/hooks/usePagination';
 import type { SearchResponse, SearchResultItem } from '@/types/work';
-import { Search, FileText, ListTodo } from 'lucide-react';
+import { Search, FileText, ListTodo, FolderKanban } from 'lucide-react';
 
 export function SearchPage() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -52,10 +52,8 @@ export function SearchPage() {
     }, [debouncedQuery, doSearch, urlQuery, setSearchParams]);
 
     const handleResultClick = (item: SearchResultItem) => {
-        if (item.entityType === 'Story') {
-            navigate(`/stories/${item.id}`);
-        }
-        // Tasks don't have their own page, but we can navigate to the story
+        if (item.entityType === 'Story') navigate(`/stories/${item.id}`);
+        else if (item.entityType === 'Project') navigate(`/projects/${item.id}`);
     };
 
     const grouped = results?.items.reduce<Record<string, SearchResultItem[]>>((acc, item) => {
@@ -77,7 +75,7 @@ export function SearchPage() {
                         type="text"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Search stories, tasks..."
+                        placeholder="Search stories, projects, tasks..."
                         className="h-10 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                         autoFocus
                     />
@@ -89,6 +87,7 @@ export function SearchPage() {
                 >
                     <option value="">All Types</option>
                     <option value="Story">Stories</option>
+                    <option value="Project">Projects</option>
                     <option value="Task">Tasks</option>
                 </select>
             </div>
@@ -108,7 +107,7 @@ export function SearchPage() {
                     {Object.entries(grouped).map(([type, items]) => (
                         <section key={type} className="space-y-2">
                             <h2 className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                                {type === 'Story' ? <FileText size={14} /> : <ListTodo size={14} />}
+                                {type === 'Story' ? <FileText size={14} /> : type === 'Project' ? <FolderKanban size={14} /> : <ListTodo size={14} />}
                                 {type}s ({items.length})
                             </h2>
                             <div className="space-y-1.5">
