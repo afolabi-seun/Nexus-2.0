@@ -206,4 +206,7 @@ export const profileApi = {
     // Department Members
     getDepartmentMembers: (id: string, params?: PaginationParams): Promise<PaginatedResponse<TeamMember>> =>
         client.get(`/api/v1/departments/${id}/members`, { params }).then((r) => r.data),
+
+    searchMembers: (params: { query: string; page?: number; pageSize?: number }): Promise<PaginatedResponse<TeamMember>> =>
+        client.get('/api/v1/team-members/search', { params }).then((r) => r.data),
 };

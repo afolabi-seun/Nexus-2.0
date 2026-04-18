@@ -55,6 +55,23 @@ public class TeamMemberController : ControllerBase
     }
 
     /// <summary>
+    /// Search team members by name, email, or professional ID.
+    /// </summary>
+    [HttpGet("search")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Search(
+        [FromQuery] string query = "",
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        PaginationHelper.Normalize(ref page, ref pageSize);
+        var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
+        var result = await _teamMemberService.SearchAsync(orgId, query, page, pageSize, ct);
+        return ApiResponse<object>.Ok(result, "Search results.").ToActionResult(HttpContext);
+    }
+
+    /// <summary>
     /// Get a team member's detailed profile.
     /// </summary>
     /// <param name="id">Team member ID</param>

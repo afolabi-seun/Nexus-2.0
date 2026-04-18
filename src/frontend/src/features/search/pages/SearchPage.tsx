@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { workApi } from '@/api/workApi';
+import { profileApi } from '@/api/profileApi';
 import { Badge } from '@/components/common/Badge';
 import { Pagination } from '@/components/common/Pagination';
 import { useToast } from '@/components/common/Toast';
 import { useDebounce } from '@/hooks/useDebounce';
 import { usePagination } from '@/hooks/usePagination';
 import type { SearchResponse, SearchResultItem } from '@/types/work';
-import { Search, FileText, ListTodo, FolderKanban } from 'lucide-react';
+import { Search, FileText, ListTodo, FolderKanban, Users } from 'lucide-react';
 
 export function SearchPage() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -30,13 +31,38 @@ export function SearchPage() {
         }
         setLoading(true);
         try {
-            const data = await workApi.search({
-                query: q,
-                entityType: entityType || undefined,
-                page,
-                pageSize,
+            const searchEntityType = entityType || undefined;
+
+            // Search WorkService (stories, projects, tasks)
+            const workPromise = (!searchEntityType || searchEntityType !== 'Member')
+                ? workApi.search({ query: q, entityType: searchEntityType, page, pageSize })
+                : Promise.resolve({ items: [], totalCount: 0, page, pageSize } as SearchResponse);
+
+            // Search ProfileService (members)
+            const memberPromise = (!searchEntityType || searchEntityType === 'Member')
+                ? profileApi.searchMembers({ query: q, page, pageSize }).catch(() => ({ data: [], totalCount: 0 }))
+                : Promise.resolve({ data: [], totalCount: 0 });
+
+            const [workData, memberData] = await Promise.all([workPromise, memberPromise]);
+
+            const memberItems: SearchResultItem[] = memberData.data.map((m) => ({
+                id: m.teamMemberId,
+                entityType: 'Member',
+                title: `${m.firstName} ${m.lastName}`,
+                status: m.flgStatus === 'A' ? 'Active' : m.flgStatus === 'S' ? 'Suspended' : 'Deactivated',
+                priority: '',
+                storyKey: m.email,
+                assigneeName: null,
+                departmentName: null,
+                relevance: 0,
+            }));
+
+            setResults({
+                items: [...workData.items, ...memberItems],
+                totalCount: workData.totalCount + memberData.totalCount,
+                page: workData.page,
+                pageSize: workData.pageSize,
             });
-            setResults(data);
         } catch {
             addToast('error', 'Search failed');
         } finally {
@@ -54,6 +80,7 @@ export function SearchPage() {
     const handleResultClick = (item: SearchResultItem) => {
         if (item.entityType === 'Story') navigate(`/stories/${item.id}`);
         else if (item.entityType === 'Project') navigate(`/projects/${item.id}`);
+        else if (item.entityType === 'Member') navigate(`/members/${item.id}`);
     };
 
     const grouped = results?.items.reduce<Record<string, SearchResultItem[]>>((acc, item) => {
@@ -75,7 +102,7 @@ export function SearchPage() {
                         type="text"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Search stories, projects, tasks..."
+                        placeholder="Search stories, projects, tasks, members..."
                         className="h-10 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                         autoFocus
                     />
@@ -89,6 +116,7 @@ export function SearchPage() {
                     <option value="Story">Stories</option>
                     <option value="Project">Projects</option>
                     <option value="Task">Tasks</option>
+                    <option value="Member">Members</option>
                 </select>
             </div>
 
@@ -107,7 +135,7 @@ export function SearchPage() {
                     {Object.entries(grouped).map(([type, items]) => (
                         <section key={type} className="space-y-2">
                             <h2 className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                                {type === 'Story' ? <FileText size={14} /> : type === 'Project' ? <FolderKanban size={14} /> : <ListTodo size={14} />}
+                                {type === 'Story' ? <FileText size={14} /> : type === 'Project' ? <FolderKanban size={14} /> : type === 'Member' ? <Users size={14} /> : <ListTodo size={14} />}
                                 {type}s ({items.length})
                             </h2>
                             <div className="space-y-1.5">
