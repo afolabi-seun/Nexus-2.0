@@ -275,3 +275,14 @@ The DB-driven navigation table (`NavigationItems`) is never seeded. All deployme
   - AUTHORIZATION_RBAC.md — Role hierarchy, middleware enforcement, department/org scoping
   - INTER_SERVICE_COMMUNICATION.md — Service clients, Polly resilience, outbox pattern, error propagation
   - CODE_STRUCTURE.md — Clean Architecture layers, GenericRepository, folder conventions, FlgStatus pattern
+
+### Search Expansion (Phase 10)
+- [x] **Global search across 4 entity types** — Stories (full-text), Projects (full-text), Tasks (full-text) via WorkService + Members (ILIKE) via ProfileService. Frontend merges results client-side.
+- [x] **Backend: SearchAsync added to ProjectRepository and TaskRepository** — PostgreSQL full-text search on name/key/description fields.
+- [x] **Backend: GET /api/v1/team-members/search** — New endpoint on ProfileService for member search by name/email/professional ID.
+- [x] **Frontend: SearchPage groups results by entity type** — Stories, Projects, Tasks, Members with section headers, entity type filter dropdown, click-to-navigate.
+
+### Navigation & Auth Fixes
+- [x] **Navigation DB seed** — Added `Section` field to NavigationItem entity. Seeded 19 navigation items via EF Core HasData (Work/Tracking/Team/Organization sections). Frontend buildSections() groups DB items by section.
+- [x] **NavigationController auth fix** — Changed CRUD from `[ServiceAuth]` to `[PlatformAdmin]` so admin users can manage navigation.
+- [x] **Endpoint auth audit** — Added missing `[Authorize]` to AuditLogController and ErrorLogController. Changed ErrorCodeController CUD from `[OrgAdmin]` to `[PlatformAdmin]` (error codes are platform-wide). Created PlatformAdminAttribute for UtilityService.
