@@ -6,6 +6,7 @@ using BillingService.Domain.Interfaces.Repositories.Subscriptions;
 using BillingService.Domain.Interfaces.Services.Usage;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
+using BillingService.Infrastructure.Redis;
 
 namespace BillingService.Infrastructure.Services.Usage;
 
@@ -39,7 +40,7 @@ public class UsageService : IUsageService
             long currentValue = 0;
             try
             {
-                var val = await db.StringGetAsync($"usage:{organizationId}:{metricName}");
+                var val = await db.StringGetAsync(RedisKeys.Usage(organizationId, metricName));
                 if (val.HasValue && long.TryParse(val, out var parsed))
                     currentValue = parsed;
             }
@@ -59,7 +60,7 @@ public class UsageService : IUsageService
     public async Task IncrementAsync(Guid organizationId, string metricName, long value, CancellationToken ct)
     {
         var db = _redis.GetDatabase();
-        var key = $"usage:{organizationId}:{metricName}";
+        var key = RedisKeys.Usage(organizationId, metricName);
         await db.StringIncrementAsync(key, value);
         await db.KeyExpireAsync(key, TimeSpan.FromMinutes(5), ExpireWhen.HasNoExpiry);
     }

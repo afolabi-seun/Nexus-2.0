@@ -4,6 +4,7 @@ using ProfileService.Application.Contracts;
 using ProfileService.Domain.Interfaces.Services.ErrorCodeResolver;
 using ProfileService.Infrastructure.Services.ServiceClients;
 using StackExchange.Redis;
+using ProfileService.Infrastructure.Redis;
 
 namespace ProfileService.Infrastructure.Services.ErrorCodeResolver;
 
@@ -35,7 +36,7 @@ public class ErrorCodeResolverService : IErrorCodeResolverService
         string errorCode, CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
-        var cacheKey = $"error_code:{errorCode}";
+        var cacheKey = RedisKeys.ErrorCode(errorCode);
 
         // 1. Check Redis cache
         var cached = await db.StringGetAsync(cacheKey);

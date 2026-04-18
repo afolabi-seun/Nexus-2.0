@@ -16,6 +16,7 @@ using WorkService.Domain.Interfaces.Services.Sprints;
 using WorkService.Infrastructure.Data;
 using WorkService.Infrastructure.Services.ServiceClients;
 using StackExchange.Redis;
+using WorkService.Infrastructure.Redis;
 
 namespace WorkService.Infrastructure.Services.Sprints;
 
@@ -123,7 +124,7 @@ public class SprintService : ISprintService
         await _dbContext.SaveChangesAsync(ct);
 
         var db = _redis.GetDatabase();
-        await db.StringSetAsync($"sprint_active:{sprint.ProjectId}", sprint.SprintId.ToString(), TimeSpan.FromMinutes(2));
+        await db.StringSetAsync(RedisKeys.SprintActive(sprint.ProjectId), sprint.SprintId.ToString(), TimeSpan.FromMinutes(2));
 
         await _outbox.PublishAsync(new { MessageType = "NotificationRequest", Action = "SprintStarted", EntityType = "Sprint", EntityId = sprintId.ToString(), NotificationType = "SprintStarted" }, ct);
 
@@ -168,8 +169,8 @@ public class SprintService : ISprintService
         await _dbContext.SaveChangesAsync(ct);
 
         var db = _redis.GetDatabase();
-        await db.KeyDeleteAsync($"sprint_active:{sprint.ProjectId}");
-        await db.KeyDeleteAsync($"sprint_metrics:{sprintId}");
+        await db.KeyDeleteAsync(RedisKeys.SprintActive(sprint.ProjectId));
+        await db.KeyDeleteAsync(RedisKeys.SprintMetrics(sprintId));
 
         var completionRate = totalStories > 0 ? Math.Round((decimal)completedStories / totalStories * 100, 2) : 0;
         await _outbox.PublishAsync(new { MessageType = "NotificationRequest", Action = "SprintEnded", EntityType = "Sprint", EntityId = sprintId.ToString(), NotificationType = "SprintEnded", TemplateVariables = new Dictionary<string, string> { ["Velocity"] = velocity.ToString(), ["CompletionRate"] = completionRate.ToString() } }, ct);
@@ -215,7 +216,7 @@ public class SprintService : ISprintService
         await _dbContext.SaveChangesAsync(ct);
 
         var db = _redis.GetDatabase();
-        await db.KeyDeleteAsync($"sprint_active:{sprint.ProjectId}");
+        await db.KeyDeleteAsync(RedisKeys.SprintActive(sprint.ProjectId));
 
         return await BuildDetailResponse(sprint, ct);
     }
@@ -261,7 +262,7 @@ public class SprintService : ISprintService
     public async Task<object> GetMetricsAsync(Guid sprintId, CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
-        var cacheKey = $"sprint_metrics:{sprintId}";
+        var cacheKey = RedisKeys.SprintMetrics(sprintId);
         var cached = await db.StringGetAsync(cacheKey);
         if (cached.HasValue)
         {

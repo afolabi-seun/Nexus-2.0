@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using WorkService.Infrastructure.Data;
+using WorkService.Infrastructure.Redis;
 using WorkService.Infrastructure.Services.ServiceClients;
 
 namespace WorkService.Infrastructure.Services.SprintNotifications;
@@ -57,7 +58,7 @@ public class SprintNotificationHostedService : BackgroundService
 
         foreach (var sprint in activeSprints)
         {
-            var dedupeKey = $"sprint_notif:{sprint.SprintId}:{now:yyyy-MM-dd}";
+            var dedupeKey = RedisKeys.SprintNotif(sprint.SprintId, now.ToString("yyyy-MM-dd"));
 
             // Sprint due soon (within 2 days)
             if (sprint.EndDate.Date <= now.AddDays(2).Date && sprint.EndDate.Date > now.Date)

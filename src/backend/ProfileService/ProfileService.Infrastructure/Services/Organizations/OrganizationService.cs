@@ -17,6 +17,7 @@ using ProfileService.Domain.Interfaces.Services.Outbox;
 using ProfileService.Infrastructure.Data;
 using ProfileService.Infrastructure.Services.ServiceClients;
 using StackExchange.Redis;
+using ProfileService.Infrastructure.Redis;
 
 namespace ProfileService.Infrastructure.Services.Organizations;
 
@@ -229,7 +230,7 @@ public class OrganizationService : IOrganizationService
 
         // Invalidate cache
         var db = _redis.GetDatabase();
-        await db.KeyDeleteAsync($"org_settings:{organizationId}");
+        await db.KeyDeleteAsync(RedisKeys.OrgSettings(organizationId));
 
         return MapSettingsToResponse(settings);
     }

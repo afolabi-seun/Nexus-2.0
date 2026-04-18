@@ -1,5 +1,6 @@
 using ProfileService.Application.DTOs;
 using StackExchange.Redis;
+using ProfileService.Infrastructure.Redis;
 
 namespace ProfileService.Api.Middleware;
 
@@ -21,7 +22,7 @@ public class TokenBlacklistMiddleware
         {
             var redis = context.RequestServices.GetRequiredService<IConnectionMultiplexer>();
             var db = redis.GetDatabase();
-            var isBlacklisted = await db.KeyExistsAsync($"blacklist:{jti}");
+            var isBlacklisted = await db.KeyExistsAsync(RedisKeys.Blacklist(jti));
 
             if (isBlacklisted)
             {

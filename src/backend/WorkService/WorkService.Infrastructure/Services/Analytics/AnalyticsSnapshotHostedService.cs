@@ -7,6 +7,7 @@ using WorkService.Application.DTOs.Analytics;
 using WorkService.Domain.Interfaces.Repositories.Projects;
 using WorkService.Domain.Interfaces.Repositories.Sprints;
 using WorkService.Domain.Interfaces.Services.Analytics;
+using WorkService.Infrastructure.Redis;
 
 namespace WorkService.Infrastructure.Services.Analytics;
 
@@ -91,13 +92,13 @@ public class AnalyticsSnapshotHostedService : BackgroundService, IAnalyticsSnaps
 
         var db = _redis.GetDatabase();
         var json = JsonSerializer.Serialize(status);
-        await db.StringSetAsync("analytics:snapshot_status", json, TimeSpan.FromHours(24));
+        await db.StringSetAsync(RedisKeys.AnalyticsSnapshotStatus, json, TimeSpan.FromHours(24));
     }
 
     public async Task<object> GetSnapshotStatusAsync(CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
-        var cached = await db.StringGetAsync("analytics:snapshot_status");
+        var cached = await db.StringGetAsync(RedisKeys.AnalyticsSnapshotStatus);
 
         if (cached.HasValue)
         {

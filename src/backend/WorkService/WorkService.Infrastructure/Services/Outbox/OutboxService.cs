@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using WorkService.Domain.Interfaces.Services.Outbox;
 using StackExchange.Redis;
+using WorkService.Infrastructure.Redis;
 
 namespace WorkService.Infrastructure.Services.Outbox;
 
@@ -10,8 +11,8 @@ public class OutboxService : IOutboxService
     private readonly IConnectionMultiplexer _redis;
     private readonly ILogger<OutboxService> _logger;
 
-    private const string QueueKey = "outbox:work";
-    private const string DlqKey = "dlq:work";
+    private const string QueueKey = RedisKeys.Outbox;
+    private const string DlqKey = RedisKeys.Dlq;
     private const int MaxRetries = 3;
     private static readonly int[] BackoffSecondsPerRetry = [1, 2, 4];
 

@@ -6,6 +6,7 @@ using StackExchange.Redis;
 using UtilityService.Application.DTOs;
 using UtilityService.Domain.Interfaces.Services.Outbox;
 using UtilityService.Infrastructure.Configuration;
+using UtilityService.Infrastructure.Redis;
 
 namespace UtilityService.Infrastructure.Services.BackgroundServices;
 
@@ -16,7 +17,7 @@ public class OutboxProcessorHostedService : BackgroundService
     private readonly AppSettings _appSettings;
     private readonly ILogger<OutboxProcessorHostedService> _logger;
 
-    private static readonly string[] OutboxQueues = { "outbox:security", "outbox:profile", "outbox:work" };
+    private static readonly string[] OutboxQueues = RedisKeys.AllOutboxQueues;
 
     public OutboxProcessorHostedService(
         IServiceScopeFactory scopeFactory, IConnectionMultiplexer redis,
@@ -70,14 +71,14 @@ public class OutboxProcessorHostedService : BackgroundService
         }
         catch
         {
-            var dlqKey = queue.Replace("outbox:", "dlq:");
+            var dlqKey = RedisKeys.DlqFor(queue);
             await db.ListLeftPushAsync(dlqKey, message);
             return;
         }
 
         if (outboxMessage == null)
         {
-            var dlqKey = queue.Replace("outbox:", "dlq:");
+            var dlqKey = RedisKeys.DlqFor(queue);
             await db.ListLeftPushAsync(dlqKey, message);
             return;
         }
@@ -85,7 +86,7 @@ public class OutboxProcessorHostedService : BackgroundService
         outboxMessage.RetryCount++;
         if (outboxMessage.RetryCount >= 3)
         {
-            var dlqKey = queue.Replace("outbox:", "dlq:");
+            var dlqKey = RedisKeys.DlqFor(queue);
             await db.ListLeftPushAsync(dlqKey, JsonSerializer.Serialize(outboxMessage));
             _logger.LogWarning("Message moved to DLQ. Queue={Queue} MessageId={MessageId} RetryCount={RetryCount} Error={Error}",
                 queue, outboxMessage.Id, outboxMessage.RetryCount, ex.Message);

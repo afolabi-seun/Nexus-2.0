@@ -7,6 +7,7 @@ using SecurityService.Domain.Exceptions;
 using SecurityService.Domain.Interfaces.Services.ServiceToken;
 using SecurityService.Infrastructure.Configuration;
 using StackExchange.Redis;
+using SecurityService.Infrastructure.Redis;
 
 namespace SecurityService.Infrastructure.Services.ServiceClients;
 
@@ -45,7 +46,7 @@ public class ProfileServiceClient : IProfileServiceClient
     {
         // Check Redis cache first
         var db = _redis.GetDatabase();
-        var cacheKey = $"user_cache:{email}";
+        var cacheKey = RedisKeys.UserCache(email);
         var cached = await db.StringGetAsync(cacheKey);
 
         if (cached.HasValue)

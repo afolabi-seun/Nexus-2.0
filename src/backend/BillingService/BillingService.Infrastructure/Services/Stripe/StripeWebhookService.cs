@@ -12,6 +12,7 @@ using BillingService.Infrastructure.Data;
 using BillingService.Infrastructure.Services.ServiceClients;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
+using BillingService.Infrastructure.Redis;
 
 namespace BillingService.Infrastructure.Services.Stripe;
 
@@ -178,7 +179,7 @@ public class StripeWebhookService
                     freePlan.MaxTeamMembers, freePlan.MaxDepartments, freePlan.MaxStoriesPerMonth,
                     freePlan.FeaturesJson
                 });
-                await db.StringSetAsync($"plan:{subscription.OrganizationId}", cacheValue, TimeSpan.FromMinutes(30));
+                await db.StringSetAsync(RedisKeys.Plan(subscription.OrganizationId), cacheValue, TimeSpan.FromMinutes(30));
             }
             catch (Exception ex)
             {

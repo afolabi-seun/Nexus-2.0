@@ -6,6 +6,7 @@ using UtilityService.Domain.Exceptions;
 using UtilityService.Domain.Interfaces.Repositories.ErrorCodeEntries;
 using UtilityService.Domain.Interfaces.Services.ErrorCodes;
 using UtilityService.Infrastructure.Data;
+using UtilityService.Infrastructure.Redis;
 
 namespace UtilityService.Infrastructure.Services.ErrorCodes;
 
@@ -14,7 +15,7 @@ public class ErrorCodeService : IErrorCodeService
     private readonly IErrorCodeEntryRepository _repo;
     private readonly IConnectionMultiplexer _redis;
     private readonly UtilityDbContext _dbContext;
-    private const string CacheKey = "error_codes_registry";
+    private static readonly string CacheKey = RedisKeys.ErrorCodesRegistry;
     private static readonly TimeSpan CacheTtl = TimeSpan.FromHours(24);
 
     public ErrorCodeService(IErrorCodeEntryRepository repo, IConnectionMultiplexer redis, UtilityDbContext dbContext)

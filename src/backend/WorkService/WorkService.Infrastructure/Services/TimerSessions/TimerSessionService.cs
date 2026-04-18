@@ -7,6 +7,7 @@ using WorkService.Domain.Exceptions;
 using WorkService.Domain.Interfaces.Repositories.Stories;
 using WorkService.Domain.Interfaces.Services.TimeEntries;
 using WorkService.Domain.Interfaces.Services.TimerSessions;
+using WorkService.Infrastructure.Redis;
 
 namespace WorkService.Infrastructure.Services.TimerSessions;
 
@@ -54,7 +55,7 @@ public class TimerSessionService : ITimerSessionService
         var story = await _storyRepo.GetByIdAsync(storyId, ct)
             ?? throw new StoryNotFoundException(storyId);
 
-        var key = $"timer:{userId}:{storyId}";
+        var key = RedisKeys.Timer(userId, storyId);
         var payload = JsonSerializer.Serialize(new
         {
             storyId,
@@ -156,7 +157,7 @@ public class TimerSessionService : ITimerSessionService
         if (server == null)
             return null;
 
-        var pattern = $"timer:{userId}:*";
+        var pattern = RedisKeys.TimerPattern(userId);
         await foreach (var key in server.KeysAsync(database: db.Database, pattern: pattern, pageSize: 10))
         {
             return key.ToString();

@@ -123,7 +123,7 @@ public class MiddlewarePipelineTests
         redisMock.Setup(r => r.GetDatabase(It.IsAny<int>(), It.IsAny<object>())).Returns(dbMock.Object);
 
         var jti = "blacklisted-jti";
-        dbMock.Setup(d => d.KeyExistsAsync(It.Is<RedisKey>(k => k.ToString() == $"blacklist:{jti}"), It.IsAny<CommandFlags>()))
+        dbMock.Setup(d => d.KeyExistsAsync(It.Is<RedisKey>(k => k.ToString() == $"nexus:blacklist:{jti}"), It.IsAny<CommandFlags>()))
             .ReturnsAsync(true);
 
         var middleware = new TokenBlacklistMiddleware(

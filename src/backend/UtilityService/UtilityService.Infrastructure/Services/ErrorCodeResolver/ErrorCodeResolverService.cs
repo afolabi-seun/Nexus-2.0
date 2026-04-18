@@ -2,6 +2,7 @@ using StackExchange.Redis;
 using UtilityService.Domain.Interfaces.Repositories.ErrorCodeEntries;
 using UtilityService.Domain.Interfaces.Services.ErrorCodeResolver;
 using DomainErrorCodes = UtilityService.Domain.Exceptions.ErrorCodes;
+using UtilityService.Infrastructure.Redis;
 
 namespace UtilityService.Infrastructure.Services.ErrorCodeResolver;
 
@@ -9,7 +10,7 @@ public class ErrorCodeResolverService : IErrorCodeResolverService
 {
     private readonly IErrorCodeEntryRepository _repo;
     private readonly IConnectionMultiplexer _redis;
-    private const string CacheKey = "error_codes_registry";
+    private static readonly string CacheKey = RedisKeys.ErrorCodesRegistry;
 
     private static readonly Dictionary<string, (string ResponseCode, string Description)> StaticFallback = new()
     {

@@ -14,6 +14,7 @@ using SecurityService.Domain.Interfaces.Services.Session;
 using SecurityService.Infrastructure.Configuration;
 using SecurityService.Infrastructure.Services.ServiceClients;
 using StackExchange.Redis;
+using SecurityService.Infrastructure.Redis;
 
 namespace SecurityService.Infrastructure.Services.Auth;
 
@@ -60,7 +61,7 @@ public class AuthService : IAuthService
         var db = _redis.GetDatabase();
 
         // 1. Check lockout
-        var lockedKey = $"lockout:locked:{email}";
+        var lockedKey = RedisKeys.LockoutLocked(email);
         var isLocked = await db.KeyExistsAsync(lockedKey);
         if (isLocked)
             throw new AccountLockedException();
@@ -100,7 +101,7 @@ public class AuthService : IAuthService
         if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
         {
             // Increment lockout counter
-            var lockoutKey = $"lockout:{email}";
+            var lockoutKey = RedisKeys.Lockout(email);
             var attempts = await db.StringIncrementAsync(lockoutKey);
 
             if (attempts == 1)
@@ -128,7 +129,7 @@ public class AuthService : IAuthService
         await _anomalyDetectionService.CheckLoginAnomalyAsync(user.TeamMemberId, ipAddress, ct);
 
         // 6. Reset lockout on success
-        await db.KeyDeleteAsync($"lockout:{email}");
+        await db.KeyDeleteAsync(RedisKeys.Lockout(email));
         await _anomalyDetectionService.AddTrustedIpAsync(user.TeamMemberId, ipAddress, ct);
 
         // 7. Generate tokens
@@ -144,8 +145,7 @@ public class AuthService : IAuthService
 
         // 9. Store BCrypt-hashed refresh token
         var refreshHash = BCrypt.Net.BCrypt.HashPassword(refreshToken);
-        var refreshKey = $"refresh:{user.TeamMemberId}:{deviceId}";
-        await db.StringSetAsync(refreshKey, refreshHash,
+        await db.StringSetAsync(RedisKeys.Refresh(user.TeamMemberId, deviceId), refreshHash,
             TimeSpan.FromDays(_appSettings.RefreshTokenExpiryDays));
 
         // 10. Publish audit event
@@ -173,7 +173,7 @@ public class AuthService : IAuthService
         // BCrypt verify password
         if (!BCrypt.Net.BCrypt.Verify(password, platformAdmin.PasswordHash))
         {
-            var lockoutKey = $"lockout:{loginIdentifier}";
+            var lockoutKey = RedisKeys.Lockout(loginIdentifier);
             var attempts = await db.StringIncrementAsync(lockoutKey);
 
             if (attempts == 1)
@@ -183,7 +183,7 @@ public class AuthService : IAuthService
 
             if (attempts >= _appSettings.AccountLockoutMaxAttempts)
             {
-                var lockedKey = $"lockout:locked:{loginIdentifier}";
+                var lockedKey = RedisKeys.LockoutLocked(loginIdentifier);
                 await db.StringSetAsync(lockedKey, "1",
                     TimeSpan.FromMinutes(_appSettings.AccountLockoutDurationMinutes));
                 await db.KeyDeleteAsync(lockoutKey);
@@ -196,7 +196,7 @@ public class AuthService : IAuthService
         }
 
         // Reset lockout on success
-        await db.KeyDeleteAsync($"lockout:{loginIdentifier}");
+        await db.KeyDeleteAsync(RedisKeys.Lockout(loginIdentifier));
 
         // Generate tokens — PlatformAdmin has no organizationId or departmentId
         var accessToken = _jwtService.GenerateAccessToken(
@@ -211,8 +211,7 @@ public class AuthService : IAuthService
 
         // Store BCrypt-hashed refresh token
         var refreshHash = BCrypt.Net.BCrypt.HashPassword(refreshToken);
-        var refreshKey = $"refresh:{platformAdmin.PlatformAdminId}:{deviceId}";
-        await db.StringSetAsync(refreshKey, refreshHash,
+        await db.StringSetAsync(RedisKeys.Refresh(platformAdmin.PlatformAdminId, deviceId), refreshHash,
             TimeSpan.FromDays(_appSettings.RefreshTokenExpiryDays));
 
         // Publish audit event
@@ -240,11 +239,11 @@ public class AuthService : IAuthService
         var remainingTtl = tokenExpiry - DateTime.UtcNow;
         if (remainingTtl > TimeSpan.Zero)
         {
-            await db.StringSetAsync($"blacklist:{jti}", "1", remainingTtl);
+            await db.StringSetAsync(RedisKeys.Blacklist(jti), "1", remainingTtl);
         }
 
         // Remove refresh token
-        await db.KeyDeleteAsync($"refresh:{userId}:{deviceId}");
+        await db.KeyDeleteAsync(RedisKeys.Refresh(userId, deviceId));
 
         // Publish audit event
         await PublishAuditEventAsync("Logout", "Session", $"{userId}:{deviceId}",
@@ -263,7 +262,7 @@ public class AuthService : IAuthService
         string? matchedKey = null;
         Guid userId = Guid.Empty;
 
-        await foreach (var key in server.KeysAsync(pattern: $"refresh:*:{deviceId}"))
+        await foreach (var key in server.KeysAsync(pattern: RedisKeys.RefreshPattern(deviceId)))
         {
             var storedHash = await db.StringGetAsync(key);
             if (storedHash.IsNullOrEmpty) continue;
@@ -271,9 +270,9 @@ public class AuthService : IAuthService
             if (BCrypt.Net.BCrypt.Verify(refreshToken, storedHash!))
             {
                 matchedKey = key.ToString();
-                // Extract userId from key: refresh:{userId}:{deviceId}
+                // Extract userId from key: nexus:refresh:{userId}:{deviceId}
                 var parts = matchedKey.Split(':');
-                if (parts.Length >= 2 && Guid.TryParse(parts[1], out var parsedId))
+                if (parts.Length >= 3 && Guid.TryParse(parts[2], out var parsedId))
                 {
                     userId = parsedId;
                 }
@@ -285,14 +284,14 @@ public class AuthService : IAuthService
         {
             // Could be reuse detection — if no key found, the token was already rotated
             // Check if any session exists for this device
-            var reusePattern = $"refresh:*:{deviceId}";
+            var reusePattern = RedisKeys.RefreshPattern(deviceId);
             var hasAnyKey = false;
             await foreach (var key in server.KeysAsync(pattern: reusePattern))
             {
                 hasAnyKey = true;
                 // Extract userId for revocation
                 var parts = key.ToString().Split(':');
-                if (parts.Length >= 2 && Guid.TryParse(parts[1], out var reuseUserId))
+                if (parts.Length >= 3 && Guid.TryParse(parts[2], out var reuseUserId))
                 {
                     // Revoke all sessions for this user (reuse detected)
                     await _sessionService.RevokeAllSessionsAsync(reuseUserId, ct);
@@ -328,7 +327,7 @@ public class AuthService : IAuthService
 
         // Store new refresh hash
         var newRefreshHash = BCrypt.Net.BCrypt.HashPassword(newRefreshToken);
-        await db.StringSetAsync($"refresh:{userId}:{deviceId}", newRefreshHash,
+        await db.StringSetAsync(RedisKeys.Refresh(userId, deviceId), newRefreshHash,
             TimeSpan.FromDays(_appSettings.RefreshTokenExpiryDays));
 
         return new AuthResult
@@ -344,7 +343,7 @@ public class AuthService : IAuthService
     {
         // Try to find email from cached user data
         var server = _redis.GetServers().First();
-        await foreach (var key in server.KeysAsync(pattern: "user_cache:*"))
+        await foreach (var key in server.KeysAsync(pattern: RedisKeys.UserCachePattern))
         {
             var json = await db.StringGetAsync(key);
             if (json.IsNullOrEmpty) continue;
@@ -426,6 +425,6 @@ public class AuthService : IAuthService
             Timestamp = DateTime.UtcNow
         });
 
-        await _outboxService.PublishAsync("outbox:security", message, ct);
+        await _outboxService.PublishAsync(RedisKeys.Outbox, message, ct);
     }
 }

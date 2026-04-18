@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using SecurityService.Domain.Interfaces.Services.Session;
 using StackExchange.Redis;
+using SecurityService.Infrastructure.Redis;
 
 namespace SecurityService.Infrastructure.Services.Session;
 
@@ -25,7 +26,7 @@ public class SessionService : ISessionService
         DateTime tokenExpiry, CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
-        var key = $"session:{userId}:{deviceId}";
+        var key = RedisKeys.Session(userId, deviceId);
 
         var sessionData = new SessionData
         {
@@ -50,7 +51,7 @@ public class SessionService : ISessionService
         CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
-        var pattern = $"session:{userId}:*";
+        var pattern = RedisKeys.SessionPattern(userId);
         var sessions = new List<SessionInfo>();
 
         var server = _redis.GetServers().First();
@@ -82,7 +83,7 @@ public class SessionService : ISessionService
         var db = _redis.GetDatabase();
 
         // sessionId format is "userId:deviceId"
-        var key = $"session:{sessionId}";
+        var key = RedisKeys.SessionById(sessionId);
         var json = await db.StringGetAsync(key);
 
         if (!json.IsNullOrEmpty)
@@ -93,7 +94,7 @@ public class SessionService : ISessionService
                 var remainingTtl = await db.KeyTimeToLiveAsync(key);
                 if (remainingTtl.HasValue && remainingTtl.Value > TimeSpan.Zero)
                 {
-                    await db.StringSetAsync($"blacklist:{data.Jti}", "1", remainingTtl.Value);
+                    await db.StringSetAsync(RedisKeys.Blacklist(data.Jti), "1", remainingTtl.Value);
                 }
             }
         }
@@ -106,8 +107,8 @@ public class SessionService : ISessionService
         CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
-        var pattern = $"session:{userId}:*";
-        var currentKey = $"session:{userId}:{currentDeviceId}";
+        var pattern = RedisKeys.SessionPattern(userId);
+        var currentKey = RedisKeys.SessionForDevice(userId, currentDeviceId);
 
         var server = _redis.GetServers().First();
         await foreach (var key in server.KeysAsync(pattern: pattern))
@@ -123,7 +124,7 @@ public class SessionService : ISessionService
     public async Task RevokeAllSessionsAsync(Guid userId, CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
-        var pattern = $"session:{userId}:*";
+        var pattern = RedisKeys.SessionPattern(userId);
 
         var server = _redis.GetServers().First();
         await foreach (var key in server.KeysAsync(pattern: pattern))
@@ -145,7 +146,7 @@ public class SessionService : ISessionService
                 var remainingTtl = await db.KeyTimeToLiveAsync(key);
                 if (remainingTtl.HasValue && remainingTtl.Value > TimeSpan.Zero)
                 {
-                    await db.StringSetAsync($"blacklist:{data.Jti}", "1", remainingTtl.Value);
+                    await db.StringSetAsync(RedisKeys.Blacklist(data.Jti), "1", remainingTtl.Value);
                 }
             }
         }

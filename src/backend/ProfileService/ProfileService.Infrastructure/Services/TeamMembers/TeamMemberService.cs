@@ -12,6 +12,7 @@ using ProfileService.Domain.Interfaces.Repositories.TeamMembers;
 using ProfileService.Domain.Interfaces.Services.TeamMembers;
 using ProfileService.Infrastructure.Data;
 using StackExchange.Redis;
+using ProfileService.Infrastructure.Redis;
 
 namespace ProfileService.Infrastructure.Services.TeamMembers;
 
@@ -98,7 +99,7 @@ public class TeamMemberService : ITeamMemberService
 
         // Invalidate cache
         var db = _redis.GetDatabase();
-        await db.KeyDeleteAsync($"member_profile:{memberId}");
+        await db.KeyDeleteAsync(RedisKeys.MemberProfile(memberId));
 
         var memberships = await _deptMemberRepo.GetByMemberIdAsync(memberId, ct);
         return MapToDetailResponse(member, memberships);
@@ -138,7 +139,7 @@ public class TeamMemberService : ITeamMemberService
         await _dbContext.SaveChangesAsync(ct);
 
         var db = _redis.GetDatabase();
-        await db.KeyDeleteAsync($"member_profile:{memberId}");
+        await db.KeyDeleteAsync(RedisKeys.MemberProfile(memberId));
     }
 
     public async Task UpdateAvailabilityAsync(Guid memberId, string availability, CancellationToken ct = default)
@@ -182,8 +183,8 @@ public class TeamMemberService : ITeamMemberService
 
         // Invalidate caches
         var db = _redis.GetDatabase();
-        await db.KeyDeleteAsync($"member_profile:{memberId}");
-        await db.KeyDeleteAsync($"dept_list:{member.OrganizationId}");
+        await db.KeyDeleteAsync(RedisKeys.MemberProfile(memberId));
+        await db.KeyDeleteAsync(RedisKeys.DeptList(member.OrganizationId));
     }
 
     public async Task RemoveFromDepartmentAsync(Guid memberId, Guid departmentId, CancellationToken ct = default)
@@ -204,8 +205,8 @@ public class TeamMemberService : ITeamMemberService
 
         // Invalidate caches
         var db = _redis.GetDatabase();
-        await db.KeyDeleteAsync($"member_profile:{memberId}");
-        await db.KeyDeleteAsync($"dept_list:{member.OrganizationId}");
+        await db.KeyDeleteAsync(RedisKeys.MemberProfile(memberId));
+        await db.KeyDeleteAsync(RedisKeys.DeptList(member.OrganizationId));
     }
 
     public async Task ChangeDepartmentRoleAsync(Guid memberId, Guid departmentId, object request, CancellationToken ct = default)
@@ -219,7 +220,7 @@ public class TeamMemberService : ITeamMemberService
         await _dbContext.SaveChangesAsync(ct);
 
         var db = _redis.GetDatabase();
-        await db.KeyDeleteAsync($"member_profile:{memberId}");
+        await db.KeyDeleteAsync(RedisKeys.MemberProfile(memberId));
     }
 
     public async Task<object> GetByEmailAsync(string email, CancellationToken ct = default)

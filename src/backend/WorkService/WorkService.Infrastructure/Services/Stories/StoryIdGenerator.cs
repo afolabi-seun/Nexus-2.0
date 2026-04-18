@@ -4,6 +4,7 @@ using WorkService.Domain.Interfaces.Repositories.Projects;
 using WorkService.Domain.Interfaces.Repositories.StorySequences;
 using WorkService.Domain.Interfaces.Services.Stories;
 using StackExchange.Redis;
+using WorkService.Infrastructure.Redis;
 
 namespace WorkService.Infrastructure.Services.Stories;
 
@@ -41,14 +42,14 @@ public class StoryIdGenerator : IStoryIdGenerator
     private async Task<string> GetProjectKeyAsync(Guid projectId, CancellationToken ct)
     {
         var db = _redis.GetDatabase();
-        var cached = await db.StringGetAsync($"project_prefix:{projectId}");
+        var cached = await db.StringGetAsync(RedisKeys.ProjectPrefix(projectId));
         if (cached.HasValue) return cached.ToString();
 
         var project = await _projectRepo.GetByIdAsync(projectId, ct)
             ?? throw new ProjectNotFoundException(projectId);
 
         await db.StringSetAsync(
-            $"project_prefix:{projectId}",
+            RedisKeys.ProjectPrefix(projectId),
             project.ProjectKey,
             TimeSpan.FromMinutes(60));
 

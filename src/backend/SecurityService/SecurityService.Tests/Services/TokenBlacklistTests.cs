@@ -29,7 +29,7 @@ public class TokenBlacklistTests
     public async Task AfterBlacklisting_KeyExists_ReturnsTrue()
     {
         var jti = Guid.NewGuid().ToString();
-        var blacklistKey = $"blacklist:{jti}";
+        var blacklistKey = $"nexus:blacklist:{jti}";
 
         _dbMock.Setup(d => d.StringSetAsync(
             It.Is<RedisKey>(k => k.ToString() == blacklistKey),
@@ -51,7 +51,7 @@ public class TokenBlacklistTests
     public async Task BeforeBlacklisting_KeyExists_ReturnsFalse()
     {
         var jti = Guid.NewGuid().ToString();
-        var blacklistKey = $"blacklist:{jti}";
+        var blacklistKey = $"nexus:blacklist:{jti}";
 
         _dbMock.Setup(d => d.KeyExistsAsync(It.Is<RedisKey>(k => k.ToString() == blacklistKey), It.IsAny<CommandFlags>()))
             .ReturnsAsync(false);
@@ -64,7 +64,7 @@ public class TokenBlacklistTests
     public async Task BlacklistCheck_IsIdempotent()
     {
         var jti = Guid.NewGuid().ToString();
-        var blacklistKey = $"blacklist:{jti}";
+        var blacklistKey = $"nexus:blacklist:{jti}";
 
         _dbMock.Setup(d => d.KeyExistsAsync(It.Is<RedisKey>(k => k.ToString() == blacklistKey), It.IsAny<CommandFlags>()))
             .ReturnsAsync(true);

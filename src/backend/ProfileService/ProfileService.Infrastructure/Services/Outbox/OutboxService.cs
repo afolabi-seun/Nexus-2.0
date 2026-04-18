@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using ProfileService.Application.DTOs;
 using ProfileService.Domain.Interfaces.Services.Outbox;
 using StackExchange.Redis;
+using ProfileService.Infrastructure.Redis;
 
 namespace ProfileService.Infrastructure.Services.Outbox;
 
@@ -11,8 +12,8 @@ public class OutboxService : IOutboxService
     private readonly IConnectionMultiplexer _redis;
     private readonly ILogger<OutboxService> _logger;
 
-    private const string QueueKey = "outbox:profile";
-    private const string DlqKey = "dlq:profile";
+    private const string QueueKey = RedisKeys.Outbox;
+    private const string DlqKey = RedisKeys.Dlq;
     private const int MaxRetries = 3;
     private static readonly int[] BackoffSecondsPerRetry = [1, 2, 4];
 

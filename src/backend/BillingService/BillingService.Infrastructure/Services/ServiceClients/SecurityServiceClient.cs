@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using BillingService.Infrastructure.Configuration;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
+using BillingService.Infrastructure.Redis;
 
 namespace BillingService.Infrastructure.Services.ServiceClients;
 
@@ -27,7 +28,7 @@ public class SecurityServiceClient : ISecurityServiceClient
     public async Task<string> GetServiceTokenAsync(CancellationToken ct)
     {
         var db = _redis.GetDatabase();
-        var cached = await db.StringGetAsync("service_token:billing");
+        var cached = await db.StringGetAsync(RedisKeys.ServiceToken("billing"));
         if (cached.HasValue) return cached!;
 
         var client = _httpClientFactory.CreateClient("SecurityService");
@@ -42,7 +43,7 @@ public class SecurityServiceClient : ISecurityServiceClient
         var result = await response.Content.ReadFromJsonAsync<ServiceTokenResponse>(cancellationToken: ct);
         var token = result?.Data?.Token ?? throw new InvalidOperationException("Failed to obtain service token.");
 
-        await db.StringSetAsync("service_token:billing", token, TimeSpan.FromHours(23));
+        await db.StringSetAsync(RedisKeys.ServiceToken("billing"), token, TimeSpan.FromHours(23));
         return token;
     }
 

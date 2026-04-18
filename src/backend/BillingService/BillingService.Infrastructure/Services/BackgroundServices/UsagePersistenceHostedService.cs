@@ -46,7 +46,7 @@ public class UsagePersistenceHostedService : BackgroundService
         var server = redis.GetServer(redis.GetEndPoints().First());
         var db = redis.GetDatabase();
 
-        var pattern = "usage:*";
+        var pattern = "nexus:usage:*";
         var keys = server.Keys(pattern: pattern).ToList();
 
         foreach (var key in keys)

@@ -7,6 +7,7 @@ using UtilityService.Application.DTOs.Notifications;
 using UtilityService.Domain.Interfaces.Services.AuditLogs;
 using UtilityService.Domain.Interfaces.Services.Notifications;
 using UtilityService.Domain.Interfaces.Services.Outbox;
+using UtilityService.Infrastructure.Redis;
 
 namespace UtilityService.Infrastructure.Services.Outbox;
 
@@ -70,7 +71,7 @@ public class OutboxMessageRouter : IOutboxMessageRouter
 
     private async Task MoveToDlqAsync(string sourceQueue, string rawMessage)
     {
-        var dlqKey = sourceQueue.Replace("outbox:", "dlq:");
+        var dlqKey = RedisKeys.DlqFor(sourceQueue);
         var db = _redis.GetDatabase();
         await db.ListLeftPushAsync(dlqKey, rawMessage);
     }

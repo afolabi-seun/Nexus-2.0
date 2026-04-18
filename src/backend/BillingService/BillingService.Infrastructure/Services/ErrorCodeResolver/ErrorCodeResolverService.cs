@@ -4,6 +4,7 @@ using BillingService.Application.Contracts;
 using BillingService.Domain.Interfaces.Services.ErrorCodeResolver;
 using BillingService.Infrastructure.Services.ServiceClients;
 using StackExchange.Redis;
+using BillingService.Infrastructure.Redis;
 
 namespace BillingService.Infrastructure.Services.ErrorCodeResolver;
 
@@ -35,7 +36,7 @@ public class ErrorCodeResolverService : IErrorCodeResolverService
         string errorCode, CancellationToken ct)
     {
         var db = _redis.GetDatabase();
-        var cacheKey = $"error_code:{errorCode}";
+        var cacheKey = RedisKeys.ErrorCode(errorCode);
 
         // 1. Check Redis cache
         var cached = await db.StringGetAsync(cacheKey);

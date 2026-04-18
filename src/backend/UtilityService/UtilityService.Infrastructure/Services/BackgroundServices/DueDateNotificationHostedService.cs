@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
+using UtilityService.Infrastructure.Redis;
 
 namespace UtilityService.Infrastructure.Services.BackgroundServices;
 
@@ -44,12 +45,12 @@ public class DueDateNotificationHostedService : BackgroundService
         // Scan for due date entries published by WorkService
         // The WorkService publishes due-date-approaching events to a Redis set
         // We check for deduplication using a Redis key per entity
-        var dueDateKey = "duedate:approaching";
+        var dueDateKey = "nexus:duedate:approaching";
         var entries = await db.SetMembersAsync(dueDateKey);
 
         foreach (var entry in entries)
         {
-            var entityKey = $"duedate:notified:{entry}";
+            var entityKey = RedisKeys.DueDateNotified(entry);
             var alreadyNotified = await db.KeyExistsAsync(entityKey);
             if (alreadyNotified) continue;
 

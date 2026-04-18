@@ -5,6 +5,7 @@ using SecurityService.Domain.Interfaces.Services.Jwt;
 using SecurityService.Domain.Interfaces.Services.ServiceToken;
 using SecurityService.Infrastructure.Configuration;
 using SecurityService.Infrastructure.Data;
+using SecurityService.Infrastructure.Redis;
 using StackExchange.Redis;
 
 namespace SecurityService.Infrastructure.Services.ServiceToken;
@@ -63,7 +64,7 @@ public class ServiceTokenService : IServiceTokenService
         // Cache raw token in Redis with 23-hour TTL
         var db = _redis.GetDatabase();
         await db.StringSetAsync(
-            $"service_token:{serviceId}",
+            RedisKeys.ServiceToken(serviceId),
             rawToken,
             TimeSpan.FromHours(23));
 

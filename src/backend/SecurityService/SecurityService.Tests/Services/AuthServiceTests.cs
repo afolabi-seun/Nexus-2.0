@@ -83,7 +83,7 @@ public class AuthServiceTests
     private void SetupNotLocked()
     {
         _dbMock.Setup(d => d.KeyExistsAsync(
-            It.Is<RedisKey>(k => k.ToString().StartsWith("lockout:locked:")),
+            It.Is<RedisKey>(k => k.ToString().StartsWith("nexus:lockout:locked:")),
             It.IsAny<CommandFlags>()))
             .ReturnsAsync(false);
     }
@@ -161,7 +161,7 @@ public class AuthServiceTests
 
         // Verify lockout counter was incremented
         _dbMock.Verify(d => d.StringIncrementAsync(
-            It.Is<RedisKey>(k => k.ToString() == $"lockout:{TestEmail}"),
+            It.Is<RedisKey>(k => k.ToString() == $"nexus:lockout:{TestEmail}"),
             It.IsAny<long>(), It.IsAny<CommandFlags>()), Times.Once);
     }
 
@@ -169,7 +169,7 @@ public class AuthServiceTests
     public async Task LockedAccount_ThrowsAccountLockedException_WithoutCredentialCheck()
     {
         _dbMock.Setup(d => d.KeyExistsAsync(
-            It.Is<RedisKey>(k => k.ToString() == $"lockout:locked:{TestEmail}"),
+            It.Is<RedisKey>(k => k.ToString() == $"nexus:lockout:locked:{TestEmail}"),
             It.IsAny<CommandFlags>()))
             .ReturnsAsync(true);
 
