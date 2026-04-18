@@ -74,13 +74,14 @@ public class SubscriptionLifecyclePropertyTests
 
             var service = CreateService();
             var request = new CreateSubscriptionRequest(plan.PlanId, null);
+            var beforeCreate = DateTime.UtcNow;
             await service.CreateAsync(orgId, request, CancellationToken.None);
 
             Assert.NotNull(captured);
             Assert.Equal(SubscriptionStatus.Trialing, captured!.Status);
             Assert.NotNull(captured.TrialEndDate);
-            var expectedTrialEnd = DateTime.UtcNow.AddDays(14);
-            Assert.InRange(captured.TrialEndDate!.Value, expectedTrialEnd.AddSeconds(-5), expectedTrialEnd.AddSeconds(5));
+            var expectedTrialEnd = beforeCreate.AddDays(14);
+            Assert.InRange(captured.TrialEndDate!.Value, expectedTrialEnd.AddSeconds(-1), DateTime.UtcNow.AddDays(14).AddSeconds(1));
         }
     }
 
@@ -246,11 +247,12 @@ public class SubscriptionLifecyclePropertyTests
             .Returns(Task.CompletedTask);
 
         var service = CreateService();
+        var beforeCancel = DateTime.UtcNow;
         await service.CancelAsync(orgId, CancellationToken.None);
 
         Assert.Equal(SubscriptionStatus.Cancelled, sub.Status);
         Assert.NotNull(sub.CancelledAt);
-        Assert.InRange(sub.CancelledAt!.Value, DateTime.UtcNow.AddSeconds(-5), DateTime.UtcNow.AddSeconds(5));
+        Assert.InRange(sub.CancelledAt!.Value, beforeCancel.AddSeconds(-1), DateTime.UtcNow.AddSeconds(1));
     }
 
     /// <summary>
