@@ -17,7 +17,7 @@ public class ErrorCodeController : ControllerBase
     public ErrorCodeController(IErrorCodeService errorCodeService) => _errorCodeService = errorCodeService;
 
     [HttpPost]
-    [OrgAdmin]
+    [PlatformAdmin]
     public async Task<IActionResult> Create(
         [FromBody] CreateErrorCodeRequest request, CancellationToken ct)
     {
@@ -34,7 +34,7 @@ public class ErrorCodeController : ControllerBase
     }
 
     [HttpPut("{code}")]
-    [OrgAdmin]
+    [PlatformAdmin]
     public async Task<IActionResult> Update(
         string code, [FromBody] UpdateErrorCodeRequest request, CancellationToken ct)
     {
@@ -43,7 +43,7 @@ public class ErrorCodeController : ControllerBase
     }
 
     [HttpDelete("{code}")]
-    [OrgAdmin]
+    [PlatformAdmin]
     public async Task<IActionResult> Delete(string code, CancellationToken ct)
     {
         await _errorCodeService.DeleteAsync(code, ct);
