@@ -7,6 +7,7 @@ import { CapacityUtilizationChart } from '../components/CapacityUtilizationChart
 import { CycleTimeChart } from '../components/CycleTimeChart.js';
 import { TaskCompletionChart } from '../components/TaskCompletionChart.js';
 import { BarChart3, Users, Gauge, Clock, CheckSquare } from 'lucide-react';
+import { PageHeader } from '@/components/common/PageHeader';
 
 const TABS = [
     { key: 'velocity', label: 'Velocity', icon: <BarChart3 size={16} /> },
@@ -25,7 +26,7 @@ export function ReportsPage() {
 
     return (
         <div className="space-y-4">
-            <h1 className="text-2xl font-semibold text-foreground">Reports</h1>
+            <PageHeader title="Reports" description="Charts showing team performance across sprints. Select a date range to filter." dismissKey="reports" />
 
             {/* Filters */}
             <div className="flex flex-wrap gap-3">

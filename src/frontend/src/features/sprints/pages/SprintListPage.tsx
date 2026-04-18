@@ -17,6 +17,7 @@ import type { FilterConfig } from '@/types/filters';
 import type { SprintListItem, ProjectListItem } from '@/types/work';
 import { SprintForm } from '../components/SprintForm.js';
 import { Plus, Play, CheckCircle2, XCircle } from 'lucide-react';
+import { PageHeader } from '@/components/common/PageHeader';
 
 const filterConfigs: FilterConfig[] = [
     {
@@ -153,7 +154,7 @@ export function SprintListPage() {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-semibold text-foreground">Sprints</h1>
+                <PageHeader title="Sprints" description="Time-boxed iterations for delivering stories. Plan, start, and complete sprints here." dismissKey="sprints" />
                 {canCreate && (
                     <button
                         onClick={() => setCreateOpen(true)}

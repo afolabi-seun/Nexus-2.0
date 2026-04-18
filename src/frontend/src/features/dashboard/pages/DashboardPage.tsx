@@ -3,6 +3,7 @@ import { MyTasksWidget } from '../components/MyTasksWidget.js';
 import { RecentActivityWidget } from '../components/RecentActivityWidget.js';
 import { VelocityChartWidget } from '../components/VelocityChartWidget.js';
 import { ProjectHealthWidget } from '../components/ProjectHealthWidget';
+import { PageHeader } from '@/components/common/PageHeader';
 
 interface WidgetCardProps {
     title: string;
@@ -21,7 +22,7 @@ function WidgetCard({ title, children }: WidgetCardProps) {
 export function DashboardPage() {
     return (
         <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+            <PageHeader title="Dashboard" description="Your overview of active sprints, assigned tasks, and team velocity." dismissKey="dashboard" />
 
             <div className="grid gap-6 md:grid-cols-2">
                 <WidgetCard title="Sprint Progress">

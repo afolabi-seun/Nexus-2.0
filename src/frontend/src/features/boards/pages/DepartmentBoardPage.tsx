@@ -75,7 +75,10 @@ export function DepartmentBoardPage() {
             />
 
             {!board || board.departments.length === 0 ? (
-                <div className="py-12 text-center text-muted-foreground">No department data available</div>
+                <div className="py-12 text-center text-muted-foreground">
+                    <p className="text-lg font-medium">No department data available</p>
+                    <p className="mt-1 text-sm">Department board shows tasks grouped by department. Create tasks and assign them to departments to see data here.</p>
+                </div>
             ) : (
                 <div className="flex gap-3 overflow-x-auto pb-4">
                     {board.departments.map((dept) => (

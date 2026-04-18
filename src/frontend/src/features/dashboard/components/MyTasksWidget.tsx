@@ -50,7 +50,7 @@ export function MyTasksWidget() {
     if (stories.length === 0) {
         return (
             <div className="flex items-center justify-center p-6 text-sm text-muted-foreground">
-                No tasks assigned to you
+                No tasks assigned to you right now. Pick up a task from a story or ask your team lead for assignment.
             </div>
         );
     }

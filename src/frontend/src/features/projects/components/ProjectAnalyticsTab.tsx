@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { analyticsApi } from '@/api/analyticsApi';
 import { SkeletonLoader } from '@/components/common/SkeletonLoader';
+import { HelpTooltip } from '@/components/common/HelpTooltip';
 import type {
     ProjectHealthResponse,
     VelocitySnapshotResponse,
@@ -53,11 +54,11 @@ export function ProjectAnalyticsTab({ projectId }: Props) {
                 <section className="space-y-2">
                     <h3 className="text-sm font-semibold text-foreground">Project Health</h3>
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-                        <ScoreCard label="Overall" score={health.overallScore} trend={health.trend} />
-                        <ScoreCard label="Velocity" score={health.velocityScore} />
-                        <ScoreCard label="Bug Rate" score={health.bugRateScore} />
-                        <ScoreCard label="Overdue" score={health.overdueScore} />
-                        <ScoreCard label="Risk" score={health.riskScore} />
+                        <ScoreCard label="Overall" score={health.overallScore} trend={health.trend} help="Composite score (0–100) based on velocity, bugs, overdue stories, and risks." />
+                        <ScoreCard label="Velocity" score={health.velocityScore} help="Consistency of story points completed across recent sprints." />
+                        <ScoreCard label="Bug Rate" score={health.bugRateScore} help="Lower open bug ratio = higher score." />
+                        <ScoreCard label="Overdue" score={health.overdueScore} help="Fewer overdue stories with due dates = higher score." />
+                        <ScoreCard label="Risk" score={health.riskScore} help="Fewer active risks = higher score. 100 means no active risks." />
                         <div className="rounded-lg border border-border bg-card p-3">
                             <p className="text-xs text-muted-foreground">Snapshot</p>
                             <p className="mt-1 text-sm text-foreground">
@@ -109,10 +110,10 @@ export function ProjectAnalyticsTab({ projectId }: Props) {
     );
 }
 
-function ScoreCard({ label, score, trend }: { label: string; score: number; trend?: string }) {
+function ScoreCard({ label, score, trend, help }: { label: string; score: number; trend?: string; help?: string }) {
     return (
         <div className="rounded-lg border border-border bg-card p-3">
-            <p className="text-xs text-muted-foreground">{label}</p>
+            <p className="text-xs text-muted-foreground flex items-center gap-1">{label} {help && <HelpTooltip text={help} />}</p>
             <p className={`mt-1 text-xl font-semibold ${scoreColor(score)}`}>{Math.round(score)}</p>
             {trend && <p className="text-xs text-muted-foreground">{trend}</p>}
         </div>

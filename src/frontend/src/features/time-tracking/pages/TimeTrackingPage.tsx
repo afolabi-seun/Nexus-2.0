@@ -3,6 +3,7 @@ import { TimeEntryList } from '../components/TimeEntryList';
 import { workApi } from '@/api/workApi';
 import { useToast } from '@/components/common/Toast';
 import { Download } from 'lucide-react';
+import { PageHeader } from '@/components/common/PageHeader';
 
 export function TimeTrackingPage() {
     const { addToast } = useToast();
@@ -25,7 +26,7 @@ export function TimeTrackingPage() {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-semibold text-foreground">Time Tracking</h1>
+                <PageHeader title="Time Tracking" description="Log time against stories. Use the timer for real-time tracking or add entries manually." dismissKey="time-tracking" />
                 <button
                     onClick={handleExport}
                     className="inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"

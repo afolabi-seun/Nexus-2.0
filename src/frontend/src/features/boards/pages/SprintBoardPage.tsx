@@ -11,6 +11,7 @@ import type { SprintBoard, SprintBoardCard } from '@/types/work';
 import { BoardColumn } from '../components/BoardColumn.js';
 import { DraggableCard, TaskCardContent } from '../components/DraggableCard.js';
 import { useBoardDragDrop } from '../hooks/useBoardDragDrop';
+import { PageHeader } from '@/components/common/PageHeader';
 
 const SPRINT_COLUMNS = [
     TaskStatus.ToDo,
@@ -91,7 +92,7 @@ export function SprintBoardPage() {
     if (board && !board.hasActiveSprint) {
         return (
             <div className="space-y-4">
-                <h1 className="text-2xl font-semibold text-foreground">Sprint Board</h1>
+                <PageHeader title="Sprint Board" description="View and manage tasks in the active sprint. Drag tasks between status columns." dismissKey="sprint-board" />
                 <div className="py-12 text-center text-muted-foreground">
                     {board.message ?? 'No active sprint. Start a sprint to see the board.'}
                 </div>
@@ -114,7 +115,7 @@ export function SprintBoardPage() {
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-semibold text-foreground">Sprint Board</h1>
+                    <PageHeader title="Sprint Board" description="View and manage tasks in the active sprint. Drag tasks between status columns." dismissKey="sprint-board" />
                     {board?.sprintName && (
                         <p className="text-sm text-muted-foreground">
                             {board.sprintName}
