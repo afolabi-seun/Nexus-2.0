@@ -42,6 +42,9 @@ React 18 single-page application for the Nexus 2.0 platform.
 - **Notifications** — Notification history and settings
 - **Activity Logs** — Per-entity activity timeline
 - **Billing** — Subscription management, plan comparison, usage meters, upgrade/downgrade flows
+- **Time Tracking** — Time entries, start/stop timer widget, cost rate management, time entry approval
+- **Analytics** — Velocity trends, project health, resource utilization, bug metrics, risk register, cost analytics, dashboard
+- **Pagination** — Reusable `usePagination` hook and `Pagination` component on all list pages
 
 ### DB-Driven Sidebar Navigation
 
@@ -120,8 +123,10 @@ src/frontend/
 │   │   ├── settings/    # Organization settings
 │   │   ├── sprints/     # Sprint management
 │   │   ├── stories/     # Story management
-│   │   └── tasks/       # Task management
-│   ├── hooks/           # Custom React hooks
+│   │   ├── tasks/       # Task management
+│   │   ├── time-tracking/ # Time entries, timer, cost rates
+│   │   └── analytics/   # Velocity, health, cost, risk, dashboard
+│   ├── hooks/           # Custom React hooks (usePagination, useAuth, useListFilters)
 │   ├── pages/           # Route page components
 │   ├── stores/          # Zustand stores
 │   ├── test-utils/      # Test helpers

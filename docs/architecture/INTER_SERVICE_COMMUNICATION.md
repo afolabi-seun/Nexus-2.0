@@ -124,12 +124,12 @@ Services publish audit events and notifications asynchronously via Redis lists. 
 Each service has an `OutboxService` that pushes JSON messages to a Redis list:
 
 ```
-Key: outbox:{service}    (e.g., outbox:profile, outbox:work, outbox:billing)
+Key: nexus:outbox:{service}    (e.g., nexus:outbox:profile, nexus:outbox:work, nexus:outbox:billing)
 Operation: LPUSH
 ```
 
 ```csharp
-await db.ListLeftPushAsync("outbox:profile", serializedMessage);
+await db.ListLeftPushAsync(RedisKeys.Outbox, serializedMessage);
 ```
 
 ### Retry with Dead-Letter Queue
@@ -137,16 +137,16 @@ await db.ListLeftPushAsync("outbox:profile", serializedMessage);
 Publishing retries 3 times with exponential backoff (1s, 2s, 4s). If all retries fail, the message is moved to a dead-letter queue:
 
 ```
-DLQ Key: dlq:{service}   (e.g., dlq:profile)
+DLQ Key: nexus:dlq:{service}   (e.g., nexus:dlq:profile)
 ```
 
 ```csharp
 for (var attempt = 0; attempt < MaxRetries; attempt++)
 {
-    try { await db.ListLeftPushAsync(QueueKey, serialized); return; }
+    try { await db.ListLeftPushAsync(RedisKeys.Outbox, serialized); return; }
     catch (RedisException) { await Task.Delay(BackoffSecondsPerRetry[attempt]); }
 }
-await db.ListLeftPushAsync(DlqKey, serialized);  // dead-letter
+await db.ListLeftPushAsync(RedisKeys.Dlq, serialized);  // dead-letter
 ```
 
 ### Consuming (UtilityService)

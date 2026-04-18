@@ -19,7 +19,7 @@ A multi-tenant agile project management platform built with .NET 8 microservices
 
 - **Backend:** .NET 8, ASP.NET Core, Entity Framework Core, PostgreSQL, Redis, FluentValidation
 - **Frontend:** React 18, TypeScript, Vite, Tailwind CSS v3, Zustand, React Router v6, Recharts, dnd-kit
-- **Testing:** xUnit, Moq, FsCheck (570 backend tests) · Vitest, fast-check (93 frontend tests)
+- **Testing:** xUnit, Moq, FsCheck (535 backend tests) · Vitest, fast-check (93 frontend tests)
 - **Infrastructure:** Polly (resilience), Serilog + Seq (logging), Stripe SDK (payments), Docker Compose
 - **CI/CD:** GitHub Actions (build, test, Docker image push)
 
@@ -30,8 +30,10 @@ Each backend service follows Clean Architecture with 4 layers:
 ```
 {Service}/
 ├── {Service}.Domain/              # Entities, interfaces, exceptions (no external deps)
-├── {Service}.Application/         # DTOs, validators (FluentValidation)
+├── {Service}.Application/         # DTOs, validators (FluentValidation), helpers
 ├── {Service}.Infrastructure/      # EF Core, Redis, HTTP clients, background services
+│   ├── Redis/
+│   │   └── RedisKeys.cs           # Centralized Redis key patterns (nexus: prefix)
 │   ├── Repositories/
 │   │   └── {Entity}/              # Entity-named subfolders (e.g., Organizations/)
 │   └── Services/
@@ -46,7 +48,7 @@ Key patterns shared across all services:
 - **DomainException pattern** — Typed exceptions with error codes and HTTP status codes, caught by `GlobalExceptionHandlerMiddleware`.
 - **Middleware pipeline** — CORS → CorrelationId → GlobalExceptionHandler → Serilog → RateLimiter → Routing → Auth → JwtClaims → TokenBlacklist → RoleAuthorization → OrganizationScope → Controllers.
 - **Polly resilience** — Inter-service calls use retry (3x exponential), circuit breaker (5/30s), timeout (10s).
-- **Redis outbox** — Audit events published via `LPUSH outbox:{service}` for async processing by UtilityService.
+- **Redis outbox** — Audit events published via `LPUSH nexus:outbox:{service}` for async processing by UtilityService. All keys namespaced with `nexus:` prefix via centralized `RedisKeys` classes.
 - **Swagger + JWT** — All services expose `/swagger` with Bearer token auth support and XML doc comments. Internal service-to-service endpoints are hidden from Swagger via `HideServiceAuthFilter`.
 
 ## Security & Access Control
@@ -198,7 +200,7 @@ Nexus-2.0/
 ```
 ## Tests
 
-663 tests total (570 backend + 93 frontend):
+628 tests total (535 backend + 93 frontend):
 
 | Service | Tests | Framework |
 |---------|-------|-----------|
@@ -206,7 +208,7 @@ Nexus-2.0/
 | ProfileService | 87 | xUnit + Moq |
 | WorkService | 179 | xUnit + Moq + FsCheck (159 + 20 property tests) |
 | UtilityService | 109 | xUnit + Moq |
-| BillingService | 112 | xUnit + Moq + FsCheck (80 + 32 property tests) |
+| BillingService | 77 | xUnit + Moq + FsCheck |
 | Frontend | 93 | Vitest + fast-check |
 
 ```bash
@@ -221,7 +223,7 @@ cd src/frontend && npx vitest --run
 
 GitHub Actions pipelines in `.github/workflows/`:
 
-- **ci.yml** — Triggers on push to `main` and PRs. Builds and tests each backend service in parallel (5 matrix jobs), builds and tests the frontend, then runs a full solution build check.
+- **ci.yml** — Triggers on push to `dev` and PRs to `main`. Builds and tests each backend service in parallel (5 matrix jobs), builds and tests the frontend, then runs a full solution build check. On success (dev branch), creates a PR to main and merges directly.
 - **docker.yml** — Triggers on push to `main`. Builds Docker images for all 6 containers and pushes to GitHub Container Registry (ghcr.io).
 
 ## Resources
