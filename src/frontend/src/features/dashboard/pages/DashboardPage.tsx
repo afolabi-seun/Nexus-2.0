@@ -11,6 +11,8 @@ import { MyStoriesWidget } from '../components/MyStoriesWidget';
 import { UpcomingDueDatesWidget } from '../components/UpcomingDueDatesWidget';
 import { PageHeader } from '@/components/common/PageHeader';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 interface WidgetCardProps {
     title: string;
@@ -36,8 +38,20 @@ const descriptions: Record<string, string> = {
 
 export function DashboardPage() {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const role = user?.roleName ?? 'Viewer';
     const desc = descriptions[role] ?? descriptions.Viewer;
+
+    // Redirect new OrgAdmins to onboarding if not completed
+    useEffect(() => {
+        if (role === 'OrgAdmin') {
+            try {
+                if (localStorage.getItem('nexus_onboarding_complete') !== '1') {
+                    navigate('/onboarding', { replace: true });
+                }
+            } catch { /* ignore */ }
+        }
+    }, [role, navigate]);
 
     return (
         <div className="space-y-6">

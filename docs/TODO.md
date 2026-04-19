@@ -62,7 +62,7 @@ Prioritized roadmap for hardening, features, and documentation before release.
 - [x] **Archival** — Archive completed sprints/projects to keep active views clean, preserve history.
 - [ ] **Webhook support** — Let orgs configure webhooks for key events (Slack, Teams integration).
 - [x] **Global search** — Search across stories, projects, members.
-- [ ] **Onboarding flow** — Guided setup for new orgs (create first project, invite members, create first sprint).
+- [x] **Onboarding flow** — 5-step wizard: Welcome, Create Project, Invite Members, Create Sprint, Done. Auto-redirects new OrgAdmins.
 - [x] **Keyboard shortcuts** — Navigation shortcuts (g+key), search focus (/), shortcuts dialog (?).
 - [x] **Offline indicator** — Fixed bottom banner with WifiOff icon when browser loses connectivity.
 
@@ -182,7 +182,7 @@ One-line help text below each page title. Dismissible per user via localStorage.
 - [ ] **Story templates** — Reusable templates for common story types (bug report, feature request, tech debt).
 - [ ] **SLA tracking** — Time-to-resolution metrics, especially for bug stories.
 - [ ] **Webhook support** — Let orgs configure webhooks for key events (Slack, Teams integration).
-- [ ] **Onboarding flow** — Guided setup for new orgs (create first project, invite members, create first sprint).
+- [x] **Onboarding flow** — 5-step wizard: Welcome, Create Project, Invite Members, Create Sprint, Done. Auto-redirects new OrgAdmins.
 - [x] **Keyboard shortcuts** — Navigation shortcuts (g+key), search focus (/), shortcuts dialog (?).
 - [x] **Offline indicator** — Fixed bottom banner with WifiOff icon when browser loses connectivity.
 - [ ] **Update QA email templates** — Include role restriction context in QA-related email communications.
