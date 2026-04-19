@@ -57,7 +57,7 @@ Prioritized roadmap for hardening, features, and documentation before release.
 - [x] **Export functionality** — CSV/PDF export for stories, sprint reports, time tracking, invoices.
 - [x] **Activity feed** — Per-project or per-org feed showing recent actions (builds on existing audit log).
 - [x] **Bulk operations** — Bulk move stories between sprints, bulk assign, bulk status change.
-- [ ] **Story templates** — Reusable templates for common story types (bug report, feature request, tech debt).
+- [x] **Story templates** — Backend entity, CRUD API, migration. Frontend API integration. Templates store default title, description, acceptance criteria, priority, story points, labels, task types.
 - [ ] **SLA tracking** — Time-to-resolution metrics, especially for bug stories.
 - [x] **Archival** — Archive completed sprints/projects to keep active views clean, preserve history.
 - [ ] **Webhook support** — Let orgs configure webhooks for key events (Slack, Teams integration).
@@ -179,7 +179,7 @@ One-line help text below each page title. Dismissible per user via localStorage.
 
 ## Phase 8 — Future Enhancements
 
-- [ ] **Story templates** — Reusable templates for common story types (bug report, feature request, tech debt).
+- [x] **Story templates** — Backend entity, CRUD API, migration. Frontend API integration. Templates store default title, description, acceptance criteria, priority, story points, labels, task types.
 - [ ] **SLA tracking** — Time-to-resolution metrics, especially for bug stories.
 - [ ] **Webhook support** — Let orgs configure webhooks for key events (Slack, Teams integration).
 - [x] **Onboarding flow** — 5-step wizard: Welcome, Create Project, Invite Members, Create Sprint, Done. Auto-redirects new OrgAdmins.
@@ -227,8 +227,8 @@ Current dashboard is identical for all roles. Each role should see widgets relev
 
 The DB-driven navigation table (`NavigationItems`) is never seeded. All deployments use the static fallback. If DB items are seeded, they render as a flat list without section grouping.
 
-- [ ] **Seed navigation items** — Add navigation seed script (batch-6 or separate) that populates `NavigationItems` table with the same structure as the static fallback, including section grouping.
-- [ ] **Add `section` field to NavigationItem entity** — Add a `Section` string field (e.g., "Work", "Tracking", "Team", "Organization") to the `NavigationItem` entity and DB schema. Update `buildSections()` to group DB items by section.
+- [x] **Seed navigation items** — Add navigation seed script (batch-6 or separate) that populates `NavigationItems` table with the same structure as the static fallback, including section grouping.
+- [x] **Add `section` field to NavigationItem entity** — Add a `Section` string field (e.g., "Work", "Tracking", "Team", "Organization") to the `NavigationItem` entity and DB schema. Update `buildSections()` to group DB items by section.
 - [x] **Navigation admin UI** — Add a navigation management page under PlatformAdmin or OrgAdmin settings to reorder, enable/disable, and group navigation items without code changes.
 
 ---

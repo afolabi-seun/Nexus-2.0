@@ -50,6 +50,8 @@ import type {
     CapacityUtilizationData,
     CycleTimeData,
     TaskCompletionData,
+    StoryTemplateResponse,
+    CreateStoryTemplateRequest,
 } from '@/types/work';
 
 const client = createApiClient({ baseURL: env.WORK_API_URL });
@@ -222,6 +224,18 @@ export const workApi = {
     // Workflows
     getWorkflows: (): Promise<object> =>
         client.get('/api/v1/workflows').then((r) => r.data),
+
+    // Story Templates
+    getStoryTemplates: (params?: { page?: number; pageSize?: number }): Promise<PaginatedResponse<StoryTemplateResponse>> =>
+        client.get('/api/v1/story-templates', { params }).then((r) => r.data),
+    getStoryTemplate: (id: string): Promise<StoryTemplateResponse> =>
+        client.get(`/api/v1/story-templates/${id}`).then((r) => r.data),
+    createStoryTemplate: (data: CreateStoryTemplateRequest): Promise<StoryTemplateResponse> =>
+        client.post('/api/v1/story-templates', data).then((r) => r.data),
+    updateStoryTemplate: (id: string, data: Partial<CreateStoryTemplateRequest>): Promise<StoryTemplateResponse> =>
+        client.put(`/api/v1/story-templates/${id}`, data).then((r) => r.data),
+    deleteStoryTemplate: (id: string): Promise<void> =>
+        client.delete(`/api/v1/story-templates/${id}`).then(() => undefined),
     saveOrgWorkflowOverride: (data: object): Promise<void> =>
         client.put('/api/v1/workflows/organization', data).then(() => undefined),
     saveDeptWorkflowOverride: (departmentId: string, data: object): Promise<void> =>

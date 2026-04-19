@@ -32,6 +32,7 @@ using WorkService.Domain.Interfaces.Repositories.CostSnapshots;
 using WorkService.Domain.Interfaces.Repositories.ProjectHealthSnapshots;
 using WorkService.Domain.Interfaces.Repositories.ResourceAllocationSnapshots;
 using WorkService.Domain.Interfaces.Repositories.RiskRegisters;
+using WorkService.Domain.Interfaces.Repositories.StoryTemplates;
 using WorkService.Domain.Interfaces.Repositories.TimeApprovals;
 using WorkService.Domain.Interfaces.Repositories.TimeEntries;
 using WorkService.Domain.Interfaces.Repositories.TimePolicies;
@@ -61,6 +62,7 @@ using WorkService.Infrastructure.Repositories.CostSnapshots;
 using WorkService.Infrastructure.Repositories.ProjectHealthSnapshots;
 using WorkService.Infrastructure.Repositories.ResourceAllocationSnapshots;
 using WorkService.Infrastructure.Repositories.RiskRegisters;
+using WorkService.Infrastructure.Repositories.StoryTemplates;
 using WorkService.Infrastructure.Repositories.TimeApprovals;
 using WorkService.Infrastructure.Repositories.TimeEntries;
 using WorkService.Infrastructure.Repositories.TimePolicies;
@@ -129,6 +131,7 @@ public static class DependencyInjection
 
         // Analytics repositories
         services.AddScoped<IRiskRegisterRepository, RiskRegisterRepository>();
+        services.AddScoped<IStoryTemplateRepository, StoryTemplateRepository>();
         services.AddScoped<IVelocitySnapshotRepository, VelocitySnapshotRepository>();
         services.AddScoped<IProjectHealthSnapshotRepository, ProjectHealthSnapshotRepository>();
         services.AddScoped<IResourceAllocationSnapshotRepository, ResourceAllocationSnapshotRepository>();

@@ -29,6 +29,7 @@ public class WorkDbContext : DbContext
     public DbSet<ProjectHealthSnapshot> ProjectHealthSnapshots => Set<ProjectHealthSnapshot>();
     public DbSet<ResourceAllocationSnapshot> ResourceAllocationSnapshots => Set<ResourceAllocationSnapshot>();
     public DbSet<RiskRegister> RiskRegisters => Set<RiskRegister>();
+    public DbSet<StoryTemplate> StoryTemplates => Set<StoryTemplate>();
 
     public WorkDbContext(DbContextOptions<WorkDbContext> options, IHttpContextAccessor? httpContextAccessor = null)
         : base(options)

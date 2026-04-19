@@ -513,3 +513,30 @@ export interface TaskCompletionData {
     departmentName: string;
     completionsByType: Record<string, { completed: number; total: number }>;
 }
+
+
+export interface StoryTemplateResponse {
+    storyTemplateId: string;
+    name: string;
+    description: string | null;
+    defaultTitle: string | null;
+    defaultDescription: string | null;
+    defaultAcceptanceCriteria: string | null;
+    defaultPriority: string;
+    defaultStoryPoints: number | null;
+    defaultLabels: string[] | null;
+    defaultTaskTypes: string[] | null;
+    dateCreated: string;
+}
+
+export interface CreateStoryTemplateRequest {
+    name: string;
+    description?: string;
+    defaultTitle?: string;
+    defaultDescription?: string;
+    defaultAcceptanceCriteria?: string;
+    defaultPriority?: string;
+    defaultStoryPoints?: number;
+    defaultLabels?: string[];
+    defaultTaskTypes?: string[];
+}
