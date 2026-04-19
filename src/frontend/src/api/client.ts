@@ -5,10 +5,11 @@ import axios, {
 } from 'axios';
 import { ApiError } from '@/types/api';
 import type { ApiResponse } from '@/types/api';
-import type { LoginResponse, RefreshTokenRequest } from '@/types/auth';
+import type { LoginResponse } from '@/types/auth';
 
 export interface CreateApiClientOptions {
     baseURL: string;
+    withCredentials?: boolean;
 }
 
 let isRefreshing = false;
@@ -54,6 +55,7 @@ export function createApiClient(options: CreateApiClientOptions): AxiosInstance 
     const instance = axios.create({
         baseURL: options.baseURL,
         headers: { 'Content-Type': 'application/json' },
+        withCredentials: options.withCredentials ?? false,
     });
 
     // Request interceptor: attach JWT + correlation ID
@@ -126,15 +128,12 @@ export function createApiClient(options: CreateApiClientOptions): AxiosInstance 
                     if (!_authStoreRef) {
                         _authStoreRef = await getAuthStore();
                     }
-                    const refreshToken = authStore().getState().refreshToken;
-                    if (!refreshToken) {
-                        throw new Error('No refresh token');
-                    }
 
                     const { env } = await import('@/utils/env');
                     const refreshResponse = await axios.post<ApiResponse<LoginResponse>>(
                         `${env.SECURITY_API_URL}/api/v1/auth/refresh`,
-                        { refreshToken } as RefreshTokenRequest
+                        { deviceId: 'web' },
+                        { withCredentials: true }
                     );
 
                     const apiResp = refreshResponse.data;
@@ -149,7 +148,7 @@ export function createApiClient(options: CreateApiClientOptions): AxiosInstance 
                     const tokens = apiResp.data!;
                     authStore()
                         .getState()
-                        .refreshTokens(tokens.accessToken, tokens.refreshToken);
+                        .refreshTokens(tokens.accessToken);
 
                     processQueue(null, tokens.accessToken);
 

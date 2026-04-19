@@ -10,7 +10,7 @@ import type {
     SessionResponse,
 } from '@/types/auth';
 
-const client = createApiClient({ baseURL: env.SECURITY_API_URL });
+const client = createApiClient({ baseURL: env.SECURITY_API_URL, withCredentials: true });
 
 export const securityApi = {
     login: (data: LoginRequest): Promise<LoginResponse> =>

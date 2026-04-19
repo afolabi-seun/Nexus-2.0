@@ -44,15 +44,17 @@ Expiry: configurable via `AppSettings.AccessTokenExpiryMinutes`.
 
 `AuthService.RefreshAsync()`:
 
-1. Extract `userId` and `deviceId` from the expired access token
-2. Look up `refresh:{userId}:{deviceId}` in Redis
-3. BCrypt verify the provided refresh token against the stored hash
-4. If mismatch → `RefreshTokenReuseException` (potential token theft — all sessions revoked)
-5. Generate new access + refresh token pair
-6. Replace the stored refresh hash in Redis
-7. Return new `AuthResult`
+1. Read refresh token from `httpOnly` cookie (`nexus_refresh`) — falls back to request body for backward compatibility
+2. Extract `userId` and `deviceId` from the expired access token
+3. Look up `nexus:refresh:{userId}:{deviceId}` in Redis
+4. BCrypt verify the provided refresh token against the stored hash
+5. If mismatch → `RefreshTokenReuseException` (potential token theft — all sessions revoked)
+6. Generate new access + refresh token pair
+7. Replace the stored refresh hash in Redis
+8. Set new refresh token as `httpOnly` cookie
+9. Return new `AuthResult` (access token only — refresh token not in response body)
 
-The refresh token is an opaque random string (not a JWT). Only its BCrypt hash is stored.
+The refresh token is an opaque random string (not a JWT). Only its BCrypt hash is stored in Redis. The token itself lives in an `httpOnly`, `Secure`, `SameSite=Strict` cookie scoped to `/api/v1/auth` — JavaScript cannot access it, mitigating XSS risk.
 
 ## Token Blacklist
 

@@ -7,6 +7,7 @@ using SecurityService.Application.DTOs.Auth;
 using SecurityService.Application.DTOs.Otp;
 using SecurityService.Domain.Interfaces.Services.Auth;
 using SecurityService.Domain.Interfaces.Services.Otp;
+using SecurityService.Infrastructure.Configuration;
 
 namespace SecurityService.Api.Controllers;
 
@@ -19,33 +20,20 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
     private readonly IOtpService _otpService;
+    private readonly AppSettings _appSettings;
 
-    public AuthController(IAuthService authService, IOtpService otpService)
+    private const string RefreshTokenCookieName = "nexus_refresh";
+
+    public AuthController(IAuthService authService, IOtpService otpService, AppSettings appSettings)
     {
         _authService = authService;
         _otpService = otpService;
+        _appSettings = appSettings;
     }
 
     /// <summary>
     /// Authenticate a user with email and password.
     /// </summary>
-    /// <param name="request">Login credentials containing email and password</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>JWT access token, refresh token, expiry, and first-time user flag</returns>
-    /// <response code="200">Login successful — returns tokens</response>
-    /// <response code="401">Invalid credentials</response>
-    /// <response code="423">Account is locked due to repeated failed attempts</response>
-    /// <response code="429">Rate limit exceeded</response>
-    /// <remarks>
-    /// Sample request:
-    ///
-    ///     POST /api/v1/auth/login
-    ///     {
-    ///         "email": "admin@example.com",
-    ///         "password": "Admin@123"
-    ///     }
-    ///
-    /// </remarks>
     [HttpPost("login")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<LoginResponse>), StatusCodes.Status200OK)]
@@ -60,10 +48,12 @@ public class AuthController : ControllerBase
 
         var result = await _authService.LoginAsync(request.Email, request.Password, ipAddress, deviceId, ct);
 
+        SetRefreshTokenCookie(result.RefreshToken);
+
         var response = new LoginResponse
         {
             AccessToken = result.AccessToken,
-            RefreshToken = result.RefreshToken,
+            RefreshToken = string.Empty,
             ExpiresIn = result.ExpiresIn,
             IsFirstTimeUser = result.IsFirstTimeUser
         };
@@ -74,10 +64,6 @@ public class AuthController : ControllerBase
     /// <summary>
     /// Logout the current session.
     /// </summary>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>Confirmation of successful logout</returns>
-    /// <response code="200">Logout successful — session revoked and JWT blacklisted</response>
-    /// <response code="401">Unauthorized — invalid or expired token</response>
     [HttpPost("logout")]
     [Authorize]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
@@ -93,29 +79,14 @@ public class AuthController : ControllerBase
 
         await _authService.LogoutAsync(userId, deviceId, jti, tokenExpiry, ct);
 
+        ClearRefreshTokenCookie();
+
         return ApiResponse<object>.Ok(null!, "Logout successful.").ToActionResult(HttpContext);
     }
 
     /// <summary>
-    /// Refresh the access token using a valid refresh token.
+    /// Refresh the access token using the httpOnly refresh token cookie.
     /// </summary>
-    /// <param name="request">Refresh token and device ID</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>New JWT access token and rotated refresh token</returns>
-    /// <response code="200">Token refreshed successfully</response>
-    /// <response code="401">Refresh token is invalid, expired, or reused</response>
-    /// <remarks>
-    /// Sample request:
-    ///
-    ///     POST /api/v1/auth/refresh
-    ///     {
-    ///         "refreshToken": "eyJhbGciOi...",
-    ///         "deviceId": "device-001"
-    ///     }
-    ///
-    /// Uses refresh token rotation — the old refresh token is invalidated.
-    /// Reuse of an already-rotated token triggers revocation of all user sessions.
-    /// </remarks>
     [HttpPost("refresh")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<LoginResponse>), StatusCodes.Status200OK)]
@@ -123,12 +94,23 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Refresh(
         [FromBody] RefreshTokenRequest request, CancellationToken ct)
     {
-        var result = await _authService.RefreshTokenAsync(request.RefreshToken, request.DeviceId, ct);
+        // Read refresh token from httpOnly cookie first, fall back to request body for backward compat
+        var refreshToken = HttpContext.Request.Cookies[RefreshTokenCookieName];
+        if (string.IsNullOrEmpty(refreshToken))
+            refreshToken = request.RefreshToken;
+
+        if (string.IsNullOrEmpty(refreshToken))
+            return ApiResponse<object>.Fail(2013, "REFRESH_TOKEN_REUSE", "No refresh token provided.")
+                .ToActionResult(HttpContext);
+
+        var result = await _authService.RefreshTokenAsync(refreshToken, request.DeviceId, ct);
+
+        SetRefreshTokenCookie(result.RefreshToken);
 
         var response = new LoginResponse
         {
             AccessToken = result.AccessToken,
-            RefreshToken = result.RefreshToken,
+            RefreshToken = string.Empty,
             ExpiresIn = result.ExpiresIn,
             IsFirstTimeUser = result.IsFirstTimeUser
         };
@@ -139,11 +121,6 @@ public class AuthController : ControllerBase
     /// <summary>
     /// Request a one-time password (OTP) for the given identity.
     /// </summary>
-    /// <param name="request">Identity (email) to send OTP to</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>Confirmation that OTP was sent</returns>
-    /// <response code="200">OTP sent successfully</response>
-    /// <response code="429">Too many OTP requests</response>
     [HttpPost("otp/request")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
@@ -159,12 +136,6 @@ public class AuthController : ControllerBase
     /// <summary>
     /// Verify a one-time password (OTP) code.
     /// </summary>
-    /// <param name="request">Identity and 6-digit OTP code</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>Confirmation of OTP verification</returns>
-    /// <response code="200">OTP verified successfully</response>
-    /// <response code="400">OTP expired or verification failed</response>
-    /// <response code="429">Maximum OTP verification attempts exceeded</response>
     [HttpPost("otp/verify")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
@@ -181,11 +152,6 @@ public class AuthController : ControllerBase
     /// <summary>
     /// Generate credentials for a new team member (service-to-service).
     /// </summary>
-    /// <param name="request">Member ID and email for credential generation</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>Confirmation of credential generation</returns>
-    /// <response code="200">Credentials generated successfully</response>
-    /// <response code="403">Service not authorized</response>
     [HttpPost("credentials/generate")]
     [ServiceAuth]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
@@ -196,5 +162,30 @@ public class AuthController : ControllerBase
         await _authService.GenerateCredentialsAsync(request.MemberId, request.Email, ct);
 
         return ApiResponse<object>.Ok(null!, "Credentials generated successfully.").ToActionResult(HttpContext);
+    }
+
+    private void SetRefreshTokenCookie(string refreshToken)
+    {
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Path = "/api/v1/auth",
+            MaxAge = TimeSpan.FromDays(_appSettings.RefreshTokenExpiryDays),
+        };
+
+        HttpContext.Response.Cookies.Append(RefreshTokenCookieName, refreshToken, cookieOptions);
+    }
+
+    private void ClearRefreshTokenCookie()
+    {
+        HttpContext.Response.Cookies.Delete(RefreshTokenCookieName, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Path = "/api/v1/auth",
+        });
     }
 }

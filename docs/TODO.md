@@ -191,7 +191,7 @@ One-line help text below each page title. Dismissible per user via localStorage.
 
 ## Phase 9 — Security Hardening (from code review)
 
-- [ ] **Refresh token httpOnly cookie** — Move refresh token from `localStorage` to an `httpOnly` cookie to mitigate XSS risk (CWE-79). Currently the refresh token is an opaque string stored in `localStorage` via `authStore.ts`. Requires:
+- [x] **Refresh token httpOnly cookie** — Move refresh token from `localStorage` to an `httpOnly` cookie to mitigate XSS risk (CWE-79). Currently the refresh token is an opaque string stored in `localStorage` via `authStore.ts`. Requires:
   - SecurityService: set refresh token as `httpOnly`, `Secure`, `SameSite=Strict` cookie on login/refresh responses
   - SecurityService: read refresh token from cookie on `/api/v1/auth/refresh` instead of request body
   - Frontend `authStore.ts`: remove `localStorage` read/write for refresh token
