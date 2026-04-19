@@ -19,7 +19,7 @@ A multi-tenant agile project management platform built with .NET 8 microservices
 
 - **Backend:** .NET 8, ASP.NET Core, Entity Framework Core, PostgreSQL, Redis, FluentValidation
 - **Frontend:** React 18, TypeScript, Vite, Tailwind CSS v3, Zustand, React Router v6, Recharts, dnd-kit
-- **Testing:** xUnit, Moq, FsCheck (569 backend tests) · Vitest, fast-check (93 frontend tests)
+- **Testing:** xUnit, Moq, FsCheck (570 backend tests) · Vitest, fast-check (93 frontend tests)
 - **Infrastructure:** Polly (resilience), Serilog + Seq (logging), Stripe SDK (payments), Docker Compose
 - **CI/CD:** GitHub Actions (build, test, Docker image push)
 
@@ -203,7 +203,7 @@ Nexus-2.0/
 ```
 ## Tests
 
-662 tests total (569 backend + 93 frontend):
+663 tests total (570 backend + 93 frontend):
 
 | Service | Tests | Framework |
 |---------|-------|-----------|
@@ -211,7 +211,7 @@ Nexus-2.0/
 | ProfileService | 87 | xUnit + Moq |
 | WorkService | 179 | xUnit + Moq + FsCheck (159 + 20 property tests) |
 | UtilityService | 109 | xUnit + Moq |
-| BillingService | 111 | xUnit + Moq + FsCheck |
+| BillingService | 112 | xUnit + Moq + FsCheck |
 | Frontend | 93 | Vitest + fast-check |
 
 ```bash

@@ -286,3 +286,13 @@ The DB-driven navigation table (`NavigationItems`) is never seeded. All deployme
 - [x] **Navigation DB seed** — Added `Section` field to NavigationItem entity. Seeded 19 navigation items via EF Core HasData (Work/Tracking/Team/Organization sections). Frontend buildSections() groups DB items by section.
 - [x] **NavigationController auth fix** — Changed CRUD from `[ServiceAuth]` to `[PlatformAdmin]` so admin users can manage navigation.
 - [x] **Endpoint auth audit** — Added missing `[Authorize]` to AuditLogController and ErrorLogController. Changed ErrorCodeController CUD from `[OrgAdmin]` to `[PlatformAdmin]` (error codes are platform-wide). Created PlatformAdminAttribute for UtilityService.
+
+### Phase 6 & 7 Completion
+- [x] **Phase 6 — 100% complete** — All page integration gaps filled. ActiveBugsWidget on dashboard, DepartmentTaskOverview and DepartmentWorkflowOverrides on DepartmentDetailPage. DataTable emptyMessage prop added.
+- [x] **Phase 7 — 100% complete** — All contextual empty states applied (8 pages), all field-level tooltips added (story points, completion rate, velocity, WIP limit, billable hours). PageHeader descriptions on 13 pages.
+
+### Security Hardening (Phase 9)
+- [x] **Refresh token httpOnly cookie** — Moved refresh token from `localStorage` to `httpOnly`/`Secure`/`SameSite=Strict` cookie scoped to `/api/v1/auth`. Frontend no longer stores or reads refresh token — browser manages it automatically. Eliminates CWE-79 XSS risk.
+
+### Test Stability
+- [x] **Flaky test fix** — Stabilized BillingService Property14 and Property4 timing assertions by capturing `DateTime.UtcNow` before async method calls instead of after.
