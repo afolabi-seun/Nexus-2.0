@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar.js';
 import { Header } from './Header.js';
+import { KeyboardShortcutsDialog } from '../common/KeyboardShortcutsDialog';
+import { OfflineIndicator } from '../common/OfflineIndicator';
+import { useAppShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 const SIDEBAR_KEY = 'nexus_sidebar_collapsed';
 
@@ -15,6 +18,7 @@ function loadCollapsed(): boolean {
 
 export function AppShell() {
     const [collapsed, setCollapsed] = useState(loadCollapsed);
+    useAppShortcuts();
 
     useEffect(() => {
         try {
@@ -44,6 +48,9 @@ export function AppShell() {
                     <Outlet />
                 </main>
             </div>
+
+            <KeyboardShortcutsDialog />
+            <OfflineIndicator />
         </div>
     );
 }
