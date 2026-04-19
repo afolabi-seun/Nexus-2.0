@@ -10,7 +10,7 @@ import { mapErrorCode } from '@/utils/errorMapping';
 import { ApiError } from '@/types/api';
 import { Priority } from '@/types/enums';
 import { createStorySchema, updateStorySchema, FIBONACCI_OPTIONS, type CreateStoryFormData, type UpdateStoryFormData } from '../schemas';
-import type { StoryDetail, ProjectListItem, Label } from '@/types/work';
+import type { StoryDetail, ProjectListItem, Label, StoryTemplateResponse } from '@/types/work';
 import type { Department } from '@/types/profile';
 
 interface StoryFormCreateProps {
@@ -36,6 +36,7 @@ export function StoryForm({ mode = 'create', story, defaultProjectId, onSuccess 
     const [projects, setProjects] = useState<ProjectListItem[]>([]);
     const [departments, setDepartments] = useState<Department[]>([]);
     const [labels, setLabels] = useState<Label[]>([]);
+    const [templates, setTemplates] = useState<StoryTemplateResponse[]>([]);
 
     const isEdit = mode === 'edit';
 
@@ -43,6 +44,7 @@ export function StoryForm({ mode = 'create', story, defaultProjectId, onSuccess 
         register,
         handleSubmit,
         control,
+        setValue,
         formState: { errors },
     } = useForm<CreateStoryFormData | UpdateStoryFormData>({
         resolver: zodResolver(isEdit ? updateStorySchema : createStorySchema),
@@ -72,12 +74,14 @@ export function StoryForm({ mode = 'create', story, defaultProjectId, onSuccess 
             workApi.getProjects({ page: 1, pageSize: 100 }),
             profileApi.getDepartments(),
             workApi.getLabels(),
-        ]).then(([projRes, deptRes, lbls]) => {
+            !isEdit ? workApi.getStoryTemplates({ pageSize: 50 }).catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
+        ]).then(([projRes, deptRes, lbls, tmplRes]) => {
             setProjects(projRes.data);
             setDepartments(deptRes.data);
             setLabels(lbls);
+            setTemplates(tmplRes.data);
         }).catch(() => { });
-    }, []);
+    }, [isEdit]);
 
     const onSubmit = async (data: CreateStoryFormData | UpdateStoryFormData) => {
         setSubmitting(true);
@@ -137,6 +141,28 @@ export function StoryForm({ mode = 'create', story, defaultProjectId, onSuccess 
                         <option value="">Select a project</option>
                         {projects.map((p) => (
                             <option key={p.projectId} value={p.projectId}>{p.name} ({p.projectKey})</option>
+                        ))}
+                    </select>
+                </FormField>
+            )}
+
+            {!isEdit && templates.length > 0 && (
+                <FormField name="template" label="Template (optional)">
+                    <select
+                        className={inputClass}
+                        onChange={(e) => {
+                            const tmpl = templates.find((t) => t.storyTemplateId === e.target.value);
+                            if (tmpl) {
+                                if (tmpl.defaultTitle) setValue('title', tmpl.defaultTitle);
+                                if (tmpl.defaultDescription) setValue('description', tmpl.defaultDescription);
+                                if (tmpl.defaultAcceptanceCriteria) setValue('acceptanceCriteria' as 'title', tmpl.defaultAcceptanceCriteria);
+                                if (tmpl.defaultPriority) setValue('priority' as 'title', tmpl.defaultPriority as Priority);
+                            }
+                        }}
+                    >
+                        <option value="">No template</option>
+                        {templates.map((t) => (
+                            <option key={t.storyTemplateId} value={t.storyTemplateId}>{t.name}</option>
                         ))}
                     </select>
                 </FormField>
