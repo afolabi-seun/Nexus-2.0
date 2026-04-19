@@ -154,7 +154,7 @@ export function KanbanBoardPage() {
                                     </DraggableCard>
                                 ))}
                                 {colCards.length === 0 && (
-                                    <p className="py-4 text-center text-xs text-muted-foreground">No stories</p>
+                                    <p className="py-4 text-center text-xs text-muted-foreground">No stories in this column</p>
                                 )}
                             </BoardColumn>
                         );

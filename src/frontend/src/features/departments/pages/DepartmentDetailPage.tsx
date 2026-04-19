@@ -9,6 +9,8 @@ import { mapErrorCode } from '@/utils/errorMapping';
 import { ApiError } from '@/types/api';
 import type { Department, DepartmentPreferences, TeamMember } from '@/types/profile';
 import { DepartmentWorkloadSection } from '../components/DepartmentWorkloadSection';
+import { DepartmentTaskOverview } from '../components/DepartmentTaskOverview';
+import { DepartmentWorkflowOverrides } from '../components/DepartmentWorkflowOverrides';
 
 export function DepartmentDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -93,11 +95,14 @@ export function DepartmentDetailPage() {
             {/* Workload */}
             <DepartmentWorkloadSection departmentId={id!} />
 
+            {/* Task Overview */}
+            <DepartmentTaskOverview departmentId={id!} />
+
             {/* Members */}
             <section className="space-y-2">
                 <h2 className="text-lg font-medium text-foreground">Members</h2>
                 {members.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No members</p>
+                    <p className="text-sm text-muted-foreground">No members in this department. Add members from the team member list.</p>
                 ) : (
                     <div className="space-y-1.5">
                         {members.map((m) => (
@@ -143,6 +148,9 @@ export function DepartmentDetailPage() {
                     </button>
                 </section>
             )}
+
+            {/* Workflow Overrides */}
+            <DepartmentWorkflowOverrides canEdit={canEditPrefs} />
         </div>
     );
 }

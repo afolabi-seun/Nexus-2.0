@@ -124,6 +124,7 @@ export function ProjectListPage() {
                 onSort={handleSort}
                 onRowClick={(row) => navigate(`/projects/${row.projectId}`)}
                 keyExtractor={(row) => row.projectId}
+                    emptyMessage="No projects yet. Create your first project to start tracking stories and sprints."
             />
 
             <Pagination

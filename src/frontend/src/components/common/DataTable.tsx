@@ -17,6 +17,7 @@ interface DataTableProps<T> {
     onSort?: (key: string) => void;
     onRowClick?: (row: T) => void;
     keyExtractor: (row: T) => string;
+    emptyMessage?: string;
 }
 
 export function DataTable<T>({
@@ -28,6 +29,7 @@ export function DataTable<T>({
     onSort,
     onRowClick,
     keyExtractor,
+    emptyMessage,
 }: DataTableProps<T>) {
     if (loading) {
         return <SkeletonLoader variant="table" rows={5} columns={columns.length} />;
@@ -66,7 +68,7 @@ export function DataTable<T>({
                     {data.length === 0 ? (
                         <tr>
                             <td colSpan={columns.length} className="px-4 py-8 text-center text-muted-foreground">
-                                No data available
+                                {emptyMessage ?? 'No data available'}
                             </td>
                         </tr>
                     ) : (

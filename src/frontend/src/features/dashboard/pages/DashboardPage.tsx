@@ -5,6 +5,7 @@ import { VelocityChartWidget } from '../components/VelocityChartWidget.js';
 import { ProjectHealthWidget } from '../components/ProjectHealthWidget';
 import { PendingApprovalsWidget } from '../components/PendingApprovalsWidget';
 import { BillingUsageWidget } from '../components/BillingUsageWidget';
+import { ActiveBugsWidget } from '../components/ActiveBugsWidget';
 import { MyTimeWidget } from '../components/MyTimeWidget';
 import { MyStoriesWidget } from '../components/MyStoriesWidget';
 import { UpcomingDueDatesWidget } from '../components/UpcomingDueDatesWidget';
@@ -87,6 +88,13 @@ export function DashboardPage() {
                 {(role === 'OrgAdmin' || role === 'DeptLead' || role === 'Viewer') && (
                     <WidgetCard title="Velocity">
                         <VelocityChartWidget />
+                    </WidgetCard>
+                )}
+
+                {/* Active Bugs — OrgAdmin, DeptLead */}
+                {(role === 'OrgAdmin' || role === 'DeptLead') && (
+                    <WidgetCard title="Active Bugs">
+                        <ActiveBugsWidget />
                     </WidgetCard>
                 )}
 

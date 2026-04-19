@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { timeTrackingApi } from '@/api/timeTrackingApi';
 import { analyticsApi } from '@/api/analyticsApi';
+import { HelpTooltip } from '@/components/common/HelpTooltip';
 import { SkeletonLoader } from '@/components/common/SkeletonLoader';
 import { Pagination } from '@/components/common/Pagination';
 import { Badge } from '@/components/common/Badge';
@@ -58,7 +59,7 @@ export function ProjectCostTimeTab({ projectId }: Props) {
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                         <CostCard label="Total Cost" value={fmt(cost.totalCost)} />
                         <CostCard label="Burn Rate / Day" value={fmt(cost.burnRatePerDay)} />
-                        <CostCard label="Billable Hours" value={`${cost.totalBillableHours.toFixed(1)}h`} />
+                        <CostCard label="Billable Hours" value={`${cost.totalBillableHours.toFixed(1)}h`} help="Hours logged as billable, used for cost calculations." />
                         <CostCard label="Non-Billable Hours" value={`${cost.totalNonBillableHours.toFixed(1)}h`} />
                     </div>
 
@@ -123,10 +124,10 @@ export function ProjectCostTimeTab({ projectId }: Props) {
     );
 }
 
-function CostCard({ label, value }: { label: string; value: string }) {
+function CostCard({ label, value, help }: { label: string; value: string; help?: string }) {
     return (
         <div className="rounded-lg border border-border bg-card p-3">
-            <p className="text-xs text-muted-foreground">{label}</p>
+            <p className="text-xs text-muted-foreground flex items-center gap-1">{label} {help && <HelpTooltip text={help} />}</p>
             <p className="mt-1 text-lg font-semibold text-foreground">{value}</p>
         </div>
     );
