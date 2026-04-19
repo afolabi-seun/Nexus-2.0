@@ -193,6 +193,24 @@ export const profileApi = {
     getNavigation: (): Promise<import('@/types/profile').NavigationItem[]> =>
         client.get('/api/v1/navigation').then((r) => r.data),
 
+    getAllNavigation: (): Promise<import('@/types/profile').NavigationItem[]> =>
+        client.get('/api/v1/navigation/all').then((r) => r.data),
+
+    createNavigationItem: (data: {
+        label: string; path: string; icon: string; section: string;
+        sortOrder: number; parentId?: string | null; minPermissionLevel: number; isEnabled: boolean;
+    }): Promise<import('@/types/profile').NavigationItem> =>
+        client.post('/api/v1/navigation', data).then((r) => r.data),
+
+    updateNavigationItem: (id: string, data: {
+        label?: string; path?: string; icon?: string;
+        sortOrder?: number; minPermissionLevel?: number; isEnabled?: boolean;
+    }): Promise<import('@/types/profile').NavigationItem> =>
+        client.put(`/api/v1/navigation/${id}`, data).then((r) => r.data),
+
+    deleteNavigationItem: (id: string): Promise<void> =>
+        client.delete(`/api/v1/navigation/${id}`).then(() => undefined),
+
     // Roles
     getRoles: (): Promise<object[]> =>
         client.get('/api/v1/roles').then((r) => r.data),
