@@ -12,16 +12,14 @@ interface AuthState {
 
 interface AuthActions {
     login(
-        tokens: { accessToken: string; refreshToken: string },
+        tokens: { accessToken: string; refreshToken?: string },
         user: AuthUser,
         isFirstTimeUser?: boolean
     ): void;
     logout(): void;
-    refreshTokens(accessToken: string, refreshToken: string): void;
+    refreshTokens(accessToken: string, refreshToken?: string): void;
     setUser(user: AuthUser): void;
 }
-
-const REFRESH_TOKEN_KEY = 'nexus_rt';
 
 function decodeJwtPayload(token: string): Record<string, unknown> {
     try {
@@ -47,42 +45,21 @@ export function extractUserFromToken(token: string): AuthUser {
     };
 }
 
-function loadPersistedRefreshToken(): string | null {
-    try {
-        return localStorage.getItem(REFRESH_TOKEN_KEY);
-    } catch {
-        return null;
-    }
-}
-
-function persistRefreshToken(token: string | null): void {
-    try {
-        if (token) {
-            localStorage.setItem(REFRESH_TOKEN_KEY, token);
-        } else {
-            localStorage.removeItem(REFRESH_TOKEN_KEY);
-        }
-    } catch {
-        // localStorage unavailable
-    }
-}
-
 export const useAuthStore = create<AuthState & AuthActions>()((set) => ({
     accessToken: null,
-    refreshToken: loadPersistedRefreshToken(),
+    refreshToken: null,
     user: null,
     isAuthenticated: false,
     isPlatformAdmin: false,
     isFirstTimeUser: false,
 
     login(tokens, user, isFirstTimeUser) {
-        persistRefreshToken(tokens.refreshToken);
         const isPlatformAdmin =
             !user.organizationId && user.roleName === 'PlatformAdmin';
         const firstTime = isFirstTimeUser ?? user.isFirstTimeUser;
         set({
             accessToken: tokens.accessToken,
-            refreshToken: tokens.refreshToken,
+            refreshToken: null, // refresh token is now in httpOnly cookie
             user: { ...user, isFirstTimeUser: firstTime },
             isAuthenticated: true,
             isPlatformAdmin,
@@ -91,7 +68,6 @@ export const useAuthStore = create<AuthState & AuthActions>()((set) => ({
     },
 
     logout() {
-        persistRefreshToken(null);
         set({
             accessToken: null,
             refreshToken: null,
@@ -102,9 +78,8 @@ export const useAuthStore = create<AuthState & AuthActions>()((set) => ({
         });
     },
 
-    refreshTokens(accessToken, refreshToken) {
-        persistRefreshToken(refreshToken);
-        set({ accessToken, refreshToken });
+    refreshTokens(accessToken) {
+        set({ accessToken });
     },
 
     setUser(user) {

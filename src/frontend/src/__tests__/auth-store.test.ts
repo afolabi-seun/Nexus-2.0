@@ -8,6 +8,7 @@ import type { AuthUser } from '@/types/auth';
  *
  * Property 8: Auth store state consistency
  * For any login/logout sequence, verify isAuthenticated, tokens, and user state.
+ * Note: refreshToken is now stored in an httpOnly cookie, not in the store.
  */
 
 function makeUser(overrides: Partial<AuthUser> = {}): AuthUser {
@@ -29,23 +30,22 @@ describe('Auth Store State Consistency', () => {
         useAuthStore.getState().logout();
     });
 
-    it('property: after login, isAuthenticated is true and tokens/user are set', () => {
+    it('property: after login, isAuthenticated is true and accessToken/user are set', () => {
         fc.assert(
             fc.property(
                 fc.record({
                     accessToken: fc.string({ minLength: 10, maxLength: 100 }),
-                    refreshToken: fc.string({ minLength: 10, maxLength: 100 }),
                     roleName: fc.constantFrom('OrgAdmin', 'DeptLead', 'Member', 'Viewer'),
                     isFirstTimeUser: fc.boolean(),
                 }),
-                ({ accessToken, refreshToken, roleName, isFirstTimeUser }) => {
+                ({ accessToken, roleName, isFirstTimeUser }) => {
                     const user = makeUser({ roleName, isFirstTimeUser });
-                    useAuthStore.getState().login({ accessToken, refreshToken }, user);
+                    useAuthStore.getState().login({ accessToken }, user);
 
                     const state = useAuthStore.getState();
                     expect(state.isAuthenticated).toBe(true);
                     expect(state.accessToken).toBe(accessToken);
-                    expect(state.refreshToken).toBe(refreshToken);
+                    expect(state.refreshToken).toBeNull(); // httpOnly cookie, not in store
                     expect(state.user).toEqual(user);
                     expect(state.isFirstTimeUser).toBe(isFirstTimeUser);
 
@@ -62,11 +62,10 @@ describe('Auth Store State Consistency', () => {
             fc.property(
                 fc.record({
                     accessToken: fc.string({ minLength: 10, maxLength: 100 }),
-                    refreshToken: fc.string({ minLength: 10, maxLength: 100 }),
                 }),
-                ({ accessToken, refreshToken }) => {
+                ({ accessToken }) => {
                     const user = makeUser();
-                    useAuthStore.getState().login({ accessToken, refreshToken }, user);
+                    useAuthStore.getState().login({ accessToken }, user);
                     useAuthStore.getState().logout();
 
                     const state = useAuthStore.getState();
@@ -92,7 +91,7 @@ describe('Auth Store State Consistency', () => {
                 ({ organizationId, roleName }) => {
                     const user = makeUser({ organizationId, roleName });
                     useAuthStore.getState().login(
-                        { accessToken: 'at', refreshToken: 'rt' },
+                        { accessToken: 'at' },
                         user
                     );
 
@@ -107,20 +106,19 @@ describe('Auth Store State Consistency', () => {
         );
     });
 
-    it('property: refreshTokens updates tokens without changing user or auth state', () => {
+    it('property: refreshTokens updates accessToken without changing user or auth state', () => {
         const user = makeUser();
-        useAuthStore.getState().login({ accessToken: 'old-at', refreshToken: 'old-rt' }, user);
+        useAuthStore.getState().login({ accessToken: 'old-at' }, user);
 
         fc.assert(
             fc.property(
                 fc.string({ minLength: 10, maxLength: 100 }),
-                fc.string({ minLength: 10, maxLength: 100 }),
-                (newAt, newRt) => {
-                    useAuthStore.getState().refreshTokens(newAt, newRt);
+                (newAt) => {
+                    useAuthStore.getState().refreshTokens(newAt);
 
                     const state = useAuthStore.getState();
                     expect(state.accessToken).toBe(newAt);
-                    expect(state.refreshToken).toBe(newRt);
+                    expect(state.refreshToken).toBeNull(); // httpOnly cookie
                     expect(state.isAuthenticated).toBe(true);
                     expect(state.user).toEqual(user);
                 }
