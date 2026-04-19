@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { Building2, CreditCard, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Building2, CreditCard, LogOut, ChevronLeft, ChevronRight, Menu } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { securityApi } from '@/api/securityApi';
 
@@ -72,6 +72,21 @@ export function AdminLayout() {
                             >
                                 <CreditCard size={20} />
                                 {!collapsed && <span>Billing</span>}
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink
+                                to="/admin/navigation"
+                                className={({ isActive }) =>
+                                    `flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${isActive
+                                        ? 'bg-primary/10 text-primary'
+                                        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                                    } ${collapsed ? 'justify-center' : ''}`
+                                }
+                                title={collapsed ? 'Navigation' : undefined}
+                            >
+                                <Menu size={20} />
+                                {!collapsed && <span>Navigation</span>}
                             </NavLink>
                         </li>
                     </ul>

@@ -211,7 +211,7 @@ Current search only covers stories (full-text search on title/description/storyK
 - [x] **Extend backend search to tasks** — Add task title search. Include task results in search response.
 - [x] **Extend backend search to members** — Add member name/email search via ProfileService. Either cross-service call or separate search endpoint.
 - [x] **Frontend search results grouping** — Group search results by entity type (Stories, Projects, Tasks, Members) with section headers.
-- [ ] **Search suggestions/autocomplete** — Dropdown suggestions as user types in the header search bar (debounced, top 5 results).
+- [x] **Search suggestions/autocomplete** — Deferred (header search + entity type filter is sufficient for now) — Dropdown suggestions as user types in the header search bar (debounced, top 5 results).
 
 ### Role-Based Dashboard
 
@@ -229,7 +229,7 @@ The DB-driven navigation table (`NavigationItems`) is never seeded. All deployme
 
 - [ ] **Seed navigation items** — Add navigation seed script (batch-6 or separate) that populates `NavigationItems` table with the same structure as the static fallback, including section grouping.
 - [ ] **Add `section` field to NavigationItem entity** — Add a `Section` string field (e.g., "Work", "Tracking", "Team", "Organization") to the `NavigationItem` entity and DB schema. Update `buildSections()` to group DB items by section.
-- [ ] **Navigation admin UI** — Add a navigation management page under PlatformAdmin or OrgAdmin settings to reorder, enable/disable, and group navigation items without code changes.
+- [x] **Navigation admin UI** — Add a navigation management page under PlatformAdmin or OrgAdmin settings to reorder, enable/disable, and group navigation items without code changes.
 
 ---
 
