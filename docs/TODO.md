@@ -100,14 +100,14 @@ The project detail page is the natural hub for all project-scoped data. Currentl
 ### DepartmentDetailPage — Workload Summary (Priority 5)
 
 - [x] **Workload summary** — Department workload chart (`workApi.getDepartmentWorkloadReport({departmentId})`)
-- [ ] **Task overview** — Tasks by status for this department (from department board data)
-- [ ] **Workflow overrides** — View/edit department workflow overrides (`workApi.saveDeptWorkflowOverride`)
+- [x] **Task overview** — Tasks by status for this department (from department board data)
+- [x] **Workflow overrides** — View/edit department workflow overrides (`workApi.saveDeptWorkflowOverride`)
 
 ### DashboardPage — Additional Widgets (Priority 6)
 
 - [x] **Project health widget** — Health scores across all projects with trend indicators
-- [ ] **Active bugs widget** — Total open bugs across projects
-- [ ] **Pending approvals widget** — Time entry approvals pending (DeptLead/OrgAdmin)
+- [x] **Active bugs widget** — Total open bugs across projects
+- [x] **Pending approvals widget** — Time entry approvals pending (DeptLead/OrgAdmin)
 
 ### List Pages — Export Buttons (Priority 7)
 
@@ -135,16 +135,16 @@ No contextual help exists in the UI. Users have no guidance on what features do,
 
 Replace generic "no data" messages with guidance on what to do next:
 
-- [ ] **ProjectListPage** — "No projects yet. Create your first project to start tracking stories and sprints." + Create Project button
+- [x] **ProjectListPage** — "No projects yet. Create your first project to start tracking stories and sprints." + Create Project button
 - [x] **StoryListPage** — "No stories found. Stories represent work items your team needs to complete." + Create Story button
-- [ ] **SprintListPage** — "No sprints yet. Sprints are time-boxed iterations for delivering stories." + Create Sprint button
-- [ ] **SprintDetailPage (no stories)** — "This sprint has no stories. Add stories from the backlog or story list."
-- [ ] **KanbanBoardPage** — "No stories on the board. Create stories and assign them to a project to see them here."
+- [x] **SprintListPage** — "No sprints yet. Sprints are time-boxed iterations for delivering stories." + Create Sprint button
+- [x] **SprintDetailPage (no stories)** — "This sprint has no stories. Add stories from the backlog or story list."
+- [x] **KanbanBoardPage** — "No stories on the board. Create stories and assign them to a project to see them here."
 - [x] **TimeTrackingPage** — "No time entries yet. Start the timer on a story or log time manually."
-- [ ] **AnalyticsDashboardPage** — "Analytics data is generated when sprints are completed. Complete your first sprint to see velocity trends."
-- [ ] **MemberListPage** — "No team members yet. Invite members to your organization to get started." + Invite button
-- [ ] **DepartmentDetailPage (no members)** — "No members in this department. Add members from the team member list."
-- [ ] **ReportsPage** — "Reports require completed sprint data. Complete a sprint to generate velocity, workload, and capacity reports."
+- [x] **AnalyticsDashboardPage** — "Analytics data is generated when sprints are completed. Complete your first sprint to see velocity trends."
+- [x] **MemberListPage** — "No team members yet. Invite members to your organization to get started." + Invite button
+- [x] **DepartmentDetailPage (no members)** — "No members in this department. Add members from the team member list."
+- [x] **ReportsPage** — "Reports require completed sprint data. Complete a sprint to generate velocity, workload, and capacity reports."
 
 ### Layer 2: Page-Level Descriptions (medium impact)
 
@@ -166,14 +166,14 @@ One-line help text below each page title. Dismissible per user via localStorage.
 
 ### Layer 3: Field-Level Help Tooltips (nice to have)
 
-- [ ] **Story points** — "Relative estimate of effort. Common scales: 1, 2, 3, 5, 8, 13."
+- [x] **Story points** — "Relative estimate of effort. Common scales: 1, 2, 3, 5, 8, 13."
 - [x] **Health score** — "Composite score (0–100) based on velocity consistency, bug rate, overdue stories, and active risks."
 - [x] **Burn rate** — "Average daily cost based on billable time entries and cost rates."
-- [ ] **WIP limit** — "Maximum stories allowed in this status column. Helps prevent overloading."
+- [x] **WIP limit** — "Maximum stories allowed in this status column. Helps prevent overloading."
 - [x] **Velocity** — "Story points completed per sprint. Higher is better, but consistency matters more."
-- [ ] **Completion rate** — "Percentage of committed stories completed in the sprint."
-- [ ] **Capacity utilization** — "Percentage of available working hours that were logged as time entries."
-- [ ] **Cost rate** — "Hourly rate used to calculate project costs from time entries."
+- [x] **Completion rate** — "Percentage of committed stories completed in the sprint."
+- [x] **Capacity utilization** — "Percentage of available working hours that were logged as time entries."
+- [x] **Cost rate** — "Hourly rate used to calculate project costs from time entries."
 
 ---
 

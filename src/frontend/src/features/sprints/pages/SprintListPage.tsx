@@ -180,6 +180,7 @@ export function SprintListPage() {
                 loading={loading}
                 onRowClick={(row) => navigate(`/sprints/${row.sprintId}`)}
                 keyExtractor={(row) => row.sprintId}
+                    emptyMessage="No sprints yet. Sprints are time-boxed iterations for delivering stories."
             />
 
             <Pagination

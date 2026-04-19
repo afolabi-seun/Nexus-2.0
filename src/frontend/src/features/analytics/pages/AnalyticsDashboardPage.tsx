@@ -135,7 +135,7 @@ export function AnalyticsDashboardPage() {
             )}
 
             {!loading && !error && !dashboard && selectedProjectId && (
-                <p className="text-sm text-muted-foreground">No dashboard data available.</p>
+                <p className="text-sm text-muted-foreground">No dashboard data available. Complete a sprint to generate analytics.</p>
             )}
         </div>
     );

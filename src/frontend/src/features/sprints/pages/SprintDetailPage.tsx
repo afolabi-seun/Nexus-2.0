@@ -315,7 +315,7 @@ export function SprintDetailPage() {
             )}
 
             {/* Sprint stories table */}
-            {sprint.stories.length > 0 && (
+            {sprint.stories.length > 0 ? (
                 <section className="space-y-2">
                     <h2 className="text-lg font-medium text-foreground">Sprint Stories</h2>
                     <DataTable
@@ -324,6 +324,11 @@ export function SprintDetailPage() {
                         onRowClick={(row) => navigate(`/stories/${row.storyId}`)}
                         keyExtractor={(row) => row.storyId}
                     />
+                </section>
+            ) : (
+                <section className="space-y-2">
+                    <h2 className="text-lg font-medium text-foreground">Sprint Stories</h2>
+                    <p className="py-4 text-center text-sm text-muted-foreground">This sprint has no stories. Add stories from the backlog or story list.</p>
                 </section>
             )}
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { profileApi } from '@/api/profileApi';
 import { FormField } from '@/components/forms/FormField';
+import { HelpTooltip } from '@/components/common/HelpTooltip';
 import { useToast } from '@/components/common/Toast';
 import { SkeletonLoader } from '@/components/common/SkeletonLoader';
 import { useOrg } from '@/hooks/useOrg';
@@ -143,7 +144,10 @@ export function SettingsPage() {
                         </label>
                     </div>
                     <FormField name="defaultWipLimit" label="Default WIP Limit">
-                        <input type="number" min={1} value={form.defaultWipLimit ?? 0} onChange={(e) => updateField('defaultWipLimit', Number(e.target.value))} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
+                        <div className="flex items-center gap-1">
+                            <input type="number" min={1} value={form.defaultWipLimit ?? 0} onChange={(e) => updateField('defaultWipLimit', Number(e.target.value))} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
+                            <HelpTooltip text="Maximum stories allowed in each status column. Helps prevent overloading the team." />
+                        </div>
                     </FormField>
                     <FormField name="primaryColor" label="Primary Color">
                         <input type="color" value={form.primaryColor ?? '#3b82f6'} onChange={(e) => updateField('primaryColor', e.target.value)} className="h-9 w-16 rounded-md border border-input bg-background" />
