@@ -60,6 +60,7 @@ const PlatformAdminBillingPage = lazy(() => import('@/features/admin/pages/Platf
 const PlatformAdminOrgBillingDetailPage = lazy(() => import('@/features/admin/pages/PlatformAdminOrgBillingDetailPage').then(m => ({ default: m.PlatformAdminOrgBillingDetailPage })));
 const PlatformAdminPlansPage = lazy(() => import('@/features/admin/pages/PlatformAdminPlansPage').then(m => ({ default: m.PlatformAdminPlansPage })));
 const NavigationAdminPage = lazy(() => import('@/features/admin/pages/NavigationAdminPage').then(m => ({ default: m.NavigationAdminPage })));
+const OnboardingWizard = lazy(() => import('@/features/onboarding/pages/OnboardingWizard').then(m => ({ default: m.OnboardingWizard })));
 
 function LazyFallback() {
     return (
@@ -127,6 +128,7 @@ export const router = createBrowserRouter([
                         children: [
                             // Core routes (static imports — instant navigation)
                             { path: '/', element: <DashboardPage /> },
+                            { path: '/onboarding', element: <L><OnboardingWizard /></L> },
                             { path: '/projects', element: <ProjectListPage /> },
                             { path: '/projects/:id', element: <ProjectDetailPage /> },
                             { path: '/stories', element: <StoryListPage /> },
