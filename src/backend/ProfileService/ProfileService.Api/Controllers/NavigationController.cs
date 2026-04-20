@@ -31,7 +31,7 @@ public class NavigationController : ControllerBase
         var permissionLevel = roleObj is Application.DTOs.Roles.RoleResponse role ? role.PermissionLevel : 25;
 
         var items = await _navigationService.GetNavigationAsync(permissionLevel, ct);
-        return Ok(Wrap(items.Select(MapToResponse).ToList()));
+        return Ok(Wrap(items.Select(MapToResponse).ToList(), "Navigation items retrieved."));
     }
 
     [HttpGet("all")]
@@ -39,7 +39,7 @@ public class NavigationController : ControllerBase
     public async Task<ActionResult<ApiResponse<object>>> GetAll(CancellationToken ct)
     {
         var items = await _navigationService.GetAllNavigationItemsAsync(ct);
-        return Ok(Wrap(items.Select(MapToResponse).ToList()));
+        return Ok(Wrap(items.Select(MapToResponse).ToList(), "All navigation items retrieved."));
     }
 
     [HttpPost]

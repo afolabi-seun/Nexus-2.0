@@ -45,7 +45,7 @@ public class SessionController : ControllerBase
             TotalPages = 1
         };
 
-        return ApiResponse<PaginatedResponse<SessionResponse>>.Ok(paginated).ToActionResult(HttpContext);
+        return ApiResponse<PaginatedResponse<SessionResponse>>.Ok(paginated, "Sessions retrieved.").ToActionResult(HttpContext);
     }
 
     [HttpDelete("{sessionId}")]

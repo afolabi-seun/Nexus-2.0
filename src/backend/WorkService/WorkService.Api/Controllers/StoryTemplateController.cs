@@ -53,7 +53,7 @@ public class StoryTemplateController : ControllerBase
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
         var result = await _service.GetByIdAsync(id, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return ApiResponse<object>.Ok(result, "Story template retrieved.").ToActionResult(HttpContext);
     }
 
     /// <summary>
