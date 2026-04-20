@@ -233,6 +233,19 @@ The DB-driven navigation table (`NavigationItems`) is never seeded. All deployme
 
 ---
 
+## Phase 11 — Architecture Refactoring
+
+- [ ] **ServiceResult pattern** — Replace `object` return types across all service methods with a typed `ServiceResult<T>` wrapper that carries success/error state, HTTP status, and message. Add `ToActionResult()` extension so controllers become one-liners: `return (await _service.DoAsync(request)).ToActionResult();`. Currently 120+ service methods return `object` and 50+ controller actions manually wrap in `ApiResponse<object>.Ok(result, "message").ToActionResult(HttpContext)`. This refactor would:
+  - Create `ServiceResult<T>` in each service's Application layer (or a shared package)
+  - Add `ToActionResult()` extension method
+  - Change all service interfaces from `Task<object>` to `Task<ServiceResult<T>>`
+  - Simplify all controller actions to single-line returns
+  - Eliminate manual `ApiResponse` wrapping in controllers
+  - Scope: ~120 service methods, ~50 controller actions, all 5 services
+- [ ] **Consistent API response messages** — Audit all controller endpoints to ensure every `ApiResponse.Ok()` call includes a descriptive message string. A few endpoints were found returning without messages.
+
+---
+
 ## ✅ Recently Completed
 
 ### Frontend Navigation
