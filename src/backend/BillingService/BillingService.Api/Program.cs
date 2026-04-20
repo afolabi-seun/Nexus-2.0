@@ -63,6 +63,34 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 Encoding.UTF8.GetBytes(appSettings.JwtSecretKey)),
             ClockSkew = TimeSpan.Zero
         };
+        options.Events = new JwtBearerEvents
+        {
+            OnChallenge = async context =>
+            {
+                context.HandleResponse();
+                context.Response.StatusCode = 401;
+                context.Response.ContentType = "application/problem+json";
+                var correlationId = context.HttpContext.Items["CorrelationId"]?.ToString() ?? "";
+                var message = "Authentication required.";
+                if (context.ErrorDescription?.Contains("expired") == true)
+                    message = "Token has expired. Please refresh your session.";
+                else if (context.Error == "invalid_token")
+                    message = "Invalid or malformed token.";
+                var errorCode = context.ErrorDescription?.Contains("expired") == true ? "TOKEN_EXPIRED" : "INVALID_TOKEN";
+                var body = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    responseCode = "03",
+                    responseDescription = message,
+                    success = false,
+                    data = (object?)null,
+                    errorCode,
+                    errorValue = 2024,
+                    message,
+                    correlationId,
+                });
+                await context.Response.WriteAsync(body);
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
