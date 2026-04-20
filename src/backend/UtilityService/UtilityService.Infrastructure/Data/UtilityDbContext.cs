@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using UtilityService.Domain.Entities;
+using UtilityService.Infrastructure.Data.Seeds;
 
 namespace UtilityService.Infrastructure.Data;
 
@@ -71,21 +72,15 @@ public class UtilityDbContext : DbContext
         modelBuilder.Entity<ErrorCodeEntry>(entity =>
         {
             entity.HasKey(e => e.ErrorCodeEntryId);
-            entity.HasIndex(e => e.Code).IsUnique();
+            entity.HasIndex(e => new { e.Code, e.ServiceName }).IsUnique();
             entity.Property(e => e.Code).IsRequired();
             entity.Property(e => e.ResponseCode).IsRequired().HasMaxLength(10);
             entity.Property(e => e.Description).IsRequired();
             entity.Property(e => e.ServiceName).IsRequired();
         });
 
-        // Seed auth error codes in the central registry
-        modelBuilder.Entity<ErrorCodeEntry>().HasData(
-            new { ErrorCodeEntryId = new Guid("b0000000-0000-0000-0000-000000009001"), Code = "UNIQUE_CONSTRAINT_VIOLATION", Value = 9001, HttpStatusCode = 409, ResponseCode = "06", Description = "A record with this value already exists (database constraint).", ServiceName = "All", DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime() },
-            new { ErrorCodeEntryId = new Guid("b0000000-0000-0000-0000-000000009002"), Code = "FOREIGN_KEY_VIOLATION", Value = 9002, HttpStatusCode = 409, ResponseCode = "06", Description = "Referenced record does not exist or cannot be removed.", ServiceName = "All", DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime() },
-            new { ErrorCodeEntryId = new Guid("b0000000-0000-0000-0000-000000009003"), Code = "TOKEN_EXPIRED", Value = 9003, HttpStatusCode = 401, ResponseCode = "03", Description = "JWT token has expired. Refresh your session.", ServiceName = "All", DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime() },
-            new { ErrorCodeEntryId = new Guid("b0000000-0000-0000-0000-000000009004"), Code = "INVALID_TOKEN", Value = 9004, HttpStatusCode = 401, ResponseCode = "03", Description = "Invalid or malformed authentication token.", ServiceName = "All", DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime() },
-            new { ErrorCodeEntryId = new Guid("b0000000-0000-0000-0000-000000009999"), Code = "INTERNAL_ERROR", Value = 9999, HttpStatusCode = 500, ResponseCode = "98", Description = "An unexpected internal error occurred.", ServiceName = "All", DateCreated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime(), DateUpdated = DateTime.Parse("2025-01-01T00:00:00Z").ToUniversalTime() }
-        );
+        // Seed all platform error codes (154 entries)
+        modelBuilder.Entity<ErrorCodeEntry>().HasData(ErrorCodeSeeds.GetAll());
 
         // NotificationLog
         modelBuilder.Entity<NotificationLog>(entity =>
