@@ -1,15 +1,11 @@
-using System.Text;
 using DotNetEnv;
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using ProfileService.Api.Extensions;
 using ProfileService.Application.Validators;
 using ProfileService.Infrastructure.Configuration;
 using Serilog;
 using Serilog.Events;
-using ProfileService.Domain.Exceptions;
 
 // Load environment variables
 Env.Load();
@@ -48,81 +44,11 @@ builder.Services.Configure<Microsoft.AspNetCore.Mvc.ApiBehaviorOptions>(options 
     options.SuppressModelStateInvalidFilter = true;
 });
 
-// JWT Bearer Authentication
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = appSettings.JwtIssuer,
-            ValidAudience = appSettings.JwtAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(appSettings.JwtSecretKey)),
-            ClockSkew = TimeSpan.Zero
-        };
-        options.Events = new JwtBearerEvents
-        {
-            OnChallenge = async context =>
-            {
-                context.HandleResponse();
-                context.Response.StatusCode = 401;
-                context.Response.ContentType = "application/problem+json";
-                var correlationId = context.HttpContext.Items["CorrelationId"]?.ToString() ?? "";
-                var message = "Authentication required.";
-                if (context.ErrorDescription?.Contains("expired") == true)
-                    message = "Token has expired. Please refresh your session.";
-                else if (context.Error == "invalid_token")
-                    message = "Invalid or malformed token.";
-                var errorCode = context.ErrorDescription?.Contains("expired") == true ? ErrorCodes.TokenExpired : ErrorCodes.InvalidToken;
-                var body = System.Text.Json.JsonSerializer.Serialize(new
-                {
-                    responseCode = "03",
-                    responseDescription = message,
-                    success = false,
-                    data = (object?)null,
-                    errorCode,
-                    errorValue = context.ErrorDescription?.Contains("expired") == true ? ErrorCodes.TokenExpiredValue : ErrorCodes.InvalidTokenValue,
-                    message,
-                    correlationId,
-                });
-                await context.Response.WriteAsync(body);
-            }
-        };
-    });
-
-builder.Services.AddAuthorization();
+// Authentication & Authorization
+builder.Services.AddNexusAuthentication(appSettings);
 
 // CORS
-var corsOrigins = new List<string>();
-if (!string.IsNullOrWhiteSpace(appSettings.FrontendUrl))
-    corsOrigins.Add(appSettings.FrontendUrl);
-corsOrigins.AddRange(appSettings.AllowedOrigins);
-var distinctOrigins = corsOrigins.Where(o => !string.IsNullOrWhiteSpace(o)).Distinct().ToArray();
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("NexusPolicy", policy =>
-    {
-        if (distinctOrigins.Length > 0)
-        {
-            policy.WithOrigins(distinctOrigins)
-                  .WithMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
-                  .WithHeaders("Content-Type", "Authorization", "X-Correlation-Id")
-                  .WithExposedHeaders("X-Correlation-Id")
-                  .AllowCredentials();
-        }
-        else
-        {
-            policy.AllowAnyOrigin()
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        }
-    });
-});
+builder.Services.AddNexusCors(appSettings);
 
 // Health checks
 builder.Services.AddHealthCheckServices();
