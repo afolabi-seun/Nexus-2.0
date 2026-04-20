@@ -78,6 +78,13 @@ public static class ErrorCodes
     public const string ForeignKeyViolation = "FOREIGN_KEY_VIOLATION";
     public const int ForeignKeyViolationValue = 9002;
 
+
+    // Authentication (JWT)
+    public const string TokenExpired = "TOKEN_EXPIRED";
+    public const int TokenExpiredValue = 9003;
+    public const string InvalidToken = "INVALID_TOKEN";
+    public const int InvalidTokenValue = 9004;
+
     // Internal
     public const string InternalError = "INTERNAL_ERROR";
     public const int InternalErrorValue = 9999;

@@ -9,6 +9,7 @@ using BillingService.Application.Validators;
 using BillingService.Infrastructure.Configuration;
 using Serilog;
 using Serilog.Events;
+using BillingService.Domain.Exceptions;
 
 // Load environment variables
 Env.Load();
@@ -76,7 +77,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     message = "Token has expired. Please refresh your session.";
                 else if (context.Error == "invalid_token")
                     message = "Invalid or malformed token.";
-                var errorCode = context.ErrorDescription?.Contains("expired") == true ? "TOKEN_EXPIRED" : "INVALID_TOKEN";
+                var errorCode = context.ErrorDescription?.Contains("expired") == true ? ErrorCodes.TokenExpired : ErrorCodes.InvalidToken;
                 var body = System.Text.Json.JsonSerializer.Serialize(new
                 {
                     responseCode = "03",
@@ -84,7 +85,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     success = false,
                     data = (object?)null,
                     errorCode,
-                    errorValue = 2024,
+                    errorValue = context.ErrorDescription?.Contains("expired") == true ? ErrorCodes.TokenExpiredValue : ErrorCodes.InvalidTokenValue,
                     message,
                     correlationId,
                 });
