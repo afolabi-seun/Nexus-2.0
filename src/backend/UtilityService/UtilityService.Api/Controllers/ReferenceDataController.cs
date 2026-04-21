@@ -20,29 +20,25 @@ public class ReferenceDataController : ControllerBase
     [HttpGet("department-types")]
     public async Task<IActionResult> GetDepartmentTypes(CancellationToken ct)
     {
-        var result = await _referenceDataService.GetDepartmentTypesAsync(ct);
-        return ApiResponse<object>.Ok(result, "Department types retrieved.").ToActionResult(HttpContext);
+        return (await _referenceDataService.GetDepartmentTypesAsync(ct)).ToActionResult();
     }
 
     [HttpGet("priority-levels")]
     public async Task<IActionResult> GetPriorityLevels(CancellationToken ct)
     {
-        var result = await _referenceDataService.GetPriorityLevelsAsync(ct);
-        return ApiResponse<object>.Ok(result, "Priority levels retrieved.").ToActionResult(HttpContext);
+        return (await _referenceDataService.GetPriorityLevelsAsync(ct)).ToActionResult();
     }
 
     [HttpGet("task-types")]
     public async Task<IActionResult> GetTaskTypes(CancellationToken ct)
     {
-        var result = await _referenceDataService.GetTaskTypesAsync(ct);
-        return ApiResponse<object>.Ok(result, "Task types retrieved.").ToActionResult(HttpContext);
+        return (await _referenceDataService.GetTaskTypesAsync(ct)).ToActionResult();
     }
 
     [HttpGet("workflow-states")]
     public async Task<IActionResult> GetWorkflowStates(CancellationToken ct)
     {
-        var result = await _referenceDataService.GetWorkflowStatesAsync(ct);
-        return ApiResponse<object>.Ok(result, "Workflow states retrieved.").ToActionResult(HttpContext);
+        return (await _referenceDataService.GetWorkflowStatesAsync(ct)).ToActionResult();
     }
 
     [HttpPost("department-types")]
@@ -50,8 +46,7 @@ public class ReferenceDataController : ControllerBase
     public async Task<IActionResult> CreateDepartmentType(
         [FromBody] CreateDepartmentTypeRequest request, CancellationToken ct)
     {
-        var result = await _referenceDataService.CreateDepartmentTypeAsync(request, ct);
-        return ApiResponse<object>.Ok(result, "Department type created.").ToActionResult(HttpContext, 201);
+        return (await _referenceDataService.CreateDepartmentTypeAsync(request, ct)).ToActionResult();
     }
 
     [HttpPost("priority-levels")]
@@ -59,7 +54,6 @@ public class ReferenceDataController : ControllerBase
     public async Task<IActionResult> CreatePriorityLevel(
         [FromBody] CreatePriorityLevelRequest request, CancellationToken ct)
     {
-        var result = await _referenceDataService.CreatePriorityLevelAsync(request, ct);
-        return ApiResponse<object>.Ok(result, "Priority level created.").ToActionResult(HttpContext, 201);
+        return (await _referenceDataService.CreatePriorityLevelAsync(request, ct)).ToActionResult();
     }
 }

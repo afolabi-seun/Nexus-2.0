@@ -46,7 +46,8 @@ public class ErrorCodeServiceTests
         var result = await _sut.CreateAsync(request);
 
         Assert.NotNull(result);
-        var response = Assert.IsType<ErrorCodeResponse>(result);
+        Assert.True(result.IsSuccess);
+        var response = Assert.IsType<ErrorCodeResponse>(result.Data);
         Assert.Equal("TEST_001", response.Code);
         Assert.Equal(1001, response.Value);
     }
@@ -96,23 +97,26 @@ public class ErrorCodeServiceTests
             .ReturnsAsync((ErrorCodeEntry e, CancellationToken _) => e);
 
         // Create
-        var created = (ErrorCodeResponse)await _sut.CreateAsync(new CreateErrorCodeRequest
+        var createResult = await _sut.CreateAsync(new CreateErrorCodeRequest
         {
             Code = "ROUND", Value = 500, HttpStatusCode = 500,
             ResponseCode = "50", Description = "Round trip", ServiceName = "Svc"
         });
+        var created = (ErrorCodeResponse)createResult.Data!;
         Assert.Equal("ROUND", created.Code);
 
         // List
         _repoMock.Setup(r => r.ListAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new[] { entity });
-        var list = (await _sut.ListAsync()).ToList();
+        var listResult = await _sut.ListAsync();
+        var list = listResult.Data!.ToList();
         Assert.Single(list);
 
         // Update
         _repoMock.Setup(r => r.GetByCodeAsync("ROUND", It.IsAny<CancellationToken>()))
             .ReturnsAsync(entity);
-        var updated = (ErrorCodeResponse)await _sut.UpdateAsync("ROUND", new UpdateErrorCodeRequest { Description = "Updated" });
+        var updateResult = await _sut.UpdateAsync("ROUND", new UpdateErrorCodeRequest { Description = "Updated" });
+        var updated = (ErrorCodeResponse)updateResult.Data!;
         Assert.Equal("Updated", updated.Description);
 
         // Delete

@@ -1,3 +1,4 @@
+using UtilityService.Domain.Results;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using UtilityService.Application.DTOs;
@@ -36,7 +37,7 @@ public class NotificationService : INotificationService
         _dbContext = dbContext;
     }
 
-    public async Task DispatchAsync(object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> DispatchAsync(object request, CancellationToken ct = default)
     {
         var req = (DispatchNotificationRequest)request;
         var channels = req.Channels.Split(',').Select(c => c.Trim()).ToList();
@@ -80,23 +81,25 @@ public class NotificationService : INotificationService
             await _repo.UpdateAsync(log, ct);
             await _dbContext.SaveChangesAsync(ct);
         }
+        return ServiceResult<object>.Ok(new { }, "Notification dispatched.");
     }
 
-    public async Task<object> GetUserHistoryAsync(Guid userId, Guid organizationId, object filter, int page, int pageSize, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetUserHistoryAsync(Guid userId, Guid organizationId, object filter, int page, int pageSize, CancellationToken ct = default)
     {
         var f = (NotificationLogFilterRequest)filter;
         var (items, totalCount) = await _repo.QueryByUserAsync(
             userId, organizationId, f.NotificationType, f.Channel, f.Status, f.DateFrom, f.DateTo, page, pageSize, ct);
 
-        return new PaginatedResponse<NotificationLogResponse>
+        var result = new PaginatedResponse<NotificationLogResponse>
         {
             TotalCount = totalCount, Page = page, PageSize = pageSize,
             TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
             Data = items.Select(MapToResponse)
         };
+        return ServiceResult<object>.Ok(result, "Notification history retrieved.");
     }
 
-    public async Task RetryFailedAsync(CancellationToken ct = default)
+    public async Task<ServiceResult<object>> RetryFailedAsync(CancellationToken ct = default)
     {
         var failed = await _repo.GetFailedForRetryAsync(_appSettings.NotificationRetryMax, ct);
         foreach (var log in failed)
@@ -129,6 +132,7 @@ public class NotificationService : INotificationService
             await _repo.UpdateAsync(log, ct);
             await _dbContext.SaveChangesAsync(ct);
         }
+        return ServiceResult<object>.Ok(new { retried = failed.Count() }, "Retry completed.");
     }
 
     private static NotificationLogResponse MapToResponse(NotificationLog e) => new()

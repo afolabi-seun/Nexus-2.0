@@ -22,8 +22,7 @@ public class NotificationController : ControllerBase
     public async Task<IActionResult> Dispatch(
         [FromBody] DispatchNotificationRequest request, CancellationToken ct)
     {
-        await _notificationService.DispatchAsync(request, ct);
-        return ApiResponse<object>.Ok(null!, "Notification dispatched.").ToActionResult(HttpContext);
+        return (await _notificationService.DispatchAsync(request, ct)).ToActionResult();
     }
 
     [HttpGet("notification-logs")]
@@ -35,7 +34,6 @@ public class NotificationController : ControllerBase
         PaginationHelper.Normalize(ref page, ref pageSize);
         var userId = Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
-        var result = await _notificationService.GetUserHistoryAsync(userId, orgId, filter, page, pageSize, ct);
-        return ApiResponse<object>.Ok(result, "Notification logs retrieved.").ToActionResult(HttpContext);
+        return (await _notificationService.GetUserHistoryAsync(userId, orgId, filter, page, pageSize, ct)).ToActionResult();
     }
 }

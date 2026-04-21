@@ -23,8 +23,7 @@ public class ErrorLogController : ControllerBase
     public async Task<IActionResult> Create(
         [FromBody] CreateErrorLogRequest request, CancellationToken ct)
     {
-        var result = await _errorLogService.CreateAsync(request, ct);
-        return ApiResponse<object>.Ok(result, "Error log created.").ToActionResult(HttpContext, 201);
+        return (await _errorLogService.CreateAsync(request, ct)).ToActionResult();
     }
 
     [HttpGet]
@@ -35,7 +34,6 @@ public class ErrorLogController : ControllerBase
     {
         PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
-        var result = await _errorLogService.QueryAsync(orgId, filter, page, pageSize, ct);
-        return ApiResponse<object>.Ok(result, "Error logs retrieved.").ToActionResult(HttpContext);
+        return (await _errorLogService.QueryAsync(orgId, filter, page, pageSize, ct)).ToActionResult();
     }
 }

@@ -1,5 +1,7 @@
+using UtilityService.Domain.Results;
 using System.Text.Json;
 using StackExchange.Redis;
+using UtilityService.Application.DTOs;
 using UtilityService.Application.DTOs.ReferenceData;
 using UtilityService.Domain.Entities;
 using UtilityService.Domain.Exceptions;
@@ -36,9 +38,9 @@ public class ReferenceDataService : IReferenceDataService
         _dbContext = dbContext;
     }
 
-    public async Task<IEnumerable<object>> GetDepartmentTypesAsync(CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<object>>> GetDepartmentTypesAsync(CancellationToken ct = default)
     {
-        return await GetCachedOrFetchAsync(RedisKeys.Ref("department_types"), async () =>
+        var data = await GetCachedOrFetchAsync(RedisKeys.Ref("department_types"), async () =>
         {
             var items = await _deptRepo.ListAsync(ct);
             return items.Select(e => new DepartmentTypeResponse
@@ -46,11 +48,12 @@ public class ReferenceDataService : IReferenceDataService
                 DepartmentTypeId = e.DepartmentTypeId, TypeName = e.TypeName, TypeCode = e.TypeCode
             }).ToList();
         });
+        return ServiceResult<IEnumerable<object>>.Ok(data, "Department types retrieved.");
     }
 
-    public async Task<IEnumerable<object>> GetPriorityLevelsAsync(CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<object>>> GetPriorityLevelsAsync(CancellationToken ct = default)
     {
-        return await GetCachedOrFetchAsync(RedisKeys.Ref("priority_levels"), async () =>
+        var data = await GetCachedOrFetchAsync(RedisKeys.Ref("priority_levels"), async () =>
         {
             var items = await _priorityRepo.ListAsync(ct);
             return items.Select(e => new PriorityLevelResponse
@@ -58,11 +61,12 @@ public class ReferenceDataService : IReferenceDataService
                 PriorityLevelId = e.PriorityLevelId, Name = e.Name, SortOrder = e.SortOrder, Color = e.Color
             }).ToList();
         });
+        return ServiceResult<IEnumerable<object>>.Ok(data, "Priority levels retrieved.");
     }
 
-    public async Task<IEnumerable<object>> GetTaskTypesAsync(CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<object>>> GetTaskTypesAsync(CancellationToken ct = default)
     {
-        return await GetCachedOrFetchAsync(RedisKeys.Ref("task_types"), async () =>
+        var data = await GetCachedOrFetchAsync(RedisKeys.Ref("task_types"), async () =>
         {
             var items = await _taskTypeRepo.ListAsync(ct);
             return items.Select(e => new TaskTypeRefResponse
@@ -70,11 +74,12 @@ public class ReferenceDataService : IReferenceDataService
                 TaskTypeRefId = e.TaskTypeRefId, TypeName = e.TypeName, DefaultDepartmentCode = e.DefaultDepartmentCode
             }).ToList();
         });
+        return ServiceResult<IEnumerable<object>>.Ok(data, "Task types retrieved.");
     }
 
-    public async Task<IEnumerable<object>> GetWorkflowStatesAsync(CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<object>>> GetWorkflowStatesAsync(CancellationToken ct = default)
     {
-        return await GetCachedOrFetchAsync(RedisKeys.Ref("workflow_states"), async () =>
+        var data = await GetCachedOrFetchAsync(RedisKeys.Ref("workflow_states"), async () =>
         {
             var items = await _workflowRepo.ListAsync(ct);
             return items.Select(e => new WorkflowStateResponse
@@ -82,9 +87,10 @@ public class ReferenceDataService : IReferenceDataService
                 WorkflowStateId = e.WorkflowStateId, EntityType = e.EntityType, StateName = e.StateName, SortOrder = e.SortOrder
             }).ToList();
         });
+        return ServiceResult<IEnumerable<object>>.Ok(data, "Workflow states retrieved.");
     }
 
-    public async Task<object> CreateDepartmentTypeAsync(object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> CreateDepartmentTypeAsync(object request, CancellationToken ct = default)
     {
         var req = (CreateDepartmentTypeRequest)request;
         if (await _deptRepo.ExistsAsync(req.TypeName, ct) || await _deptRepo.GetByCodeAsync(req.TypeCode, ct) != null)
@@ -95,13 +101,13 @@ public class ReferenceDataService : IReferenceDataService
         await _dbContext.SaveChangesAsync(ct);
         await InvalidateCacheAsync(RedisKeys.Ref("department_types"));
 
-        return new DepartmentTypeResponse
+        return ServiceResult<object>.Created(new DepartmentTypeResponse
         {
             DepartmentTypeId = created.DepartmentTypeId, TypeName = created.TypeName, TypeCode = created.TypeCode
-        };
+        }, "Department type created.");
     }
 
-    public async Task<object> CreatePriorityLevelAsync(object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> CreatePriorityLevelAsync(object request, CancellationToken ct = default)
     {
         var req = (CreatePriorityLevelRequest)request;
         if (await _priorityRepo.ExistsAsync(req.Name, ct))
@@ -112,10 +118,10 @@ public class ReferenceDataService : IReferenceDataService
         await _dbContext.SaveChangesAsync(ct);
         await InvalidateCacheAsync(RedisKeys.Ref("priority_levels"));
 
-        return new PriorityLevelResponse
+        return ServiceResult<object>.Created(new PriorityLevelResponse
         {
             PriorityLevelId = created.PriorityLevelId, Name = created.Name, SortOrder = created.SortOrder, Color = created.Color
-        };
+        }, "Priority level created.");
     }
 
     private async Task<List<T>> GetCachedOrFetchAsync<T>(string cacheKey, Func<Task<List<T>>> fetchFunc)

@@ -50,7 +50,8 @@ public class ReferenceDataServiceTests
 
         var result = await _sut.CreateDepartmentTypeAsync(new CreateDepartmentTypeRequest { TypeName = "NewDept", TypeCode = "ND" });
 
-        var response = Assert.IsType<DepartmentTypeResponse>(result);
+        Assert.True(result.IsSuccess);
+        var response = Assert.IsType<DepartmentTypeResponse>(result.Data);
         Assert.Equal("NewDept", response.TypeName);
         Assert.Equal("ND", response.TypeCode);
     }
@@ -97,7 +98,8 @@ public class ReferenceDataServiceTests
         };
         _deptRepoMock.Setup(r => r.ListAsync(It.IsAny<CancellationToken>())).ReturnsAsync(seedDepts);
 
-        var result = (await _sut.GetDepartmentTypesAsync()).Cast<DepartmentTypeResponse>().ToList();
+        var serviceResult = await _sut.GetDepartmentTypesAsync();
+        var result = serviceResult.Data!.Cast<DepartmentTypeResponse>().ToList();
 
         Assert.Equal(5, result.Count);
         Assert.Contains(result, d => d.TypeName == "Engineering" && d.TypeCode == "ENG");

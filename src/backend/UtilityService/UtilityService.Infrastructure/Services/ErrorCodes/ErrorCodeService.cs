@@ -1,5 +1,7 @@
+using UtilityService.Domain.Results;
 using System.Text.Json;
 using StackExchange.Redis;
+using UtilityService.Application.DTOs;
 using UtilityService.Application.DTOs.ErrorCodes;
 using UtilityService.Domain.Entities;
 using UtilityService.Domain.Exceptions;
@@ -25,7 +27,7 @@ public class ErrorCodeService : IErrorCodeService
         _dbContext = dbContext;
     }
 
-    public async Task<object> CreateAsync(object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> CreateAsync(object request, CancellationToken ct = default)
     {
         var req = (CreateErrorCodeRequest)request;
         var existing = await _repo.GetByCodeAsync(req.Code, ct);
@@ -42,26 +44,26 @@ public class ErrorCodeService : IErrorCodeService
         var created = await _repo.AddAsync(entity, ct);
         await _dbContext.SaveChangesAsync(ct);
         await InvalidateCacheAsync();
-        return MapToResponse(created);
+        return ServiceResult<object>.Created(MapToResponse(created), "Error code created.");
     }
 
-    public async Task<IEnumerable<object>> ListAsync(CancellationToken ct = default)
+    public async Task<ServiceResult<IEnumerable<object>>> ListAsync(CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
         var cached = await db.StringGetAsync(CacheKey);
         if (cached.HasValue)
         {
             var cachedList = JsonSerializer.Deserialize<List<ErrorCodeResponse>>(cached!);
-            if (cachedList != null) return cachedList;
+            if (cachedList != null) return ServiceResult<IEnumerable<object>>.Ok(cachedList, "Error codes retrieved.");
         }
 
         var items = await _repo.ListAsync(ct);
         var responses = items.Select(MapToResponse).ToList();
         await db.StringSetAsync(CacheKey, JsonSerializer.Serialize(responses), CacheTtl);
-        return responses;
+        return ServiceResult<IEnumerable<object>>.Ok(responses, "Error codes retrieved.");
     }
 
-    public async Task<object> UpdateAsync(string code, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> UpdateAsync(string code, object request, CancellationToken ct = default)
     {
         var req = (UpdateErrorCodeRequest)request;
         var entity = await _repo.GetByCodeAsync(code, ct)
@@ -77,10 +79,10 @@ public class ErrorCodeService : IErrorCodeService
         await _repo.UpdateAsync(entity, ct);
         await _dbContext.SaveChangesAsync(ct);
         await InvalidateCacheAsync();
-        return MapToResponse(entity);
+        return ServiceResult<object>.Ok(MapToResponse(entity), "Error code updated.");
     }
 
-    public async Task DeleteAsync(string code, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> DeleteAsync(string code, CancellationToken ct = default)
     {
         var entity = await _repo.GetByCodeAsync(code, ct)
             ?? throw new ErrorCodeNotFoundException(code);
@@ -88,6 +90,7 @@ public class ErrorCodeService : IErrorCodeService
         await _repo.RemoveAsync(entity, ct);
         await _dbContext.SaveChangesAsync(ct);
         await InvalidateCacheAsync();
+        return ServiceResult<object>.NoContent("Error code deleted.");
     }
 
     private async Task InvalidateCacheAsync()

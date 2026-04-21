@@ -1,3 +1,4 @@
+using UtilityService.Domain.Results;
 using UtilityService.Application.DTOs;
 using UtilityService.Application.DTOs.AuditLogs;
 using UtilityService.Domain.Entities;
@@ -22,7 +23,7 @@ public class AuditLogService : IAuditLogService
         _dbContext = dbContext;
     }
 
-    public async Task<object> CreateAsync(object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> CreateAsync(object request, CancellationToken ct = default)
     {
         var req = (CreateAuditLogRequest)request;
         var entity = new AuditLog
@@ -42,30 +43,31 @@ public class AuditLogService : IAuditLogService
 
         var created = await _auditLogRepo.AddAsync(entity, ct);
         await _dbContext.SaveChangesAsync(ct);
-        return MapToResponse(created);
+        return ServiceResult<object>.Created(MapToResponse(created), "Audit log created.");
     }
 
-    public async Task<object> QueryAsync(Guid organizationId, object filter, int page, int pageSize, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> QueryAsync(Guid organizationId, object filter, int page, int pageSize, CancellationToken ct = default)
     {
         var f = (AuditLogFilterRequest)filter;
         var (items, totalCount) = await _auditLogRepo.QueryAsync(
             organizationId, f.ServiceName, f.Action, f.EntityType, f.UserId, f.DateFrom, f.DateTo, page, pageSize, ct);
 
-        return new PaginatedResponse<AuditLogResponse>
+        var result = new PaginatedResponse<AuditLogResponse>
         {
             TotalCount = totalCount, Page = page, PageSize = pageSize,
             TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
             Data = items.Select(MapToResponse)
         };
+        return ServiceResult<object>.Ok(result, "Audit logs retrieved.");
     }
 
-    public async Task<object> QueryArchiveAsync(Guid organizationId, object filter, int page, int pageSize, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> QueryArchiveAsync(Guid organizationId, object filter, int page, int pageSize, CancellationToken ct = default)
     {
         var f = (AuditLogFilterRequest)filter;
         var (items, totalCount) = await _archivedRepo.QueryAsync(
             organizationId, f.ServiceName, f.Action, f.EntityType, f.UserId, f.DateFrom, f.DateTo, page, pageSize, ct);
 
-        return new PaginatedResponse<AuditLogResponse>
+        var result = new PaginatedResponse<AuditLogResponse>
         {
             TotalCount = totalCount, Page = page, PageSize = pageSize,
             TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
@@ -86,6 +88,7 @@ public class AuditLogService : IAuditLogService
                 ArchivedDate = a.ArchivedDate
             })
         };
+        return ServiceResult<object>.Ok(result, "Archived audit logs retrieved.");
     }
 
     private static AuditLogResponse MapToResponse(AuditLog e) => new()
