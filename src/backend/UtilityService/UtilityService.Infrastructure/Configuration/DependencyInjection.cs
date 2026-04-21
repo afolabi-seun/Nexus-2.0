@@ -83,6 +83,7 @@ public static class DependencyInjection
         services.AddHostedService<RetentionArchivalHostedService>();
         services.AddHostedService<NotificationRetryHostedService>();
         services.AddHostedService<DueDateNotificationHostedService>();
+        services.AddHostedService<ErrorCodeValidationHostedService>();
 
         // CorrelationId delegating handler for outgoing HTTP calls
         services.AddTransient<CorrelationIdDelegatingHandler>();
