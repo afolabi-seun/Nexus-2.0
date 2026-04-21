@@ -53,8 +53,7 @@ public class AuditLogController : ControllerBase
     public async Task<IActionResult> Create(
         [FromBody] CreateAuditLogRequest request, CancellationToken ct)
     {
-        var result = await _auditLogService.CreateAsync(request, ct);
-        return ApiResponse<object>.Ok(result, "Audit log created.").ToActionResult(HttpContext, 201);
+        return (await _auditLogService.CreateAsync(request, ct)).ToActionResult();
     }
 
     /// <summary>
@@ -76,8 +75,7 @@ public class AuditLogController : ControllerBase
     {
         PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
-        var result = await _auditLogService.QueryAsync(orgId, filter, page, pageSize, ct);
-        return ApiResponse<object>.Ok(result, "Audit logs retrieved.").ToActionResult(HttpContext);
+        return (await _auditLogService.QueryAsync(orgId, filter, page, pageSize, ct)).ToActionResult();
     }
 
     /// <summary>
@@ -99,8 +97,7 @@ public class AuditLogController : ControllerBase
     {
         PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
-        var result = await _auditLogService.QueryArchiveAsync(orgId, filter, page, pageSize, ct);
-        return ApiResponse<object>.Ok(result, "Archived audit logs retrieved.").ToActionResult(HttpContext);
+        return (await _auditLogService.QueryArchiveAsync(orgId, filter, page, pageSize, ct)).ToActionResult();
     }
 
     /// <summary>

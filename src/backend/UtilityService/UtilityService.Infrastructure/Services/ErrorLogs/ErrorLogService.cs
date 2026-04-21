@@ -1,3 +1,4 @@
+using UtilityService.Domain.Results;
 using UtilityService.Application.DTOs;
 using UtilityService.Application.DTOs.ErrorLogs;
 using UtilityService.Domain.Entities;
@@ -21,7 +22,7 @@ public class ErrorLogService : IErrorLogService
         _dbContext = dbContext;
     }
 
-    public async Task<object> CreateAsync(object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> CreateAsync(object request, CancellationToken ct = default)
     {
         var req = (CreateErrorLogRequest)request;
         var entity = new ErrorLog
@@ -38,21 +39,22 @@ public class ErrorLogService : IErrorLogService
 
         var created = await _repo.AddAsync(entity, ct);
         await _dbContext.SaveChangesAsync(ct);
-        return MapToResponse(created);
+        return ServiceResult<object>.Created(MapToResponse(created), "Error log created.");
     }
 
-    public async Task<object> QueryAsync(Guid organizationId, object filter, int page, int pageSize, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> QueryAsync(Guid organizationId, object filter, int page, int pageSize, CancellationToken ct = default)
     {
         var f = (ErrorLogFilterRequest)filter;
         var (items, totalCount) = await _repo.QueryAsync(
             organizationId, f.ServiceName, f.ErrorCode, f.Severity, f.DateFrom, f.DateTo, page, pageSize, ct);
 
-        return new PaginatedResponse<ErrorLogResponse>
+        var result = new PaginatedResponse<ErrorLogResponse>
         {
             TotalCount = totalCount, Page = page, PageSize = pageSize,
             TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
             Data = items.Select(MapToResponse)
         };
+        return ServiceResult<object>.Ok(result, "Error logs retrieved.");
     }
 
     private static ErrorLogResponse MapToResponse(ErrorLog e) => new()

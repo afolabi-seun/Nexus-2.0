@@ -21,16 +21,14 @@ public class ErrorCodeController : ControllerBase
     public async Task<IActionResult> Create(
         [FromBody] CreateErrorCodeRequest request, CancellationToken ct)
     {
-        var result = await _errorCodeService.CreateAsync(request, ct);
-        return ApiResponse<object>.Ok(result, "Error code created.").ToActionResult(HttpContext, 201);
+        return (await _errorCodeService.CreateAsync(request, ct)).ToActionResult();
     }
 
     [HttpGet]
     [Authorize]
     public async Task<IActionResult> List(CancellationToken ct)
     {
-        var result = await _errorCodeService.ListAsync(ct);
-        return ApiResponse<object>.Ok(result, "Error codes retrieved.").ToActionResult(HttpContext);
+        return (await _errorCodeService.ListAsync(ct)).ToActionResult();
     }
 
     [HttpPut("{code}")]
@@ -38,15 +36,13 @@ public class ErrorCodeController : ControllerBase
     public async Task<IActionResult> Update(
         string code, [FromBody] UpdateErrorCodeRequest request, CancellationToken ct)
     {
-        var result = await _errorCodeService.UpdateAsync(code, request, ct);
-        return ApiResponse<object>.Ok(result, "Error code updated.").ToActionResult(HttpContext);
+        return (await _errorCodeService.UpdateAsync(code, request, ct)).ToActionResult();
     }
 
     [HttpDelete("{code}")]
     [PlatformAdmin]
     public async Task<IActionResult> Delete(string code, CancellationToken ct)
     {
-        await _errorCodeService.DeleteAsync(code, ct);
-        return NoContent();
+        return (await _errorCodeService.DeleteAsync(code, ct)).ToActionResult();
     }
 }
