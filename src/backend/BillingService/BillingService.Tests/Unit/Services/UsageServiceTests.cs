@@ -37,7 +37,7 @@ public class UsageServiceTests
         var service = new UsageService(mockRedis.Object, mockSubRepo.Object, mockPlanRepo.Object, mockLogger.Object);
 
         var result = await service.GetUsageAsync(orgId, CancellationToken.None);
-        var response = result as UsageResponse;
+        var response = result.Data as UsageResponse;
 
         Assert.NotNull(response);
         var membersMetric = response!.Metrics.First(m => m.MetricName == MetricName.ActiveMembers);
@@ -86,7 +86,7 @@ public class UsageServiceTests
 
         var service = new UsageService(mockRedis.Object, mockSubRepo.Object, mockPlanRepo.Object, mockLogger.Object);
         var result = await service.GetUsageAsync(orgId, CancellationToken.None);
-        var response = result as UsageResponse;
+        var response = result.Data as UsageResponse;
 
         Assert.NotNull(response);
         Assert.Equal(3, response!.Metrics.Count);

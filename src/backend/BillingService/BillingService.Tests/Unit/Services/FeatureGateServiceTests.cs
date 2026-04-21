@@ -1,3 +1,4 @@
+using BillingService.Domain.Results;
 using BillingService.Application.DTOs.FeatureGates;
 using BillingService.Domain.Entities;
 using BillingService.Domain.Interfaces.Repositories.Plans;
@@ -41,7 +42,7 @@ public class FeatureGateServiceTests
 
         var service = CreateService(subRepo, planRepo, redisDb);
         var result = await service.CheckFeatureAsync(orgId, "max_stories_per_month", CancellationToken.None);
-        var response = result as FeatureGateResponse;
+        var response = result.Data as FeatureGateResponse;
 
         Assert.NotNull(response);
         Assert.True(response!.Allowed);
@@ -66,7 +67,7 @@ public class FeatureGateServiceTests
 
         var service = CreateService(subRepo, planRepo, redisDb);
         var result = await service.CheckFeatureAsync(orgId, "custom_workflows", CancellationToken.None);
-        var response = result as FeatureGateResponse;
+        var response = result.Data as FeatureGateResponse;
 
         Assert.NotNull(response);
         Assert.True(response!.Allowed); // customWorkflows = true → limit = 0 (unlimited) → allowed
@@ -90,7 +91,7 @@ public class FeatureGateServiceTests
 
         var service = CreateService(subRepo, planRepo, redisDb);
         var result = await service.CheckFeatureAsync(orgId, "custom_workflows", CancellationToken.None);
-        var response = result as FeatureGateResponse;
+        var response = result.Data as FeatureGateResponse;
 
         Assert.NotNull(response);
         Assert.False(response!.Allowed); // customWorkflows = false → limit = -1 → denied
@@ -116,7 +117,7 @@ public class FeatureGateServiceTests
 
         var service = CreateService(subRepo, planRepo, redisDb);
         var result = await service.CheckFeatureAsync(orgId, "max_team_members", CancellationToken.None);
-        var response = result as FeatureGateResponse;
+        var response = result.Data as FeatureGateResponse;
 
         Assert.NotNull(response);
         Assert.Equal(freePlan.MaxTeamMembers, response!.Limit);

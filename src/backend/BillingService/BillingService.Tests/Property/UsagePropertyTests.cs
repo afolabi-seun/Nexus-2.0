@@ -82,7 +82,7 @@ public class UsagePropertyTests
         var service = new UsageService(mockRedis.Object, mockSubRepo.Object, mockPlanRepo.Object, mockLogger.Object);
 
         var result = await service.GetUsageAsync(orgId, CancellationToken.None);
-        var response = result as UsageResponse;
+        var response = result.Data as UsageResponse;
 
         Assert.NotNull(response);
         Assert.Equal(MetricName.All.Length, response!.Metrics.Count);

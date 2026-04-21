@@ -1,9 +1,9 @@
+using BillingService.Application.DTOs;
+using BillingService.Domain.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using UtilityService.Application.DTOs;
-using UtilityService.Domain.Results;
 
-namespace UtilityService.Api.Extensions;
+namespace BillingService.Api.Extensions;
 
 /// <summary>
 /// Converts ServiceResult to IActionResult wrapped in ApiResponse envelope.

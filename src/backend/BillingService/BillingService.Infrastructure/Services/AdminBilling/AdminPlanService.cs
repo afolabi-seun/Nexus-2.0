@@ -6,6 +6,7 @@ using BillingService.Domain.Exceptions;
 using BillingService.Domain.Interfaces.Repositories.Plans;
 using BillingService.Domain.Interfaces.Services.AdminBilling;
 using BillingService.Domain.Interfaces.Services.Outbox;
+using BillingService.Domain.Results;
 using BillingService.Infrastructure.Data;
 using Microsoft.Extensions.Logging;
 
@@ -30,11 +31,11 @@ public class AdminPlanService : IAdminPlanService
         _logger = logger;
     }
 
-    public async Task<object> GetAllPlansAsync(CancellationToken ct)
+    public async Task<ServiceResult<object>> GetAllPlansAsync(CancellationToken ct)
     {
         var plans = await _planRepo.GetAllAsync(ct);
 
-        return plans.Select(p => new AdminPlanResponse(
+        var data = plans.Select(p => new AdminPlanResponse(
             p.PlanId,
             p.PlanName,
             p.PlanCode,
@@ -48,9 +49,10 @@ public class AdminPlanService : IAdminPlanService
             p.IsActive,
             p.DateCreated
         )).ToList();
+        return ServiceResult<object>.Ok(data, "Plans retrieved.");
     }
 
-    public async Task<object> CreatePlanAsync(object request, CancellationToken ct)
+    public async Task<ServiceResult<object>> CreatePlanAsync(object request, CancellationToken ct)
     {
         var createRequest = (AdminCreatePlanRequest)request;
 
@@ -77,7 +79,7 @@ public class AdminPlanService : IAdminPlanService
 
         _logger.LogInformation("Plan {PlanCode} created with ID {PlanId}", plan.PlanCode, plan.PlanId);
 
-        return new AdminPlanResponse(
+        return ServiceResult<object>.Created(new AdminPlanResponse(
             plan.PlanId,
             plan.PlanName,
             plan.PlanCode,
@@ -90,10 +92,10 @@ public class AdminPlanService : IAdminPlanService
             plan.PriceYearly,
             plan.IsActive,
             plan.DateCreated
-        );
+        ), "Plan created.");
     }
 
-    public async Task<object> UpdatePlanAsync(Guid planId, object request, CancellationToken ct)
+    public async Task<ServiceResult<object>> UpdatePlanAsync(Guid planId, object request, CancellationToken ct)
     {
         var updateRequest = (AdminUpdatePlanRequest)request;
 
@@ -136,7 +138,7 @@ public class AdminPlanService : IAdminPlanService
 
         _logger.LogInformation("Plan {PlanId} updated", planId);
 
-        return new AdminPlanResponse(
+        return ServiceResult<object>.Ok(new AdminPlanResponse(
             plan.PlanId,
             plan.PlanName,
             plan.PlanCode,
@@ -149,10 +151,10 @@ public class AdminPlanService : IAdminPlanService
             plan.PriceYearly,
             plan.IsActive,
             plan.DateCreated
-        );
+        ), "Plan updated.");
     }
 
-    public async Task<object> DeactivatePlanAsync(Guid planId, Guid adminId, CancellationToken ct)
+    public async Task<ServiceResult<object>> DeactivatePlanAsync(Guid planId, Guid adminId, CancellationToken ct)
     {
         var plan = await _planRepo.GetByIdAsync(planId, ct)
             ?? throw new PlanNotFoundException();
@@ -174,7 +176,7 @@ public class AdminPlanService : IAdminPlanService
 
         _logger.LogInformation("Plan {PlanId} deactivated by admin {AdminId}", planId, adminId);
 
-        return new AdminPlanResponse(
+        return ServiceResult<object>.Ok(new AdminPlanResponse(
             plan.PlanId,
             plan.PlanName,
             plan.PlanCode,
@@ -187,6 +189,6 @@ public class AdminPlanService : IAdminPlanService
             plan.PriceYearly,
             plan.IsActive,
             plan.DateCreated
-        );
+        ), "Plan deactivated.");
     }
 }

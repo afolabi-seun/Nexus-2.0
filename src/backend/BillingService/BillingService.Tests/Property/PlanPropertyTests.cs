@@ -56,7 +56,7 @@ public class PlanPropertyTests
 
         // Act
         var result = await service.GetAllActiveAsync(CancellationToken.None);
-        var responses = result as List<PlanResponse>;
+        var responses = result.Data as List<PlanResponse>;
 
         // Assert
         Assert.NotNull(responses);

@@ -1,3 +1,4 @@
+using BillingService.Domain.Results;
 using BillingService.Api.Controllers;
 using BillingService.Application.DTOs;
 using BillingService.Application.DTOs.Subscriptions;
@@ -33,7 +34,7 @@ public class SubscriptionControllerTests
             DateTime.UtcNow.AddDays(14), null, null, null);
 
         _mockService.Setup(s => s.CreateAsync(orgId, It.IsAny<CreateSubscriptionRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(subResponse);
+            .ReturnsAsync(ServiceResult<object>.Created(subResponse, "Subscription created."));
 
         var controller = CreateController(orgId);
         var result = await controller.Create(new CreateSubscriptionRequest(planId, null), CancellationToken.None);
@@ -53,12 +54,12 @@ public class SubscriptionControllerTests
         var mockResult = new { test = "data" };
 
         _mockService.Setup(s => s.GetCurrentAsync(orgId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(mockResult);
+            .ReturnsAsync(ServiceResult<object>.Ok(mockResult, "Subscription retrieved."));
 
         var controller = CreateController(orgId);
         var result = await controller.GetCurrent(CancellationToken.None);
 
-        var okResult = Assert.IsType<OkObjectResult>(result);
+        var okResult = Assert.IsType<ObjectResult>(result);
         var apiResponse = Assert.IsType<ApiResponse<object>>(okResult.Value);
         Assert.True(apiResponse.Success);
         Assert.Equal("00", apiResponse.ResponseCode);
@@ -73,12 +74,13 @@ public class SubscriptionControllerTests
             "Cancelled", DateTime.UtcNow, null, null, DateTime.UtcNow, null, null);
 
         _mockService.Setup(s => s.CancelAsync(orgId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(subResponse);
+            .ReturnsAsync(ServiceResult<object>.Ok(subResponse, "Subscription cancelled."));
 
         var controller = CreateController(orgId);
         var result = await controller.Cancel(CancellationToken.None);
 
-        var okResult = Assert.IsType<OkObjectResult>(result);
+        var okResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(200, okResult.StatusCode);
         var apiResponse = Assert.IsType<ApiResponse<object>>(okResult.Value);
         Assert.True(apiResponse.Success);
     }

@@ -3,6 +3,7 @@ using BillingService.Application.DTOs.Plans;
 using BillingService.Domain.Entities;
 using BillingService.Domain.Interfaces.Repositories.Plans;
 using BillingService.Domain.Interfaces.Services.Plans;
+using BillingService.Domain.Results;
 using BillingService.Infrastructure.Data;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
@@ -24,13 +25,14 @@ public class PlanService : IPlanService
         _logger = logger;
     }
 
-    public async Task<object> GetAllActiveAsync(CancellationToken ct)
+    public async Task<ServiceResult<object>> GetAllActiveAsync(CancellationToken ct)
     {
         var plans = await _planRepository.GetAllActiveAsync(ct);
-        return plans.Select(p => new PlanResponse(
+        var data = plans.Select(p => new PlanResponse(
             p.PlanId, p.PlanName, p.PlanCode, p.TierLevel,
             p.MaxTeamMembers, p.MaxDepartments, p.MaxStoriesPerMonth,
             p.FeaturesJson, p.PriceMonthly, p.PriceYearly)).ToList();
+        return ServiceResult<object>.Ok(data, "Plans retrieved.");
     }
 
     public async Task SeedPlansAsync(CancellationToken ct)
