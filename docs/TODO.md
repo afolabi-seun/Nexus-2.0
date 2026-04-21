@@ -235,14 +235,14 @@ The DB-driven navigation table (`NavigationItems`) is never seeded. All deployme
 
 ## Phase 11 — Architecture Refactoring
 
-- [ ] **ServiceResult pattern** — Replace `object` return types across all service methods with a typed `ServiceResult<T>` wrapper that carries success/error state, HTTP status, and message. Add `ToActionResult()` extension so controllers become one-liners: `return (await _service.DoAsync(request)).ToActionResult();`. Currently 120+ service methods return `object` and 50+ controller actions manually wrap in `ApiResponse<object>.Ok(result, "message").ToActionResult(HttpContext)`. This refactor would:
-  - Create `ServiceResult<T>` in each service's Application layer (or a shared package)
-  - Add `ToActionResult()` extension method
-  - Change all service interfaces from `Task<object>` to `Task<ServiceResult<T>>`
-  - Simplify all controller actions to single-line returns
-  - Eliminate manual `ApiResponse` wrapping in controllers
-  - Scope: ~120 service methods, ~50 controller actions, all 5 services
-- [ ] **Consistent API response messages** — Audit all controller endpoints to ensure every `ApiResponse.Ok()` call includes a descriptive message string. A few endpoints were found returning without messages.
+- [x] **ServiceResult pattern (UtilityService)** — Created `ServiceResult<T>` in Domain/Results, `ServiceResultExtensions.ToActionResult()` in Api/Extensions. Converted 5 interfaces (10 methods), 5 service implementations, 5 controllers (14 actions), 4 test assertions. Controllers are now one-liners: `return (await _service.DoAsync(request)).ToActionResult();`
+- [ ] **ServiceResult pattern (BillingService)** — 18 service methods, 7 controllers, 112 tests
+- [ ] **ServiceResult pattern (ProfileService)** — 25 service methods, 10 controllers, 87 tests
+- [ ] **ServiceResult pattern (WorkService)** — 81 service methods, 18 controllers, 179 tests
+- [ ] **Consistent API response messages** — Resolved by ServiceResult pattern — messages now live in service methods, not controllers. 37 controller actions previously missing messages.
+- [x] **Error code registry seed (all services)** — Seeded all 154 error codes from all 5 services into UtilityService error_code_entries table. Composite unique index on (Code, ServiceName). Extracted to ErrorCodeSeeds.cs.
+- [x] **Startup error code validation (UtilityService)** — ErrorCodeValidationHostedService validates local ErrorCodes.cs against DB registry on startup. Logs warnings for missing codes.
+- [ ] **Startup error code validation (other services)** — Add ErrorCodeValidationHostedService to BillingService, ProfileService, WorkService, SecurityService. These call UtilityService GET /api/v1/error-codes API instead of querying DB directly.
 
 ---
 
