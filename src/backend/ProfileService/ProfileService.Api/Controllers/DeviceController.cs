@@ -22,23 +22,20 @@ public class DeviceController : ControllerBase
     public async Task<IActionResult> List(CancellationToken ct)
     {
         var memberId = Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
-        var result = await _deviceService.ListAsync(memberId, ct);
-        return ApiResponse<object>.Ok(result, "Devices retrieved.").ToActionResult(HttpContext);
+        return (await _deviceService.ListAsync(memberId, ct)).ToActionResult(HttpContext);
     }
 
     [HttpPatch("{id:guid}/primary")]
     public async Task<IActionResult> SetPrimary(Guid id, CancellationToken ct)
     {
         var memberId = Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
-        await _deviceService.SetPrimaryAsync(memberId, id, ct);
-        return ApiResponse<object>.Ok(null!, "Primary device updated.").ToActionResult(HttpContext);
+        return (await _deviceService.SetPrimaryAsync(memberId, id, ct)).ToActionResult(HttpContext);
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Remove(Guid id, CancellationToken ct)
     {
         var memberId = Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
-        await _deviceService.RemoveAsync(memberId, id, ct);
-        return ApiResponse<object>.Ok(null!, "Device removed.").ToActionResult(HttpContext);
+        return (await _deviceService.RemoveAsync(memberId, id, ct)).ToActionResult(HttpContext);
     }
 }

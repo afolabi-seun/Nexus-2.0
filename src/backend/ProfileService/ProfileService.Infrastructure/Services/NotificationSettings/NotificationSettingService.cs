@@ -5,6 +5,7 @@ using ProfileService.Domain.Exceptions;
 using ProfileService.Domain.Interfaces.Repositories.NotificationSettings;
 using ProfileService.Domain.Interfaces.Repositories.NotificationTypes;
 using ProfileService.Domain.Interfaces.Services.NotificationSettings;
+using ProfileService.Domain.Results;
 using ProfileService.Infrastructure.Data;
 
 namespace ProfileService.Infrastructure.Services.NotificationSettings;
@@ -28,13 +29,13 @@ public class NotificationSettingService : INotificationSettingService
         _dbContext = dbContext;
     }
 
-    public async Task<IEnumerable<object>> GetSettingsAsync(Guid memberId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetSettingsAsync(Guid memberId, CancellationToken ct = default)
     {
         var types = await _typeRepo.ListAsync(ct);
         var settings = await _settingRepo.GetByMemberAsync(memberId, ct);
         var settingsDict = settings.ToDictionary(s => s.NotificationTypeId);
 
-        return types.Select(t =>
+        return ServiceResult<object>.Ok(types.Select(t =>
         {
             settingsDict.TryGetValue(t.NotificationTypeId, out var setting);
             return new NotificationSettingResponse
@@ -45,10 +46,10 @@ public class NotificationSettingService : INotificationSettingService
                 IsPush = setting?.IsPush ?? true,
                 IsInApp = setting?.IsInApp ?? true
             };
-        });
+        }).ToList(), "Notification settings retrieved.");
     }
 
-    public async Task UpdateSettingAsync(Guid memberId, Guid notificationTypeId,
+    public async Task<ServiceResult<object>> UpdateSettingAsync(Guid memberId, Guid notificationTypeId,
         object request, CancellationToken ct = default)
     {
         var req = (UpdateNotificationSettingRequest)request;
@@ -83,16 +84,18 @@ public class NotificationSettingService : INotificationSettingService
             await _settingRepo.AddAsync(setting, ct);
         }
         await _dbContext.SaveChangesAsync(ct);
+
+        return ServiceResult<object>.Ok(null!, "Notification setting updated.");
     }
 
-    public async Task<IEnumerable<object>> ListTypesAsync(CancellationToken ct = default)
+    public async Task<ServiceResult<object>> ListTypesAsync(CancellationToken ct = default)
     {
         var types = await _typeRepo.ListAsync(ct);
-        return types.Select(t => new NotificationTypeResponse
+        return ServiceResult<object>.Ok(types.Select(t => new NotificationTypeResponse
         {
             NotificationTypeId = t.NotificationTypeId,
             TypeName = t.TypeName,
             Description = t.Description
-        });
+        }).ToList(), "Notification types retrieved.");
     }
 }

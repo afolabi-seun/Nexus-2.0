@@ -5,7 +5,9 @@ using ProfileService.Api.Extensions;
 using ProfileService.Application.DTOs;
 using ProfileService.Application.DTOs.Organizations;
 using ProfileService.Application.DTOs.TeamMembers;
+using ProfileService.Domain.Exceptions;
 using ProfileService.Domain.Interfaces.Services.TeamMembers;
+using ProfileService.Domain.Results;
 using ProfileService.Application.Helpers;
 
 namespace ProfileService.Api.Controllers;
@@ -28,15 +30,6 @@ public class TeamMemberController : ControllerBase
     /// <summary>
     /// List team members in the current organization.
     /// </summary>
-    /// <param name="page">Page number (default 1)</param>
-    /// <param name="pageSize">Items per page (default 20)</param>
-    /// <param name="departmentId">Optional department filter</param>
-    /// <param name="role">Optional role filter</param>
-    /// <param name="status">Optional status filter (A=Active, S=Suspended, D=Deactivated)</param>
-    /// <param name="availability">Optional availability filter</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>Paginated list of team members</returns>
-    /// <response code="200">Team members retrieved</response>
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     public async Task<IActionResult> List(
@@ -50,8 +43,7 @@ public class TeamMemberController : ControllerBase
     {
         PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
-        var result = await _teamMemberService.ListAsync(orgId, page, pageSize, departmentId, role, status, availability, ct);
-        return ApiResponse<object>.Ok(result, "Team members retrieved.").ToActionResult(HttpContext);
+        return (await _teamMemberService.ListAsync(orgId, page, pageSize, departmentId, role, status, availability, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -67,47 +59,23 @@ public class TeamMemberController : ControllerBase
     {
         PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
-        var result = await _teamMemberService.SearchAsync(orgId, query, page, pageSize, ct);
-        return ApiResponse<object>.Ok(result, "Search results.").ToActionResult(HttpContext);
+        return (await _teamMemberService.SearchAsync(orgId, query, page, pageSize, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
     /// Get a team member's detailed profile.
     /// </summary>
-    /// <param name="id">Team member ID</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>Team member details including departments, roles, and professional ID</returns>
-    /// <response code="200">Team member found</response>
-    /// <response code="404">Team member not found</response>
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
-        var result = await _teamMemberService.GetByIdAsync(id, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _teamMemberService.GetByIdAsync(id, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
     /// Update a team member's profile.
     /// </summary>
-    /// <param name="id">Team member ID</param>
-    /// <param name="request">Updated profile data</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>Updated team member</returns>
-    /// <response code="200">Team member updated</response>
-    /// <response code="404">Team member not found</response>
-    /// <remarks>
-    /// Sample request:
-    ///
-    ///     PUT /api/v1/team-members/{id}
-    ///     {
-    ///         "firstName": "John",
-    ///         "lastName": "Doe",
-    ///         "phoneNumber": "+1234567890"
-    ///     }
-    ///
-    /// </remarks>
     [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -117,25 +85,19 @@ public class TeamMemberController : ControllerBase
         var userId = Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
         var roleName = HttpContext.Items["roleName"]?.ToString() ?? string.Empty;
 
-        // Members can only update their own profile
         if (roleName != "OrgAdmin" && roleName != "PlatformAdmin" && id != userId)
         {
-            return ApiResponse<object>.Fail(403, "INSUFFICIENT_PERMISSIONS", "You can only update your own profile.").ToActionResult(HttpContext, 403);
+            return ServiceResult<object>.Fail(
+                ErrorCodes.InsufficientPermissionsValue, ErrorCodes.InsufficientPermissions,
+                "You can only update your own profile.", 403).ToActionResult(HttpContext);
         }
 
-        var result = await _teamMemberService.UpdateAsync(id, request, ct);
-        return ApiResponse<object>.Ok(result, "Team member updated.").ToActionResult(HttpContext);
+        return (await _teamMemberService.UpdateAsync(id, request, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
     /// Update a team member's status (activate/suspend/deactivate).
     /// </summary>
-    /// <param name="id">Team member ID</param>
-    /// <param name="request">New status value</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>Confirmation of status change</returns>
-    /// <response code="200">Status updated</response>
-    /// <response code="400">Cannot deactivate the last OrgAdmin</response>
     [HttpPatch("{id:guid}/status")]
     [OrgAdmin]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
@@ -143,36 +105,23 @@ public class TeamMemberController : ControllerBase
     public async Task<IActionResult> UpdateStatus(
         Guid id, [FromBody] StatusChangeRequest request, CancellationToken ct)
     {
-        await _teamMemberService.UpdateStatusAsync(id, request.Status, ct);
-        return ApiResponse<object>.Ok(null!, "Team member status updated.").ToActionResult(HttpContext);
+        return (await _teamMemberService.UpdateStatusAsync(id, request.Status, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
     /// Update a team member's availability status.
     /// </summary>
-    /// <param name="id">Team member ID</param>
-    /// <param name="request">New availability status</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>Confirmation of availability change</returns>
-    /// <response code="200">Availability updated</response>
     [HttpPatch("{id:guid}/availability")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     public async Task<IActionResult> UpdateAvailability(
         Guid id, [FromBody] AvailabilityRequest request, CancellationToken ct)
     {
-        await _teamMemberService.UpdateAvailabilityAsync(id, request.Availability, ct);
-        return ApiResponse<object>.Ok(null!, "Availability updated.").ToActionResult(HttpContext);
+        return (await _teamMemberService.UpdateAvailabilityAsync(id, request.Availability, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
     /// Add a team member to a department.
     /// </summary>
-    /// <param name="id">Team member ID</param>
-    /// <param name="request">Department and role assignment</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>Confirmation of department addition</returns>
-    /// <response code="200">Member added to department</response>
-    /// <response code="409">Member already in department</response>
     [HttpPost("{id:guid}/departments")]
     [OrgAdmin]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
@@ -180,19 +129,12 @@ public class TeamMemberController : ControllerBase
     public async Task<IActionResult> AddToDepartment(
         Guid id, [FromBody] AddDepartmentRequest request, CancellationToken ct)
     {
-        await _teamMemberService.AddToDepartmentAsync(id, request, ct);
-        return ApiResponse<object>.Ok(null!, "Member added to department.").ToActionResult(HttpContext);
+        return (await _teamMemberService.AddToDepartmentAsync(id, request, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
     /// Remove a team member from a department.
     /// </summary>
-    /// <param name="id">Team member ID</param>
-    /// <param name="deptId">Department ID</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>Confirmation of removal</returns>
-    /// <response code="200">Member removed from department</response>
-    /// <response code="400">Member must belong to at least one department</response>
     [HttpDelete("{id:guid}/departments/{deptId:guid}")]
     [OrgAdmin]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
@@ -200,37 +142,24 @@ public class TeamMemberController : ControllerBase
     public async Task<IActionResult> RemoveFromDepartment(
         Guid id, Guid deptId, CancellationToken ct)
     {
-        await _teamMemberService.RemoveFromDepartmentAsync(id, deptId, ct);
-        return ApiResponse<object>.Ok(null!, "Member removed from department.").ToActionResult(HttpContext);
+        return (await _teamMemberService.RemoveFromDepartmentAsync(id, deptId, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
     /// Change a team member's role within a department.
     /// </summary>
-    /// <param name="id">Team member ID</param>
-    /// <param name="deptId">Department ID</param>
-    /// <param name="request">New role assignment</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>Confirmation of role change</returns>
-    /// <response code="200">Department role updated</response>
     [HttpPatch("{id:guid}/departments/{deptId:guid}/role")]
     [OrgAdmin]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     public async Task<IActionResult> ChangeDepartmentRole(
         Guid id, Guid deptId, [FromBody] ChangeRoleRequest request, CancellationToken ct)
     {
-        await _teamMemberService.ChangeDepartmentRoleAsync(id, deptId, request, ct);
-        return ApiResponse<object>.Ok(null!, "Department role updated.").ToActionResult(HttpContext);
+        return (await _teamMemberService.ChangeDepartmentRoleAsync(id, deptId, request, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
     /// Get a team member by email (service-to-service).
     /// </summary>
-    /// <param name="email">Email address</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>Team member internal response</returns>
-    /// <response code="200">Team member found</response>
-    /// <response code="404">Team member not found</response>
     [HttpGet("by-email/{email}")]
     [ServiceAuth]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
@@ -238,26 +167,19 @@ public class TeamMemberController : ControllerBase
     public async Task<IActionResult> GetByEmail(
         string email, CancellationToken ct)
     {
-        var result = await _teamMemberService.GetByEmailAsync(email, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _teamMemberService.GetByEmailAsync(email, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
     /// Update a team member's password hash (service-to-service).
     /// </summary>
-    /// <param name="id">Team member ID</param>
-    /// <param name="request">New password hash</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>Confirmation of password update</returns>
-    /// <response code="200">Password updated</response>
     [HttpPatch("{id:guid}/password")]
     [ServiceAuth]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     public async Task<IActionResult> UpdatePassword(
         Guid id, [FromBody] PasswordUpdateRequest request, CancellationToken ct)
     {
-        await _teamMemberService.UpdatePasswordAsync(id, request.PasswordHash, ct);
-        return ApiResponse<object>.Ok(null!, "Password updated.").ToActionResult(HttpContext);
+        return (await _teamMemberService.UpdatePasswordAsync(id, request.PasswordHash, ct)).ToActionResult(HttpContext);
     }
 }
 

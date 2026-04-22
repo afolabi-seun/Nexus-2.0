@@ -10,6 +10,7 @@ using ProfileService.Domain.Interfaces.Repositories.Departments;
 using ProfileService.Domain.Interfaces.Repositories.Roles;
 using ProfileService.Domain.Interfaces.Repositories.TeamMembers;
 using ProfileService.Domain.Interfaces.Services.TeamMembers;
+using ProfileService.Domain.Results;
 using ProfileService.Infrastructure.Data;
 using StackExchange.Redis;
 using ProfileService.Infrastructure.Redis;
@@ -50,7 +51,7 @@ public class TeamMemberService : ITeamMemberService
         _logger = logger;
     }
 
-    public async Task<object> ListAsync(Guid organizationId, int page, int pageSize,
+    public async Task<ServiceResult<object>> ListAsync(Guid organizationId, int page, int pageSize,
         string? departmentId, string? role, string? status, string? availability,
         CancellationToken ct = default)
     {
@@ -60,26 +61,26 @@ public class TeamMemberService : ITeamMemberService
         var (items, totalCount) = await _memberRepo.ListAsync(
             organizationId, page, pageSize, deptGuid, role, status, availability, ct);
 
-        return new PaginatedResponse<TeamMemberResponse>
+        return ServiceResult<object>.Ok(new PaginatedResponse<TeamMemberResponse>
         {
             Data = items.Select(MapToResponse),
             TotalCount = totalCount,
             Page = page,
             PageSize = pageSize,
             TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-        };
+        }, "Team members retrieved.");
     }
 
-    public async Task<object> GetByIdAsync(Guid memberId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetByIdAsync(Guid memberId, CancellationToken ct = default)
     {
         var member = await _memberRepo.GetByIdAsync(memberId, ct)
             ?? throw new MemberNotFoundException($"Member {memberId} not found");
 
         var memberships = await _deptMemberRepo.GetByMemberIdAsync(memberId, ct);
-        return MapToDetailResponse(member, memberships);
+        return ServiceResult<object>.Ok(MapToDetailResponse(member, memberships), "Team member retrieved.");
     }
 
-    public async Task<object> UpdateAsync(Guid memberId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> UpdateAsync(Guid memberId, object request, CancellationToken ct = default)
     {
         var req = (UpdateTeamMemberRequest)request;
         var member = await _memberRepo.GetByIdAsync(memberId, ct)
@@ -102,10 +103,10 @@ public class TeamMemberService : ITeamMemberService
         await db.KeyDeleteAsync(RedisKeys.MemberProfile(memberId));
 
         var memberships = await _deptMemberRepo.GetByMemberIdAsync(memberId, ct);
-        return MapToDetailResponse(member, memberships);
+        return ServiceResult<object>.Ok(MapToDetailResponse(member, memberships), "Team member updated.");
     }
 
-    public async Task UpdateStatusAsync(Guid memberId, string newStatus, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> UpdateStatusAsync(Guid memberId, string newStatus, CancellationToken ct = default)
     {
         var member = await _memberRepo.GetByIdAsync(memberId, ct)
             ?? throw new MemberNotFoundException($"Member {memberId} not found");
@@ -140,9 +141,11 @@ public class TeamMemberService : ITeamMemberService
 
         var db = _redis.GetDatabase();
         await db.KeyDeleteAsync(RedisKeys.MemberProfile(memberId));
+
+        return ServiceResult<object>.Ok(null!, "Team member status updated.");
     }
 
-    public async Task UpdateAvailabilityAsync(Guid memberId, string availability, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> UpdateAvailabilityAsync(Guid memberId, string availability, CancellationToken ct = default)
     {
         var validValues = new[] { "Available", "Busy", "Away", "Offline" };
         if (!validValues.Contains(availability))
@@ -155,9 +158,11 @@ public class TeamMemberService : ITeamMemberService
         member.DateUpdated = DateTime.UtcNow;
         await _memberRepo.UpdateAsync(member, ct);
         await _dbContext.SaveChangesAsync(ct);
+
+        return ServiceResult<object>.Ok(null!, "Availability updated.");
     }
 
-    public async Task AddToDepartmentAsync(Guid memberId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> AddToDepartmentAsync(Guid memberId, object request, CancellationToken ct = default)
     {
         var req = (AddDepartmentRequest)request;
         var member = await _memberRepo.GetByIdAsync(memberId, ct)
@@ -185,9 +190,11 @@ public class TeamMemberService : ITeamMemberService
         var db = _redis.GetDatabase();
         await db.KeyDeleteAsync(RedisKeys.MemberProfile(memberId));
         await db.KeyDeleteAsync(RedisKeys.DeptList(member.OrganizationId));
+
+        return ServiceResult<object>.Ok(null!, "Member added to department.");
     }
 
-    public async Task RemoveFromDepartmentAsync(Guid memberId, Guid departmentId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> RemoveFromDepartmentAsync(Guid memberId, Guid departmentId, CancellationToken ct = default)
     {
         var member = await _memberRepo.GetByIdAsync(memberId, ct)
             ?? throw new MemberNotFoundException($"Member {memberId} not found");
@@ -204,12 +211,14 @@ public class TeamMemberService : ITeamMemberService
         await _dbContext.SaveChangesAsync(ct);
 
         // Invalidate caches
-        var db = _redis.GetDatabase();
-        await db.KeyDeleteAsync(RedisKeys.MemberProfile(memberId));
-        await db.KeyDeleteAsync(RedisKeys.DeptList(member.OrganizationId));
+        var db2 = _redis.GetDatabase();
+        await db2.KeyDeleteAsync(RedisKeys.MemberProfile(memberId));
+        await db2.KeyDeleteAsync(RedisKeys.DeptList(member.OrganizationId));
+
+        return ServiceResult<object>.Ok(null!, "Member removed from department.");
     }
 
-    public async Task ChangeDepartmentRoleAsync(Guid memberId, Guid departmentId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> ChangeDepartmentRoleAsync(Guid memberId, Guid departmentId, object request, CancellationToken ct = default)
     {
         var req = (ChangeRoleRequest)request;
         var deptMember = await _deptMemberRepo.GetAsync(memberId, departmentId, ct)
@@ -221,9 +230,11 @@ public class TeamMemberService : ITeamMemberService
 
         var db = _redis.GetDatabase();
         await db.KeyDeleteAsync(RedisKeys.MemberProfile(memberId));
+
+        return ServiceResult<object>.Ok(null!, "Department role updated.");
     }
 
-    public async Task<object> GetByEmailAsync(string email, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetByEmailAsync(string email, CancellationToken ct = default)
     {
         var member = await _memberRepo.GetByEmailGlobalAsync(email, ct)
             ?? throw new MemberNotFoundException($"Member with email not found");
@@ -240,7 +251,7 @@ public class TeamMemberService : ITeamMemberService
                 roleName = highestRole.Role.RoleName;
         }
 
-        return new TeamMemberInternalResponse
+        return ServiceResult<object>.Ok(new TeamMemberInternalResponse
         {
             TeamMemberId = member.TeamMemberId,
             PasswordHash = member.Password,
@@ -249,10 +260,10 @@ public class TeamMemberService : ITeamMemberService
             OrganizationId = member.OrganizationId,
             PrimaryDepartmentId = member.PrimaryDepartmentId,
             RoleName = roleName
-        };
+        });
     }
 
-    public async Task UpdatePasswordAsync(Guid memberId, string passwordHash, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> UpdatePasswordAsync(Guid memberId, string passwordHash, CancellationToken ct = default)
     {
         var member = await _memberRepo.GetByIdAsync(memberId, ct)
             ?? throw new MemberNotFoundException($"Member {memberId} not found");
@@ -261,6 +272,8 @@ public class TeamMemberService : ITeamMemberService
         member.DateUpdated = DateTime.UtcNow;
         await _memberRepo.UpdateAsync(member, ct);
         await _dbContext.SaveChangesAsync(ct);
+
+        return ServiceResult<object>.Ok(null!, "Password updated.");
     }
 
     private static TeamMemberResponse MapToResponse(TeamMember m) => new()
@@ -306,7 +319,7 @@ public class TeamMemberService : ITeamMemberService
         DateUpdated = m.DateUpdated
     };
 
-    public async Task<object> SearchAsync(Guid organizationId, string query, int page, int pageSize, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> SearchAsync(Guid organizationId, string query, int page, int pageSize, CancellationToken ct = default)
     {
         var (items, totalCount) = await _memberRepo.SearchAsync(organizationId, query, page, pageSize, ct);
         var responses = items.Select(m => new TeamMemberResponse
@@ -323,13 +336,13 @@ public class TeamMemberService : ITeamMemberService
             FlgStatus = m.FlgStatus
         }).ToList();
 
-        return new PaginatedResponse<TeamMemberResponse>
+        return ServiceResult<object>.Ok(new PaginatedResponse<TeamMemberResponse>
         {
             Data = responses,
             TotalCount = totalCount,
             Page = page,
             PageSize = pageSize,
             TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-        };
+        }, "Search results.");
     }
 }

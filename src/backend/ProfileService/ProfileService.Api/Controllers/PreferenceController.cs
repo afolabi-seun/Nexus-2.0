@@ -25,8 +25,7 @@ public class PreferenceController : ControllerBase
     public async Task<IActionResult> Get(CancellationToken ct)
     {
         var memberId = Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
-        var result = await _preferenceService.GetAsync(memberId, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _preferenceService.GetAsync(memberId, ct)).ToActionResult(HttpContext);
     }
 
     [HttpPut]
@@ -34,8 +33,7 @@ public class PreferenceController : ControllerBase
         [FromBody] UserPreferencesRequest request, CancellationToken ct)
     {
         var memberId = Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
-        var result = await _preferenceService.UpdateAsync(memberId, request, ct);
-        return ApiResponse<object>.Ok(result, "Preferences updated.").ToActionResult(HttpContext);
+        return (await _preferenceService.UpdateAsync(memberId, request, ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("resolved")]
@@ -45,7 +43,6 @@ public class PreferenceController : ControllerBase
         var departmentId = Guid.Parse(HttpContext.Items["departmentId"]?.ToString()!);
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
 
-        var result = await _preferenceResolver.ResolveAsync(memberId, departmentId, orgId, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _preferenceResolver.ResolveAsync(memberId, departmentId, orgId, ct)).ToActionResult(HttpContext);
     }
 }

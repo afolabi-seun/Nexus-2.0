@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProfileService.Api.Attributes;
+using ProfileService.Api.Extensions;
 using ProfileService.Application.DTOs;
 using ProfileService.Application.DTOs.Navigation;
 using ProfileService.Domain.Entities;
@@ -24,27 +25,25 @@ public class NavigationController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<object>>> GetNavigation(CancellationToken ct)
+    public async Task<IActionResult> GetNavigation(CancellationToken ct)
     {
         var roleName = HttpContext.Items["roleName"]?.ToString() ?? "Viewer";
         var roleObj = await _roleService.GetByNameAsync(roleName, ct);
         var permissionLevel = roleObj is Application.DTOs.Roles.RoleResponse role ? role.PermissionLevel : 25;
 
-        var items = await _navigationService.GetNavigationAsync(permissionLevel, ct);
-        return Ok(Wrap(items.Select(MapToResponse).ToList(), "Navigation items retrieved."));
+        return (await _navigationService.GetNavigationAsync(permissionLevel, ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("all")]
     [PlatformAdmin]
-    public async Task<ActionResult<ApiResponse<object>>> GetAll(CancellationToken ct)
+    public async Task<IActionResult> GetAll(CancellationToken ct)
     {
-        var items = await _navigationService.GetAllNavigationItemsAsync(ct);
-        return Ok(Wrap(items.Select(MapToResponse).ToList(), "All navigation items retrieved."));
+        return (await _navigationService.GetAllNavigationItemsAsync(ct)).ToActionResult(HttpContext);
     }
 
     [HttpPost]
     [PlatformAdmin]
-    public async Task<ActionResult<ApiResponse<object>>> Create(
+    public async Task<IActionResult> Create(
         [FromBody] CreateNavigationItemRequest request, CancellationToken ct)
     {
         var entity = new NavigationItem
@@ -58,13 +57,12 @@ public class NavigationController : ControllerBase
             MinPermissionLevel = request.MinPermissionLevel,
             IsEnabled = request.IsEnabled,
         };
-        var created = await _navigationService.CreateAsync(entity, ct);
-        return Ok(Wrap(MapToResponse(created), "Navigation item created."));
+        return (await _navigationService.CreateAsync(entity, ct)).ToActionResult(HttpContext);
     }
 
     [HttpPut("{id:guid}")]
     [PlatformAdmin]
-    public async Task<ActionResult<ApiResponse<object>>> Update(
+    public async Task<IActionResult> Update(
         Guid id, [FromBody] UpdateNavigationItemRequest request, CancellationToken ct)
     {
         var entity = new NavigationItem { NavigationItemId = id };
@@ -75,46 +73,13 @@ public class NavigationController : ControllerBase
         if (request.MinPermissionLevel.HasValue) entity.MinPermissionLevel = request.MinPermissionLevel.Value;
         if (request.IsEnabled.HasValue) entity.IsEnabled = request.IsEnabled.Value;
 
-        var updated = await _navigationService.UpdateAsync(entity, ct);
-        return Ok(Wrap(MapToResponse(updated), "Navigation item updated."));
+        return (await _navigationService.UpdateAsync(entity, ct)).ToActionResult(HttpContext);
     }
 
     [HttpDelete("{id:guid}")]
     [PlatformAdmin]
-    public async Task<ActionResult<ApiResponse<object>>> Delete(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
-        await _navigationService.DeleteAsync(id, ct);
-        return Ok(Wrap<object>(null!, "Navigation item deleted."));
-    }
-
-    private static NavigationItemResponse MapToResponse(NavigationItem item)
-    {
-        return new NavigationItemResponse
-        {
-            NavigationItemId = item.NavigationItemId,
-            Label = item.Label,
-            Path = item.Path,
-            Icon = item.Icon,
-            Section = item.Section,
-            SortOrder = item.SortOrder,
-            ParentId = item.ParentId,
-            MinPermissionLevel = item.MinPermissionLevel,
-            IsEnabled = item.IsEnabled,
-            Children = item.Children.Select(MapToResponse).ToList(),
-        };
-    }
-
-    private ApiResponse<T> Wrap<T>(T data, string? message = null)
-    {
-        var response = ApiResponse<T>.Ok(data, message);
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return response;
-    }
-
-    private ApiResponse<object> Wrap(object data, string? message = null)
-    {
-        var response = ApiResponse<object>.Ok(data, message);
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return response;
+        return (await _navigationService.DeleteAsync(id, ct)).ToActionResult(HttpContext);
     }
 }

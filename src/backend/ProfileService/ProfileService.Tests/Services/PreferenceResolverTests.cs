@@ -75,7 +75,8 @@ public class PreferenceResolverTests
                 Theme = "Dark"
             });
 
-        var result = (ResolvedPreferencesResponse)await _resolver.ResolveAsync(userId, deptId, orgId);
+        var serviceResult = await _resolver.ResolveAsync(userId, deptId, orgId);
+        var result = (ResolvedPreferencesResponse)serviceResult.Data!;
 
         Assert.Equal("Backlog", result.DefaultBoardView); // user overrides org
         Assert.Equal("Dark", result.Theme);               // user pref used
@@ -106,7 +107,8 @@ public class PreferenceResolverTests
         _userPrefsRepo.Setup(r => r.GetByMemberIdAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((UserPreferences?)null);
 
-        var result = (ResolvedPreferencesResponse)await _resolver.ResolveAsync(userId, deptId, orgId);
+        var serviceResult = await _resolver.ResolveAsync(userId, deptId, orgId);
+        var result = (ResolvedPreferencesResponse)serviceResult.Data!;
 
         Assert.Equal("Sprint", result.DefaultBoardView); // org default
         Assert.Equal("Daily", result.DigestFrequency);   // org default
@@ -128,7 +130,8 @@ public class PreferenceResolverTests
         _userPrefsRepo.Setup(r => r.GetByMemberIdAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((UserPreferences?)null);
 
-        var result = (ResolvedPreferencesResponse)await _resolver.ResolveAsync(userId, deptId, orgId);
+        var serviceResult = await _resolver.ResolveAsync(userId, deptId, orgId);
+        var result = (ResolvedPreferencesResponse)serviceResult.Data!;
 
         Assert.Equal(SystemDefaults.Theme, result.Theme);
         Assert.Equal(SystemDefaults.DefaultBoardView, result.DefaultBoardView);

@@ -15,6 +15,7 @@ using ProfileService.Domain.Interfaces.Repositories.Roles;
 using ProfileService.Domain.Interfaces.Repositories.TeamMembers;
 using ProfileService.Domain.Interfaces.Services.Invites;
 using ProfileService.Domain.Interfaces.Services.Outbox;
+using ProfileService.Domain.Results;
 using ProfileService.Infrastructure.Configuration;
 using ProfileService.Infrastructure.Data;
 using ProfileService.Infrastructure.Services.ServiceClients;
@@ -72,7 +73,7 @@ public class InviteService : IInviteService
         _logger = logger;
     }
 
-    public async Task<object> CreateAsync(Guid organizationId, Guid invitedByMemberId,
+    public async Task<ServiceResult<object>> CreateAsync(Guid organizationId, Guid invitedByMemberId,
         Guid inviterDepartmentId, string inviterRole, object request, CancellationToken ct = default)
     {
         var req = (CreateInviteRequest)request;
@@ -125,7 +126,7 @@ public class InviteService : IInviteService
         var dept = await _deptRepo.GetByIdAsync(req.DepartmentId, ct);
         var role = await _roleRepo.GetByIdAsync(req.RoleId, ct);
 
-        return new InviteResponse
+        return ServiceResult<object>.Created(new InviteResponse
         {
             InviteId = invite.InviteId,
             Email = invite.Email,
@@ -136,10 +137,10 @@ public class InviteService : IInviteService
             FlgStatus = invite.FlgStatus,
             ExpiryDate = invite.ExpiryDate,
             DateCreated = invite.DateCreated
-        };
+        }, "Invite created successfully.");
     }
 
-    public async Task<object> ListAsync(Guid organizationId, Guid? departmentId, string role,
+    public async Task<ServiceResult<object>> ListAsync(Guid organizationId, Guid? departmentId, string role,
         int page, int pageSize, CancellationToken ct = default)
     {
         // OrgAdmin sees all, DeptLead sees own department
@@ -167,17 +168,17 @@ public class InviteService : IInviteService
             });
         }
 
-        return new PaginatedResponse<InviteResponse>
+        return ServiceResult<object>.Ok(new PaginatedResponse<InviteResponse>
         {
             Data = responses,
             TotalCount = totalCount,
             Page = page,
             PageSize = pageSize,
             TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-        };
+        }, "Invites retrieved.");
     }
 
-    public async Task<object> ValidateTokenAsync(string token, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> ValidateTokenAsync(string token, CancellationToken ct = default)
     {
         var invite = await _inviteRepo.GetByTokenAsync(token, ct);
         if (invite is null || invite.FlgStatus != InviteStatuses.Active || invite.ExpiryDate < DateTime.UtcNow)
@@ -187,15 +188,15 @@ public class InviteService : IInviteService
         var dept = invite.Department ?? await _deptRepo.GetByIdAsync(invite.DepartmentId, ct);
         var role = invite.Role ?? await _roleRepo.GetByIdAsync(invite.RoleId, ct);
 
-        return new InviteValidationResponse
+        return ServiceResult<object>.Ok(new InviteValidationResponse
         {
             OrganizationName = org?.OrganizationName ?? string.Empty,
             DepartmentName = dept?.DepartmentName ?? string.Empty,
             RoleName = role?.RoleName ?? string.Empty
-        };
+        });
     }
 
-    public async Task AcceptAsync(string token, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> AcceptAsync(string token, object request, CancellationToken ct = default)
     {
         var invite = await _inviteRepo.GetByTokenAsync(token, ct);
         if (invite is null || invite.FlgStatus != InviteStatuses.Active || invite.ExpiryDate < DateTime.UtcNow)
@@ -263,9 +264,11 @@ public class InviteService : IInviteService
             EntityType = "Invite",
             EntityId = invite.InviteId.ToString()
         }, ct);
+
+        return ServiceResult<object>.Ok(null!, "Invite accepted successfully.");
     }
 
-    public async Task CancelAsync(Guid inviteId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> CancelAsync(Guid inviteId, CancellationToken ct = default)
     {
         var invite = await _inviteRepo.GetByIdAsync(inviteId, ct)
             ?? throw new NotFoundException($"Invite {inviteId} not found");
@@ -273,5 +276,7 @@ public class InviteService : IInviteService
         invite.FlgStatus = InviteStatuses.Expired;
         await _inviteRepo.UpdateAsync(invite, ct);
         await _dbContext.SaveChangesAsync(ct);
+
+        return ServiceResult<object>.Ok(null!, "Invite cancelled.");
     }
 }

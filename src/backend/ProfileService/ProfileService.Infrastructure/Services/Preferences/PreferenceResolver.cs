@@ -7,6 +7,7 @@ using ProfileService.Domain.Interfaces.Repositories.Departments;
 using ProfileService.Domain.Interfaces.Repositories.Organizations;
 using ProfileService.Domain.Interfaces.Repositories.UserPreferenceSettings;
 using ProfileService.Domain.Interfaces.Services.Preferences;
+using ProfileService.Domain.Results;
 using StackExchange.Redis;
 using ProfileService.Infrastructure.Redis;
 
@@ -45,7 +46,7 @@ public class PreferenceResolver : IPreferenceResolver
         _logger = logger;
     }
 
-    public async Task<object> ResolveAsync(Guid userId, Guid departmentId, Guid organizationId,
+    public async Task<ServiceResult<object>> ResolveAsync(Guid userId, Guid departmentId, Guid organizationId,
         CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
@@ -55,7 +56,7 @@ public class PreferenceResolver : IPreferenceResolver
         if (cachedResolved.HasValue)
         {
             var cached = JsonSerializer.Deserialize<ResolvedPreferencesResponse>(cachedResolved!, JsonOptions);
-            if (cached is not null) return cached;
+            if (cached is not null) return ServiceResult<object>.Ok(cached);
         }
 
         // 2. Load all three levels with tiered caching
@@ -92,7 +93,7 @@ public class PreferenceResolver : IPreferenceResolver
             JsonSerializer.Serialize(resolved, JsonOptions),
             ResolvedTtl);
 
-        return resolved;
+        return ServiceResult<object>.Ok(resolved, "Preferences resolved.");
     }
 
     private async Task<(OrganizationSettings? Settings, string? TimeZone)> GetOrgSettingsCachedAsync(IDatabase db, Guid organizationId, CancellationToken ct)
