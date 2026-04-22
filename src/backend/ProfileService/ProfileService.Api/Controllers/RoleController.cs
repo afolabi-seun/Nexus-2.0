@@ -21,14 +21,12 @@ public class RoleController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> List(CancellationToken ct)
     {
-        var result = await _roleService.ListAsync(ct);
-        return ApiResponse<object>.Ok(result, "Roles retrieved.").ToActionResult(HttpContext);
+        return (await _roleService.ListAsync(ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
-        var result = await _roleService.GetByIdAsync(id, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _roleService.GetByIdAsync(id, ct)).ToActionResult(HttpContext);
     }
 }

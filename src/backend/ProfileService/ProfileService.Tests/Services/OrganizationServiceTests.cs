@@ -123,6 +123,7 @@ public class OrganizationServiceTests
 
         var result = await _service.CreateAsync(request);
         Assert.NotNull(result);
+        Assert.True(result.IsSuccess);
     }
 
     [Theory]

@@ -236,8 +236,8 @@ The DB-driven navigation table (`NavigationItems`) is never seeded. All deployme
 ## Phase 11 — Architecture Refactoring
 
 - [x] **ServiceResult pattern (UtilityService)** — Created `ServiceResult<T>` in Domain/Results, `ServiceResultExtensions.ToActionResult()` in Api/Extensions. Converted 5 interfaces (10 methods), 5 service implementations, 5 controllers (14 actions), 4 test assertions. Controllers are now one-liners: `return (await _service.DoAsync(request)).ToActionResult();`
-- [ ] **ServiceResult pattern (BillingService)** — 18 service methods, 7 controllers, 112 tests
-- [ ] **ServiceResult pattern (ProfileService)** — 25 service methods, 10 controllers, 87 tests
+- [x] **ServiceResult pattern (BillingService)** — 18 service methods, 7 controllers, 112 tests
+- [x] **ServiceResult pattern (ProfileService)** — 25 service methods, 10 controllers, 87 tests
 - [ ] **ServiceResult pattern (WorkService)** — 81 service methods, 18 controllers, 179 tests
 - [ ] **Consistent API response messages** — Resolved by ServiceResult pattern — messages now live in service methods, not controllers. 37 controller actions previously missing messages.
 - [x] **Error code registry seed (all services)** — Seeded all 154 error codes from all 5 services into UtilityService error_code_entries table. Composite unique index on (Code, ServiceName). Extracted to ErrorCodeSeeds.cs.

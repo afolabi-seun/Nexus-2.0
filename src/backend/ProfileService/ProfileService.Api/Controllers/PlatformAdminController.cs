@@ -24,8 +24,7 @@ public class PlatformAdminController : ControllerBase
     public async Task<IActionResult> GetByUsername(
         string username, CancellationToken ct)
     {
-        var result = await _platformAdminService.GetByUsernameAsync(username, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _platformAdminService.GetByUsernameAsync(username, ct)).ToActionResult(HttpContext);
     }
 
     [HttpPatch("{id:guid}/password")]
@@ -33,8 +32,7 @@ public class PlatformAdminController : ControllerBase
     public async Task<IActionResult> UpdatePassword(
         Guid id, [FromBody] PlatformAdminPasswordRequest request, CancellationToken ct)
     {
-        await _platformAdminService.UpdatePasswordAsync(id, request.PasswordHash, ct);
-        return ApiResponse<object>.Ok(null!, "Password updated.").ToActionResult(HttpContext);
+        return (await _platformAdminService.UpdatePasswordAsync(id, request.PasswordHash, ct)).ToActionResult(HttpContext);
     }
 }
 

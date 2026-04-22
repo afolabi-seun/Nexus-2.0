@@ -10,6 +10,7 @@ using ProfileService.Domain.Interfaces.Repositories.DepartmentMembers;
 using ProfileService.Domain.Interfaces.Repositories.Departments;
 using ProfileService.Domain.Interfaces.Repositories.TeamMembers;
 using ProfileService.Domain.Interfaces.Services.Departments;
+using ProfileService.Domain.Results;
 using ProfileService.Infrastructure.Data;
 using StackExchange.Redis;
 using ProfileService.Infrastructure.Redis;
@@ -50,7 +51,7 @@ public class DepartmentService : IDepartmentService
         _logger = logger;
     }
 
-    public async Task<object> CreateAsync(Guid organizationId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> CreateAsync(Guid organizationId, object request, CancellationToken ct = default)
     {
         var req = (CreateDepartmentRequest)request;
 
@@ -81,10 +82,10 @@ public class DepartmentService : IDepartmentService
         var db = _redis.GetDatabase();
         await db.KeyDeleteAsync(RedisKeys.DeptList(organizationId));
 
-        return MapToResponse(dept, 0);
+        return ServiceResult<object>.Created(MapToResponse(dept, 0), "Department created successfully.");
     }
 
-    public async Task<object> ListAsync(Guid organizationId, int page, int pageSize, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> ListAsync(Guid organizationId, int page, int pageSize, CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
         var cacheKey = RedisKeys.DeptListPaged(organizationId, page, pageSize);
@@ -94,7 +95,7 @@ public class DepartmentService : IDepartmentService
         {
             var cachedResult = JsonSerializer.Deserialize<PaginatedResponse<DepartmentResponse>>(cached!, JsonOptions);
             if (cachedResult is not null)
-                return cachedResult;
+                return ServiceResult<object>.Ok(cachedResult, "Departments retrieved.");
         }
 
         var (items, totalCount) = await _deptRepo.ListByOrganizationAsync(organizationId, page, pageSize, ct);
@@ -117,19 +118,19 @@ public class DepartmentService : IDepartmentService
         var json = JsonSerializer.Serialize(result, JsonOptions);
         await db.StringSetAsync(cacheKey, json, DeptListCacheTtl);
 
-        return result;
+        return ServiceResult<object>.Ok(result, "Departments retrieved.");
     }
 
-    public async Task<object> GetByIdAsync(Guid departmentId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetByIdAsync(Guid departmentId, CancellationToken ct = default)
     {
         var dept = await _deptRepo.GetByIdAsync(departmentId, ct)
             ?? throw new DepartmentNotFoundException($"Department {departmentId} not found");
 
         var memberCount = await _deptRepo.GetActiveMemberCountAsync(departmentId, ct);
-        return MapToResponse(dept, memberCount);
+        return ServiceResult<object>.Ok(MapToResponse(dept, memberCount), "Department retrieved.");
     }
 
-    public async Task<object> UpdateAsync(Guid departmentId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> UpdateAsync(Guid departmentId, object request, CancellationToken ct = default)
     {
         var req = (UpdateDepartmentRequest)request;
         var dept = await _deptRepo.GetByIdAsync(departmentId, ct)
@@ -155,10 +156,10 @@ public class DepartmentService : IDepartmentService
         await db.KeyDeleteAsync(RedisKeys.DeptList(dept.OrganizationId));
 
         var memberCount = await _deptRepo.GetActiveMemberCountAsync(departmentId, ct);
-        return MapToResponse(dept, memberCount);
+        return ServiceResult<object>.Ok(MapToResponse(dept, memberCount), "Department updated.");
     }
 
-    public async Task UpdateStatusAsync(Guid departmentId, string newStatus, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> UpdateStatusAsync(Guid departmentId, string newStatus, CancellationToken ct = default)
     {
         var dept = await _deptRepo.GetByIdAsync(departmentId, ct)
             ?? throw new DepartmentNotFoundException($"Department {departmentId} not found");
@@ -183,9 +184,11 @@ public class DepartmentService : IDepartmentService
         // Invalidate cache
         var db = _redis.GetDatabase();
         await db.KeyDeleteAsync(RedisKeys.DeptList(dept.OrganizationId));
+
+        return ServiceResult<object>.Ok(null!, "Department status updated.");
     }
 
-    public async Task<object> ListMembersAsync(Guid departmentId, int page, int pageSize, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> ListMembersAsync(Guid departmentId, int page, int pageSize, CancellationToken ct = default)
     {
         var dept = await _deptRepo.GetByIdAsync(departmentId, ct)
             ?? throw new DepartmentNotFoundException($"Department {departmentId} not found");
@@ -214,17 +217,17 @@ public class DepartmentService : IDepartmentService
             }
         }
 
-        return new PaginatedResponse<TeamMemberResponse>
+        return ServiceResult<object>.Ok(new PaginatedResponse<TeamMemberResponse>
         {
             Data = responses,
             TotalCount = totalCount,
             Page = page,
             PageSize = pageSize,
             TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-        };
+        }, "Department members retrieved.");
     }
 
-    public async Task<object> GetPreferencesAsync(Guid departmentId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetPreferencesAsync(Guid departmentId, CancellationToken ct = default)
     {
         var dept = await _deptRepo.GetByIdAsync(departmentId, ct)
             ?? throw new DepartmentNotFoundException($"Department {departmentId} not found");
@@ -233,10 +236,10 @@ public class DepartmentService : IDepartmentService
             ? JsonSerializer.Deserialize<DepartmentPreferences>(dept.PreferencesJson, JsonOptions) ?? new DepartmentPreferences()
             : new DepartmentPreferences();
 
-        return MapPrefsToResponse(prefs);
+        return ServiceResult<object>.Ok(MapPrefsToResponse(prefs), "Department preferences retrieved.");
     }
 
-    public async Task<object> UpdatePreferencesAsync(Guid departmentId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> UpdatePreferencesAsync(Guid departmentId, object request, CancellationToken ct = default)
     {
         var req = (DepartmentPreferencesRequest)request;
         var dept = await _deptRepo.GetByIdAsync(departmentId, ct)
@@ -262,7 +265,7 @@ public class DepartmentService : IDepartmentService
         var db = _redis.GetDatabase();
         await db.KeyDeleteAsync(RedisKeys.DeptPrefs(departmentId));
 
-        return MapPrefsToResponse(prefs);
+        return ServiceResult<object>.Ok(MapPrefsToResponse(prefs), "Department preferences updated.");
     }
 
     private static DepartmentResponse MapToResponse(Department dept, int memberCount) => new()

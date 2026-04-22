@@ -4,6 +4,7 @@ using ProfileService.Domain.Exceptions;
 using ProfileService.Domain.Interfaces.Repositories.TeamMembers;
 using ProfileService.Domain.Interfaces.Repositories.UserPreferenceSettings;
 using ProfileService.Domain.Interfaces.Services.Preferences;
+using ProfileService.Domain.Results;
 using ProfileService.Infrastructure.Data;
 using StackExchange.Redis;
 using ProfileService.Infrastructure.Redis;
@@ -29,25 +30,25 @@ public class PreferenceService : IPreferenceService
         _dbContext = dbContext;
     }
 
-    public async Task<object> GetAsync(Guid memberId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetAsync(Guid memberId, CancellationToken ct = default)
     {
         var prefs = await _prefsRepo.GetByMemberIdAsync(memberId, ct);
         if (prefs is null)
         {
-            return new UserPreferencesResponse
+            return ServiceResult<object>.Ok(new UserPreferencesResponse
             {
                 Theme = "System",
                 Language = "en",
                 KeyboardShortcutsEnabled = true,
                 DateFormat = "ISO",
                 TimeFormat = "H24"
-            };
+            });
         }
 
-        return MapToResponse(prefs);
+        return ServiceResult<object>.Ok(MapToResponse(prefs));
     }
 
-    public async Task<object> UpdateAsync(Guid memberId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> UpdateAsync(Guid memberId, object request, CancellationToken ct = default)
     {
         var req = (UserPreferencesRequest)request;
         var prefs = await _prefsRepo.GetByMemberIdAsync(memberId, ct);
@@ -79,7 +80,7 @@ public class PreferenceService : IPreferenceService
         await db.KeyDeleteAsync(RedisKeys.UserPrefs(memberId));
         await db.KeyDeleteAsync(RedisKeys.ResolvedPrefs(memberId));
 
-        return MapToResponse(prefs);
+        return ServiceResult<object>.Ok(MapToResponse(prefs), "Preferences updated.");
     }
 
     private static void ApplyUpdates(UserPreferences prefs, UserPreferencesRequest req)

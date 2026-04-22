@@ -28,8 +28,7 @@ public class DepartmentController : ControllerBase
         [FromBody] CreateDepartmentRequest request, CancellationToken ct)
     {
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
-        var result = await _departmentService.CreateAsync(orgId, request, ct);
-        return ApiResponse<object>.Ok(result, "Department created successfully.").ToActionResult(HttpContext, 201);
+        return (await _departmentService.CreateAsync(orgId, request, ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet]
@@ -38,15 +37,13 @@ public class DepartmentController : ControllerBase
     {
         PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
-        var result = await _departmentService.ListAsync(orgId, page, pageSize, ct);
-        return ApiResponse<object>.Ok(result, "Departments retrieved.").ToActionResult(HttpContext);
+        return (await _departmentService.ListAsync(orgId, page, pageSize, ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
-        var result = await _departmentService.GetByIdAsync(id, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _departmentService.GetByIdAsync(id, ct)).ToActionResult(HttpContext);
     }
 
     [HttpPut("{id:guid}")]
@@ -54,8 +51,7 @@ public class DepartmentController : ControllerBase
     public async Task<IActionResult> Update(
         Guid id, [FromBody] UpdateDepartmentRequest request, CancellationToken ct)
     {
-        var result = await _departmentService.UpdateAsync(id, request, ct);
-        return ApiResponse<object>.Ok(result, "Department updated.").ToActionResult(HttpContext);
+        return (await _departmentService.UpdateAsync(id, request, ct)).ToActionResult(HttpContext);
     }
 
     [HttpPatch("{id:guid}/status")]
@@ -63,8 +59,7 @@ public class DepartmentController : ControllerBase
     public async Task<IActionResult> UpdateStatus(
         Guid id, [FromBody] StatusChangeRequest request, CancellationToken ct)
     {
-        await _departmentService.UpdateStatusAsync(id, request.Status, ct);
-        return ApiResponse<object>.Ok(null!, "Department status updated.").ToActionResult(HttpContext);
+        return (await _departmentService.UpdateStatusAsync(id, request.Status, ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("{id:guid}/members")]
@@ -72,15 +67,13 @@ public class DepartmentController : ControllerBase
         Guid id, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
         PaginationHelper.Normalize(ref page, ref pageSize);
-        var result = await _departmentService.ListMembersAsync(id, page, pageSize, ct);
-        return ApiResponse<object>.Ok(result, "Department members retrieved.").ToActionResult(HttpContext);
+        return (await _departmentService.ListMembersAsync(id, page, pageSize, ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("{id:guid}/preferences")]
     public async Task<IActionResult> GetPreferences(Guid id, CancellationToken ct)
     {
-        var result = await _departmentService.GetPreferencesAsync(id, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _departmentService.GetPreferencesAsync(id, ct)).ToActionResult(HttpContext);
     }
 
     [HttpPut("{id:guid}/preferences")]
@@ -88,7 +81,6 @@ public class DepartmentController : ControllerBase
     public async Task<IActionResult> UpdatePreferences(
         Guid id, [FromBody] DepartmentPreferencesRequest request, CancellationToken ct)
     {
-        var result = await _departmentService.UpdatePreferencesAsync(id, request, ct);
-        return ApiResponse<object>.Ok(result, "Department preferences updated.").ToActionResult(HttpContext);
+        return (await _departmentService.UpdatePreferencesAsync(id, request, ct)).ToActionResult(HttpContext);
     }
 }

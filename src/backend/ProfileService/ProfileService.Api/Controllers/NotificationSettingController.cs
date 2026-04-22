@@ -23,8 +23,7 @@ public class NotificationSettingController : ControllerBase
     public async Task<IActionResult> GetSettings(CancellationToken ct)
     {
         var memberId = Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
-        var result = await _notificationSettingService.GetSettingsAsync(memberId, ct);
-        return ApiResponse<object>.Ok(result, "Notification settings retrieved.").ToActionResult(HttpContext);
+        return (await _notificationSettingService.GetSettingsAsync(memberId, ct)).ToActionResult(HttpContext);
     }
 
     [HttpPut("notification-settings/{typeId:guid}")]
@@ -32,14 +31,12 @@ public class NotificationSettingController : ControllerBase
         Guid typeId, [FromBody] UpdateNotificationSettingRequest request, CancellationToken ct)
     {
         var memberId = Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
-        await _notificationSettingService.UpdateSettingAsync(memberId, typeId, request, ct);
-        return ApiResponse<object>.Ok(null!, "Notification setting updated.").ToActionResult(HttpContext);
+        return (await _notificationSettingService.UpdateSettingAsync(memberId, typeId, request, ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("notification-types")]
     public async Task<IActionResult> ListTypes(CancellationToken ct)
     {
-        var result = await _notificationSettingService.ListTypesAsync(ct);
-        return ApiResponse<object>.Ok(result, "Notification types retrieved.").ToActionResult(HttpContext);
+        return (await _notificationSettingService.ListTypesAsync(ct)).ToActionResult(HttpContext);
     }
 }

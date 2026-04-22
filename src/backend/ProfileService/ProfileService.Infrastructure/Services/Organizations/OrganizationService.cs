@@ -14,6 +14,7 @@ using ProfileService.Domain.Interfaces.Repositories.Roles;
 using ProfileService.Domain.Interfaces.Repositories.TeamMembers;
 using ProfileService.Domain.Interfaces.Services.Organizations;
 using ProfileService.Domain.Interfaces.Services.Outbox;
+using ProfileService.Domain.Results;
 using ProfileService.Infrastructure.Data;
 using ProfileService.Infrastructure.Services.ServiceClients;
 using StackExchange.Redis;
@@ -66,7 +67,7 @@ public class OrganizationService : IOrganizationService
         _logger = logger;
     }
 
-    public async Task<object> CreateAsync(object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> CreateAsync(object request, CancellationToken ct = default)
     {
         var req = (CreateOrganizationRequest)request;
 
@@ -113,17 +114,17 @@ public class OrganizationService : IOrganizationService
             EntityId = org.OrganizationId.ToString()
         }, ct);
 
-        return MapToResponse(org);
+        return ServiceResult<object>.Created(MapToResponse(org), "Organization created successfully.");
     }
 
-    public async Task<object> GetByIdAsync(Guid organizationId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetByIdAsync(Guid organizationId, CancellationToken ct = default)
     {
         var org = await _orgRepo.GetByIdAsync(organizationId, ct)
             ?? throw new NotFoundException($"Organization {organizationId} not found");
-        return MapToResponse(org);
+        return ServiceResult<object>.Ok(MapToResponse(org), "Organization retrieved.");
     }
 
-    public async Task<object> UpdateAsync(Guid organizationId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> UpdateAsync(Guid organizationId, object request, CancellationToken ct = default)
     {
         var req = (UpdateOrganizationRequest)request;
         var org = await _orgRepo.GetByIdAsync(organizationId, ct)
@@ -148,10 +149,10 @@ public class OrganizationService : IOrganizationService
         await _orgRepo.UpdateAsync(org, ct);
         await _dbContext.SaveChangesAsync(ct);
 
-        return MapToResponse(org);
+        return ServiceResult<object>.Ok(MapToResponse(org), "Organization updated.");
     }
 
-    public async Task UpdateStatusAsync(Guid organizationId, string newStatus, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> UpdateStatusAsync(Guid organizationId, string newStatus, CancellationToken ct = default)
     {
         var org = await _orgRepo.GetByIdAsync(organizationId, ct)
             ?? throw new NotFoundException($"Organization {organizationId} not found");
@@ -175,9 +176,11 @@ public class OrganizationService : IOrganizationService
         org.DateUpdated = DateTime.UtcNow;
         await _orgRepo.UpdateAsync(org, ct);
         await _dbContext.SaveChangesAsync(ct);
+
+        return ServiceResult<object>.Ok(null!, "Organization status updated.");
     }
 
-    public async Task<object> UpdateSettingsAsync(Guid organizationId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> UpdateSettingsAsync(Guid organizationId, object request, CancellationToken ct = default)
     {
         var req = (OrganizationSettingsRequest)request;
         var org = await _orgRepo.GetByIdAsync(organizationId, ct)
@@ -232,23 +235,23 @@ public class OrganizationService : IOrganizationService
         var db = _redis.GetDatabase();
         await db.KeyDeleteAsync(RedisKeys.OrgSettings(organizationId));
 
-        return MapSettingsToResponse(settings);
+        return ServiceResult<object>.Ok(MapSettingsToResponse(settings), "Organization settings updated.");
     }
 
-    public async Task<object> ListAllAsync(int page, int pageSize, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> ListAllAsync(int page, int pageSize, CancellationToken ct = default)
     {
         var (items, totalCount) = await _orgRepo.ListAllAsync(page, pageSize, ct);
-        return new PaginatedResponse<OrganizationResponse>
+        return ServiceResult<object>.Ok(new PaginatedResponse<OrganizationResponse>
         {
             Data = items.Select(MapToResponse),
             TotalCount = totalCount,
             Page = page,
             PageSize = pageSize,
             TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-        };
+        }, "Organizations retrieved.");
     }
 
-    public async Task<object> ProvisionAdminAsync(Guid organizationId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> ProvisionAdminAsync(Guid organizationId, object request, CancellationToken ct = default)
     {
         var req = (ProvisionAdminRequest)request;
         var org = await _orgRepo.GetByIdAsync(organizationId, ct)
@@ -312,7 +315,7 @@ public class OrganizationService : IOrganizationService
             EntityId = member.TeamMemberId.ToString()
         }, ct);
 
-        return MapToDetailResponse(member, [deptMember], engDept, orgAdminRole);
+        return ServiceResult<object>.Created(MapToDetailResponse(member, [deptMember], engDept, orgAdminRole), "Admin provisioned successfully.");
     }
 
     private static OrganizationResponse MapToResponse(Organization org)

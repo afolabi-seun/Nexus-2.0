@@ -28,40 +28,18 @@ public class OrganizationController : ControllerBase
     /// <summary>
     /// Create a new organization.
     /// </summary>
-    /// <param name="request">Organization name and story ID prefix</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>The created organization</returns>
-    /// <response code="201">Organization created — 5 default departments seeded</response>
-    /// <response code="409">Organization name or story prefix already exists</response>
-    /// <remarks>
-    /// Sample request:
-    ///
-    ///     POST /api/v1/organizations
-    ///     {
-    ///         "name": "Acme Corp",
-    ///         "storyIdPrefix": "ACME"
-    ///     }
-    ///
-    /// </remarks>
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Create(
         [FromBody] CreateOrganizationRequest request, CancellationToken ct)
     {
-        var result = await _organizationService.CreateAsync(request, ct);
-        return ApiResponse<object>.Ok(result, "Organization created successfully.").ToActionResult(HttpContext, 201);
+        return (await _organizationService.CreateAsync(request, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
     /// List all organizations (PlatformAdmin only).
     /// </summary>
-    /// <param name="page">Page number (default 1)</param>
-    /// <param name="pageSize">Items per page (default 20)</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>Paginated list of organizations</returns>
-    /// <response code="200">Organizations retrieved</response>
-    /// <response code="403">Requires PlatformAdmin role</response>
     [HttpGet]
     [PlatformAdmin]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
@@ -70,36 +48,23 @@ public class OrganizationController : ControllerBase
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
         PaginationHelper.Normalize(ref page, ref pageSize);
-        var result = await _organizationService.ListAllAsync(page, pageSize, ct);
-        return ApiResponse<object>.Ok(result, "Organizations retrieved.").ToActionResult(HttpContext);
+        return (await _organizationService.ListAllAsync(page, pageSize, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
     /// Get organization details by ID.
     /// </summary>
-    /// <param name="id">Organization ID</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>Organization details including settings and status</returns>
-    /// <response code="200">Organization found</response>
-    /// <response code="404">Organization not found</response>
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
-        var result = await _organizationService.GetByIdAsync(id, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _organizationService.GetByIdAsync(id, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
     /// Update organization details.
     /// </summary>
-    /// <param name="id">Organization ID</param>
-    /// <param name="request">Updated organization data</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>Updated organization</returns>
-    /// <response code="200">Organization updated</response>
-    /// <response code="404">Organization not found</response>
     [HttpPut("{id:guid}")]
     [OrgAdmin]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
@@ -107,19 +72,12 @@ public class OrganizationController : ControllerBase
     public async Task<IActionResult> Update(
         Guid id, [FromBody] UpdateOrganizationRequest request, CancellationToken ct)
     {
-        var result = await _organizationService.UpdateAsync(id, request, ct);
-        return ApiResponse<object>.Ok(result, "Organization updated.").ToActionResult(HttpContext);
+        return (await _organizationService.UpdateAsync(id, request, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
     /// Update organization status (activate/suspend/deactivate).
     /// </summary>
-    /// <param name="id">Organization ID</param>
-    /// <param name="request">New status value</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>Confirmation of status change</returns>
-    /// <response code="200">Status updated</response>
-    /// <response code="404">Organization not found</response>
     [HttpPatch("{id:guid}/status")]
     [OrgAdmin]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
@@ -127,30 +85,12 @@ public class OrganizationController : ControllerBase
     public async Task<IActionResult> UpdateStatus(
         Guid id, [FromBody] StatusChangeRequest request, CancellationToken ct)
     {
-        await _organizationService.UpdateStatusAsync(id, request.Status, ct);
-        return ApiResponse<object>.Ok(null!, "Organization status updated.").ToActionResult(HttpContext);
+        return (await _organizationService.UpdateStatusAsync(id, request.Status, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
     /// Update organization settings (sprint duration, story point scale, etc.).
     /// </summary>
-    /// <param name="id">Organization ID</param>
-    /// <param name="request">Settings to update</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>Updated settings</returns>
-    /// <response code="200">Settings updated</response>
-    /// <response code="404">Organization not found</response>
-    /// <remarks>
-    /// Sample request:
-    ///
-    ///     PUT /api/v1/organizations/{id}/settings
-    ///     {
-    ///         "sprintDuration": 14,
-    ///         "storyPointScale": "Fibonacci",
-    ///         "defaultBoardView": "Kanban"
-    ///     }
-    ///
-    /// </remarks>
     [HttpPut("{id:guid}/settings")]
     [OrgAdmin]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
@@ -158,31 +98,12 @@ public class OrganizationController : ControllerBase
     public async Task<IActionResult> UpdateSettings(
         Guid id, [FromBody] OrganizationSettingsRequest request, CancellationToken ct)
     {
-        var result = await _organizationService.UpdateSettingsAsync(id, request, ct);
-        return ApiResponse<object>.Ok(result, "Organization settings updated.").ToActionResult(HttpContext);
+        return (await _organizationService.UpdateSettingsAsync(id, request, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
     /// Provision an OrgAdmin for an organization (PlatformAdmin only).
     /// </summary>
-    /// <param name="id">Organization ID</param>
-    /// <param name="request">Admin email, first name, and last name</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>The provisioned team member</returns>
-    /// <response code="201">Admin provisioned — credentials generated via SecurityService</response>
-    /// <response code="403">Requires PlatformAdmin role</response>
-    /// <response code="409">Email already registered</response>
-    /// <remarks>
-    /// Sample request:
-    ///
-    ///     POST /api/v1/organizations/{id}/provision-admin
-    ///     {
-    ///         "email": "admin@acme.com",
-    ///         "firstName": "Jane",
-    ///         "lastName": "Admin"
-    ///     }
-    ///
-    /// </remarks>
     [HttpPost("{id:guid}/provision-admin")]
     [PlatformAdmin]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status201Created)]
@@ -191,7 +112,6 @@ public class OrganizationController : ControllerBase
     public async Task<IActionResult> ProvisionAdmin(
         Guid id, [FromBody] ProvisionAdminRequest request, CancellationToken ct)
     {
-        var result = await _organizationService.ProvisionAdminAsync(id, request, ct);
-        return ApiResponse<object>.Ok(result, "Admin provisioned successfully.").ToActionResult(HttpContext, 201);
+        return (await _organizationService.ProvisionAdminAsync(id, request, ct)).ToActionResult(HttpContext);
     }
 }
