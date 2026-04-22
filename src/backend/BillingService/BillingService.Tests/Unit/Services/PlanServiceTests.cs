@@ -99,7 +99,7 @@ public class PlanServiceTests
         var service = new PlanService(dbContext, mockRepo.Object, mockRedis.Object, mockLogger.Object);
 
         var result = await service.GetAllActiveAsync(CancellationToken.None);
-        var responses = result as List<PlanResponse>;
+        var responses = result.Data as List<PlanResponse>;
 
         Assert.NotNull(responses);
         Assert.Equal(2, responses!.Count);

@@ -24,7 +24,6 @@ public class FeatureGateController : ControllerBase
     public async Task<IActionResult> CheckFeature(
         string feature, [FromQuery] Guid organizationId, CancellationToken ct)
     {
-        var result = await _featureGateService.CheckFeatureAsync(organizationId, feature, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _featureGateService.CheckFeatureAsync(organizationId, feature, ct)).ToActionResult(HttpContext);
     }
 }

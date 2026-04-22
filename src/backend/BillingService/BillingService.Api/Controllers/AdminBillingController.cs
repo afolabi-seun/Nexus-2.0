@@ -39,8 +39,7 @@ public class AdminBillingController : ControllerBase
         CancellationToken ct = default)
     {
         PaginationHelper.Normalize(ref page, ref pageSize);
-        var result = await _adminBillingService.GetAllSubscriptionsAsync(status, search, page, pageSize, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _adminBillingService.GetAllSubscriptionsAsync(status, search, page, pageSize, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -52,8 +51,7 @@ public class AdminBillingController : ControllerBase
     public async Task<IActionResult> GetOrganizationBilling(
         Guid organizationId, CancellationToken ct)
     {
-        var result = await _adminBillingService.GetOrganizationBillingAsync(organizationId, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _adminBillingService.GetOrganizationBillingAsync(organizationId, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -68,9 +66,8 @@ public class AdminBillingController : ControllerBase
         CancellationToken ct)
     {
         var adminId = GetAdminId();
-        var result = await _adminBillingService.OverrideSubscriptionAsync(
-            organizationId, request.PlanId, request.Reason, adminId, ct);
-        return ApiResponse<object>.Ok(result, "Subscription overridden.").ToActionResult(HttpContext);
+        return (await _adminBillingService.OverrideSubscriptionAsync(
+            organizationId, request.PlanId, request.Reason, adminId, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -85,9 +82,8 @@ public class AdminBillingController : ControllerBase
         CancellationToken ct)
     {
         var adminId = GetAdminId();
-        var result = await _adminBillingService.AdminCancelSubscriptionAsync(
-            organizationId, request.Reason, adminId, ct);
-        return ApiResponse<object>.Ok(result, "Subscription cancelled.").ToActionResult(HttpContext);
+        return (await _adminBillingService.AdminCancelSubscriptionAsync(
+            organizationId, request.Reason, adminId, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -97,8 +93,7 @@ public class AdminBillingController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUsageSummary(CancellationToken ct)
     {
-        var result = await _adminBillingService.GetUsageSummaryAsync(ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _adminBillingService.GetUsageSummaryAsync(ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -113,8 +108,7 @@ public class AdminBillingController : ControllerBase
         CancellationToken ct = default)
     {
         PaginationHelper.Normalize(ref page, ref pageSize);
-        var result = await _adminBillingService.GetOrganizationUsageListAsync(threshold, page, pageSize, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _adminBillingService.GetOrganizationUsageListAsync(threshold, page, pageSize, ct)).ToActionResult(HttpContext);
     }
 
     private Guid GetAdminId() =>

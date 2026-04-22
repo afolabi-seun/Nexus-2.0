@@ -13,6 +13,7 @@ using BillingService.Domain.Interfaces.Repositories.UsageRecords;
 using BillingService.Domain.Interfaces.Services.AdminBilling;
 using BillingService.Domain.Interfaces.Services.Outbox;
 using BillingService.Domain.Interfaces.Services.Stripe;
+using BillingService.Domain.Results;
 using BillingService.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -47,7 +48,7 @@ public class AdminBillingService : IAdminBillingService
         _logger = logger;
     }
 
-    public async Task<object> GetAllSubscriptionsAsync(string? status, string? search, int page, int pageSize, CancellationToken ct)
+    public async Task<ServiceResult<object>> GetAllSubscriptionsAsync(string? status, string? search, int page, int pageSize, CancellationToken ct)
     {
         var query = _dbContext.Subscriptions
             .IgnoreQueryFilters()
@@ -85,10 +86,10 @@ public class AdminBillingService : IAdminBillingService
             s.TrialEndDate
         )).ToList();
 
-        return new PaginatedResponse<AdminSubscriptionListItem>(items, totalCount, page, pageSize);
+        return ServiceResult<object>.Ok(new PaginatedResponse<AdminSubscriptionListItem>(items, totalCount, page, pageSize), "Subscriptions retrieved.");
     }
 
-    public async Task<object> GetOrganizationBillingAsync(Guid organizationId, CancellationToken ct)
+    public async Task<ServiceResult<object>> GetOrganizationBillingAsync(Guid organizationId, CancellationToken ct)
     {
         var subscription = await _dbContext.Subscriptions
             .IgnoreQueryFilters()
@@ -129,10 +130,10 @@ public class AdminBillingService : IAdminBillingService
         var usageResponse = new UsageResponse(metrics.Select(m =>
             new UsageMetric(m.MetricName, m.CurrentValue, (int)m.Limit, m.PercentUsed)).ToList());
 
-        return new AdminOrganizationBillingResponse(subscriptionResponse, planResponse, usageResponse);
+        return ServiceResult<object>.Ok(new AdminOrganizationBillingResponse(subscriptionResponse, planResponse, usageResponse), "Organization billing retrieved.");
     }
 
-    public async Task<object> OverrideSubscriptionAsync(Guid organizationId, Guid planId, string? reason, Guid adminId, CancellationToken ct)
+    public async Task<ServiceResult<object>> OverrideSubscriptionAsync(Guid organizationId, Guid planId, string? reason, Guid adminId, CancellationToken ct)
     {
         var plan = await _planRepo.GetByIdAsync(planId, ct)
             ?? throw new PlanNotFoundException();
@@ -194,10 +195,10 @@ public class AdminBillingService : IAdminBillingService
             NewValue = newValueJson,
         }, ct);
 
-        return subscription;
+        return ServiceResult<object>.Ok(subscription, "Subscription overridden.");
     }
 
-    public async Task<object> AdminCancelSubscriptionAsync(Guid organizationId, string? reason, Guid adminId, CancellationToken ct)
+    public async Task<ServiceResult<object>> AdminCancelSubscriptionAsync(Guid organizationId, string? reason, Guid adminId, CancellationToken ct)
     {
         var subscription = await _dbContext.Subscriptions
             .IgnoreQueryFilters()
@@ -247,10 +248,10 @@ public class AdminBillingService : IAdminBillingService
             NewValue = newValueJson,
         }, ct);
 
-        return subscription;
+        return ServiceResult<object>.Ok(subscription, "Subscription cancelled.");
     }
 
-    public async Task<object> GetUsageSummaryAsync(CancellationToken ct)
+    public async Task<ServiceResult<object>> GetUsageSummaryAsync(CancellationToken ct)
     {
         // Get all subscriptions for plan tier breakdown
         var subscriptions = await _dbContext.Subscriptions
@@ -289,10 +290,10 @@ public class AdminBillingService : IAdminBillingService
             .OrderBy(b => b.PlanName)
             .ToList();
 
-        return new AdminUsageSummaryResponse(totalActiveMembers, totalStoriesCreated, totalStorageBytes, byPlanTier);
+        return ServiceResult<object>.Ok(new AdminUsageSummaryResponse(totalActiveMembers, totalStoriesCreated, totalStorageBytes, byPlanTier), "Usage summary retrieved.");
     }
 
-    public async Task<object> GetOrganizationUsageListAsync(int? threshold, int page, int pageSize, CancellationToken ct)
+    public async Task<ServiceResult<object>> GetOrganizationUsageListAsync(int? threshold, int page, int pageSize, CancellationToken ct)
     {
         // Get all active/trialing subscriptions with plans
         var subscriptions = await _dbContext.Subscriptions
@@ -341,7 +342,7 @@ public class AdminBillingService : IAdminBillingService
             .Take(pageSize)
             .ToList();
 
-        return new PaginatedResponse<AdminOrganizationUsageItem>(pagedItems, totalCount, page, pageSize);
+        return ServiceResult<object>.Ok(new PaginatedResponse<AdminOrganizationUsageItem>(pagedItems, totalCount, page, pageSize), "Organization usage retrieved.");
     }
 
     private static List<UsageMetricWithLimit> BuildUsageMetrics(List<UsageRecord> records, Plan plan)

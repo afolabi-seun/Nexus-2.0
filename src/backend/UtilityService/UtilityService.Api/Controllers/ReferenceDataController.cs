@@ -20,25 +20,25 @@ public class ReferenceDataController : ControllerBase
     [HttpGet("department-types")]
     public async Task<IActionResult> GetDepartmentTypes(CancellationToken ct)
     {
-        return (await _referenceDataService.GetDepartmentTypesAsync(ct)).ToActionResult();
+        return (await _referenceDataService.GetDepartmentTypesAsync(ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("priority-levels")]
     public async Task<IActionResult> GetPriorityLevels(CancellationToken ct)
     {
-        return (await _referenceDataService.GetPriorityLevelsAsync(ct)).ToActionResult();
+        return (await _referenceDataService.GetPriorityLevelsAsync(ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("task-types")]
     public async Task<IActionResult> GetTaskTypes(CancellationToken ct)
     {
-        return (await _referenceDataService.GetTaskTypesAsync(ct)).ToActionResult();
+        return (await _referenceDataService.GetTaskTypesAsync(ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("workflow-states")]
     public async Task<IActionResult> GetWorkflowStates(CancellationToken ct)
     {
-        return (await _referenceDataService.GetWorkflowStatesAsync(ct)).ToActionResult();
+        return (await _referenceDataService.GetWorkflowStatesAsync(ct)).ToActionResult(HttpContext);
     }
 
     [HttpPost("department-types")]
@@ -46,7 +46,7 @@ public class ReferenceDataController : ControllerBase
     public async Task<IActionResult> CreateDepartmentType(
         [FromBody] CreateDepartmentTypeRequest request, CancellationToken ct)
     {
-        return (await _referenceDataService.CreateDepartmentTypeAsync(request, ct)).ToActionResult();
+        return (await _referenceDataService.CreateDepartmentTypeAsync(request, ct)).ToActionResult(HttpContext);
     }
 
     [HttpPost("priority-levels")]
@@ -54,6 +54,6 @@ public class ReferenceDataController : ControllerBase
     public async Task<IActionResult> CreatePriorityLevel(
         [FromBody] CreatePriorityLevelRequest request, CancellationToken ct)
     {
-        return (await _referenceDataService.CreatePriorityLevelAsync(request, ct)).ToActionResult();
+        return (await _referenceDataService.CreatePriorityLevelAsync(request, ct)).ToActionResult(HttpContext);
     }
 }

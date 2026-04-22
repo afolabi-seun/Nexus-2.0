@@ -56,13 +56,13 @@ public class FeatureGatePropertyTests
 
         // Test numeric features — pro plan has 100 team members, 0 (unlimited) departments/stories
         var result = await service.CheckFeatureAsync(orgId, "max_team_members", CancellationToken.None);
-        var response = result as FeatureGateResponse;
+        var response = result.Data as FeatureGateResponse;
         Assert.NotNull(response);
         Assert.True(response!.Allowed); // 0 usage < 100 limit
 
         // Test unlimited feature (0 means unlimited)
         result = await service.CheckFeatureAsync(orgId, "max_stories_per_month", CancellationToken.None);
-        response = result as FeatureGateResponse;
+        response = result.Data as FeatureGateResponse;
         Assert.NotNull(response);
         Assert.True(response!.Allowed); // 0 limit = unlimited
     }
@@ -100,7 +100,7 @@ public class FeatureGatePropertyTests
         var service = new FeatureGateService(mockSubRepo.Object, mockPlanRepo.Object, mockRedis.Object, mockLogger.Object);
 
         var result = await service.CheckFeatureAsync(orgId, "max_team_members", CancellationToken.None);
-        var response = result as FeatureGateResponse;
+        var response = result.Data as FeatureGateResponse;
         Assert.NotNull(response);
         Assert.True(response!.Allowed);
         Assert.Equal(3, response.CurrentUsage);
@@ -111,7 +111,7 @@ public class FeatureGatePropertyTests
             .ReturnsAsync(new RedisValue("5")); // 5 >= 5 limit
 
         result = await service.CheckFeatureAsync(orgId, "max_team_members", CancellationToken.None);
-        response = result as FeatureGateResponse;
+        response = result.Data as FeatureGateResponse;
         Assert.NotNull(response);
         Assert.False(response!.Allowed);
         Assert.Equal(5, response.CurrentUsage);

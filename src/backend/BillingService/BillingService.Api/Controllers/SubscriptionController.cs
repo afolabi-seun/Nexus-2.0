@@ -37,8 +37,7 @@ public class SubscriptionController : ControllerBase
     public async Task<IActionResult> GetCurrent(CancellationToken ct)
     {
         var orgId = GetOrganizationId();
-        var result = await _subscriptionService.GetCurrentAsync(orgId, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _subscriptionService.GetCurrentAsync(orgId, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -72,8 +71,7 @@ public class SubscriptionController : ControllerBase
         [FromBody] CreateSubscriptionRequest request, CancellationToken ct)
     {
         var orgId = GetOrganizationId();
-        var result = await _subscriptionService.CreateAsync(orgId, request, ct);
-        return ApiResponse<object>.Ok(result, "Subscription created.").ToActionResult(HttpContext, 201);
+        return (await _subscriptionService.CreateAsync(orgId, request, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -103,8 +101,7 @@ public class SubscriptionController : ControllerBase
         [FromBody] UpgradeSubscriptionRequest request, CancellationToken ct)
     {
         var orgId = GetOrganizationId();
-        var result = await _subscriptionService.UpgradeAsync(orgId, request, ct);
-        return ApiResponse<object>.Ok(result, "Subscription upgraded.").ToActionResult(HttpContext);
+        return (await _subscriptionService.UpgradeAsync(orgId, request, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -132,8 +129,7 @@ public class SubscriptionController : ControllerBase
         [FromBody] DowngradeSubscriptionRequest request, CancellationToken ct)
     {
         var orgId = GetOrganizationId();
-        var result = await _subscriptionService.DowngradeAsync(orgId, request, ct);
-        return ApiResponse<object>.Ok(result, "Downgrade scheduled.").ToActionResult(HttpContext);
+        return (await _subscriptionService.DowngradeAsync(orgId, request, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -149,8 +145,7 @@ public class SubscriptionController : ControllerBase
     public async Task<IActionResult> Cancel(CancellationToken ct)
     {
         var orgId = GetOrganizationId();
-        var result = await _subscriptionService.CancelAsync(orgId, ct);
-        return ApiResponse<object>.Ok(result, "Subscription cancelled.").ToActionResult(HttpContext);
+        return (await _subscriptionService.CancelAsync(orgId, ct)).ToActionResult(HttpContext);
     }
 
     private Guid GetOrganizationId() =>

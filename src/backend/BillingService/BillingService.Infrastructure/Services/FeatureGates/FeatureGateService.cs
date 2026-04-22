@@ -5,6 +5,7 @@ using BillingService.Domain.Enums;
 using BillingService.Domain.Interfaces.Repositories.Plans;
 using BillingService.Domain.Interfaces.Repositories.Subscriptions;
 using BillingService.Domain.Interfaces.Services.FeatureGates;
+using BillingService.Domain.Results;
 using BillingService.Infrastructure.Redis;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
@@ -30,21 +31,19 @@ public class FeatureGateService : IFeatureGateService
         _logger = logger;
     }
 
-    public async Task<object> CheckFeatureAsync(Guid organizationId, string feature, CancellationToken ct)
+    public async Task<ServiceResult<object>> CheckFeatureAsync(Guid organizationId, string feature, CancellationToken ct)
     {
         var plan = await GetPlanFromCacheOrDb(organizationId, ct);
         if (plan is null)
         {
-            // Default to free plan limits
             plan = await _planRepo.GetByCodeAsync("free", ct);
         }
 
         var (limit, currentUsage) = await GetFeatureLimitAndUsage(organizationId, feature, plan!, ct);
 
-        // 0 means unlimited
         var allowed = limit == 0 || currentUsage < limit;
 
-        return new FeatureGateResponse(allowed, currentUsage, limit, feature);
+        return ServiceResult<object>.Ok(new FeatureGateResponse(allowed, currentUsage, limit, feature), "Feature gate checked.");
     }
 
     private async Task<Plan?> GetPlanFromCacheOrDb(Guid organizationId, CancellationToken ct)

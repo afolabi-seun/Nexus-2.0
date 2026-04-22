@@ -53,7 +53,7 @@ public class AuditLogController : ControllerBase
     public async Task<IActionResult> Create(
         [FromBody] CreateAuditLogRequest request, CancellationToken ct)
     {
-        return (await _auditLogService.CreateAsync(request, ct)).ToActionResult();
+        return (await _auditLogService.CreateAsync(request, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -75,7 +75,7 @@ public class AuditLogController : ControllerBase
     {
         PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
-        return (await _auditLogService.QueryAsync(orgId, filter, page, pageSize, ct)).ToActionResult();
+        return (await _auditLogService.QueryAsync(orgId, filter, page, pageSize, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -97,7 +97,7 @@ public class AuditLogController : ControllerBase
     {
         PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
-        return (await _auditLogService.QueryArchiveAsync(orgId, filter, page, pageSize, ct)).ToActionResult();
+        return (await _auditLogService.QueryArchiveAsync(orgId, filter, page, pageSize, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>

@@ -12,6 +12,7 @@ using BillingService.Domain.Interfaces.Services.Outbox;
 using BillingService.Domain.Interfaces.Services.Stripe;
 using BillingService.Domain.Interfaces.Services.Subscriptions;
 using BillingService.Domain.Interfaces.Services.Usage;
+using BillingService.Domain.Results;
 using BillingService.Infrastructure.Data;
 using BillingService.Infrastructure.Services.ServiceClients;
 using Microsoft.Extensions.Logging;
@@ -54,7 +55,7 @@ public class SubscriptionService : ISubscriptionService
         _logger = logger;
     }
 
-    public async Task<object> GetCurrentAsync(Guid organizationId, CancellationToken ct)
+    public async Task<ServiceResult<object>> GetCurrentAsync(Guid organizationId, CancellationToken ct)
     {
         var subscription = await _subscriptionRepo.GetByOrganizationIdAsync(organizationId, ct)
             ?? throw new SubscriptionNotFoundException();
@@ -62,15 +63,16 @@ public class SubscriptionService : ISubscriptionService
         var plan = subscription.Plan ?? await _planRepo.GetByIdAsync(subscription.PlanId, ct)
             ?? throw new PlanNotFoundException();
 
-        var usage = (UsageResponse)await _usageService.GetUsageAsync(organizationId, ct);
+        var usageResult = await _usageService.GetUsageAsync(organizationId, ct);
+        var usage = (UsageResponse)usageResult.Data!;
 
         var subResponse = MapToResponse(subscription, plan);
         var planResponse = MapPlanToResponse(plan);
 
-        return new SubscriptionDetailResponse(subResponse, planResponse, usage);
+        return ServiceResult<object>.Ok(new SubscriptionDetailResponse(subResponse, planResponse, usage), "Subscription retrieved.");
     }
 
-    public async Task<object> CreateAsync(Guid organizationId, object request, CancellationToken ct)
+    public async Task<ServiceResult<object>> CreateAsync(Guid organizationId, object request, CancellationToken ct)
     {
         var req = (CreateSubscriptionRequest)request;
 
@@ -112,10 +114,10 @@ public class SubscriptionService : ISubscriptionService
         await RefreshCacheAndNotify(organizationId, plan, ct);
         await PublishAuditEvent(organizationId, "SubscriptionCreated", plan.PlanName, ct);
 
-        return MapToResponse(created, plan);
+        return ServiceResult<object>.Created(MapToResponse(created, plan), "Subscription created.");
     }
 
-    public async Task<object> UpgradeAsync(Guid organizationId, object request, CancellationToken ct)
+    public async Task<ServiceResult<object>> UpgradeAsync(Guid organizationId, object request, CancellationToken ct)
     {
         var req = (UpgradeSubscriptionRequest)request;
 
@@ -167,10 +169,10 @@ public class SubscriptionService : ISubscriptionService
         await RefreshCacheAndNotify(organizationId, newPlan, ct);
         await PublishAuditEvent(organizationId, "SubscriptionUpgraded", $"{oldPlanName} -> {newPlan.PlanName}", ct);
 
-        return MapToResponse(subscription, newPlan);
+        return ServiceResult<object>.Ok(MapToResponse(subscription, newPlan), "Subscription upgraded.");
     }
 
-    public async Task<object> DowngradeAsync(Guid organizationId, object request, CancellationToken ct)
+    public async Task<ServiceResult<object>> DowngradeAsync(Guid organizationId, object request, CancellationToken ct)
     {
         var req = (DowngradeSubscriptionRequest)request;
 
@@ -186,8 +188,8 @@ public class SubscriptionService : ISubscriptionService
         if (newPlan.TierLevel >= currentPlan.TierLevel)
             throw new InvalidDowngradePathException();
 
-        // Validate usage doesn't exceed new plan limits
-        var usage = (UsageResponse)await _usageService.GetUsageAsync(organizationId, ct);
+        var usageResult = await _usageService.GetUsageAsync(organizationId, ct);
+        var usage = (UsageResponse)usageResult.Data!;
         ValidateUsageAgainstPlan(usage, newPlan);
 
         subscription.ScheduledPlanId = newPlan.PlanId;
@@ -198,10 +200,10 @@ public class SubscriptionService : ISubscriptionService
         await PublishAuditEvent(organizationId, "SubscriptionDowngraded",
             $"{currentPlan.PlanName} -> {newPlan.PlanName} (effective at period end)", ct);
 
-        return MapToResponse(subscription, currentPlan);
+        return ServiceResult<object>.Ok(MapToResponse(subscription, currentPlan), "Downgrade scheduled.");
     }
 
-    public async Task<object> CancelAsync(Guid organizationId, CancellationToken ct)
+    public async Task<ServiceResult<object>> CancelAsync(Guid organizationId, CancellationToken ct)
     {
         var subscription = await _subscriptionRepo.GetByOrganizationIdAsync(organizationId, ct);
         if (subscription is null)
@@ -235,7 +237,7 @@ public class SubscriptionService : ISubscriptionService
 
         await PublishAuditEvent(organizationId, "SubscriptionCancelled", plan.PlanName, ct);
 
-        return MapToResponse(subscription, plan);
+        return ServiceResult<object>.Ok(MapToResponse(subscription, plan), "Subscription cancelled.");
     }
 
     private async Task RefreshCacheAndNotify(Guid organizationId, Plan plan, CancellationToken ct)

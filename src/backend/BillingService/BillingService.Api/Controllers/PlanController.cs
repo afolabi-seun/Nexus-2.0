@@ -31,7 +31,6 @@ public class PlanController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(CancellationToken ct)
     {
-        var result = await _planService.GetAllActiveAsync(ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _planService.GetAllActiveAsync(ct)).ToActionResult(HttpContext);
     }
 }

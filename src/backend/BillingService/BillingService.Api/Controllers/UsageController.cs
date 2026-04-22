@@ -25,8 +25,7 @@ public class UsageController : ControllerBase
     public async Task<IActionResult> GetUsage(CancellationToken ct)
     {
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
-        var result = await _usageService.GetUsageAsync(orgId, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _usageService.GetUsageAsync(orgId, ct)).ToActionResult(HttpContext);
     }
 
     [HttpPost("increment")]
@@ -34,7 +33,6 @@ public class UsageController : ControllerBase
     public async Task<IActionResult> Increment(
         [FromBody] IncrementUsageRequest request, CancellationToken ct)
     {
-        // For service-to-service calls, organizationId comes from query or body
         var orgIdStr = HttpContext.Request.Query["organizationId"].FirstOrDefault()
             ?? HttpContext.Items["organizationId"]?.ToString();
 
@@ -43,7 +41,6 @@ public class UsageController : ControllerBase
             return ApiResponseExtensions.ToBadRequest("organizationId is required.", HttpContext);
         }
 
-        await _usageService.IncrementAsync(orgId, request.MetricName, request.Value, ct);
-        return ApiResponse<object>.Ok(new { }, "Usage incremented.").ToActionResult(HttpContext);
+        return (await _usageService.IncrementAsync(orgId, request.MetricName, request.Value, ct)).ToActionResult(HttpContext);
     }
 }

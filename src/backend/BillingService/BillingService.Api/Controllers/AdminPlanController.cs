@@ -32,8 +32,7 @@ public class AdminPlanController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(CancellationToken ct)
     {
-        var result = await _adminPlanService.GetAllPlansAsync(ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _adminPlanService.GetAllPlansAsync(ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -45,8 +44,7 @@ public class AdminPlanController : ControllerBase
     public async Task<IActionResult> Create(
         [FromBody] AdminCreatePlanRequest request, CancellationToken ct)
     {
-        var result = await _adminPlanService.CreatePlanAsync(request, ct);
-        return ApiResponse<object>.Ok(result, "Plan created.").ToActionResult(HttpContext, 201);
+        return (await _adminPlanService.CreatePlanAsync(request, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -60,8 +58,7 @@ public class AdminPlanController : ControllerBase
         [FromBody] AdminUpdatePlanRequest request,
         CancellationToken ct)
     {
-        var result = await _adminPlanService.UpdatePlanAsync(planId, request, ct);
-        return ApiResponse<object>.Ok(result, "Plan updated.").ToActionResult(HttpContext);
+        return (await _adminPlanService.UpdatePlanAsync(planId, request, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -74,8 +71,7 @@ public class AdminPlanController : ControllerBase
         Guid planId, CancellationToken ct)
     {
         var adminId = GetAdminId();
-        var result = await _adminPlanService.DeactivatePlanAsync(planId, adminId, ct);
-        return ApiResponse<object>.Ok(result, "Plan deactivated.").ToActionResult(HttpContext);
+        return (await _adminPlanService.DeactivatePlanAsync(planId, adminId, ct)).ToActionResult(HttpContext);
     }
 
     private Guid GetAdminId() =>

@@ -21,14 +21,14 @@ public class ErrorCodeController : ControllerBase
     public async Task<IActionResult> Create(
         [FromBody] CreateErrorCodeRequest request, CancellationToken ct)
     {
-        return (await _errorCodeService.CreateAsync(request, ct)).ToActionResult();
+        return (await _errorCodeService.CreateAsync(request, ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet]
     [Authorize]
     public async Task<IActionResult> List(CancellationToken ct)
     {
-        return (await _errorCodeService.ListAsync(ct)).ToActionResult();
+        return (await _errorCodeService.ListAsync(ct)).ToActionResult(HttpContext);
     }
 
     [HttpPut("{code}")]
@@ -36,13 +36,13 @@ public class ErrorCodeController : ControllerBase
     public async Task<IActionResult> Update(
         string code, [FromBody] UpdateErrorCodeRequest request, CancellationToken ct)
     {
-        return (await _errorCodeService.UpdateAsync(code, request, ct)).ToActionResult();
+        return (await _errorCodeService.UpdateAsync(code, request, ct)).ToActionResult(HttpContext);
     }
 
     [HttpDelete("{code}")]
     [PlatformAdmin]
     public async Task<IActionResult> Delete(string code, CancellationToken ct)
     {
-        return (await _errorCodeService.DeleteAsync(code, ct)).ToActionResult();
+        return (await _errorCodeService.DeleteAsync(code, ct)).ToActionResult(HttpContext);
     }
 }

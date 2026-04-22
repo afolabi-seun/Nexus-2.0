@@ -4,6 +4,7 @@ using BillingService.Domain.Enums;
 using BillingService.Domain.Interfaces.Repositories.Plans;
 using BillingService.Domain.Interfaces.Repositories.Subscriptions;
 using BillingService.Domain.Interfaces.Services.Usage;
+using BillingService.Domain.Results;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using BillingService.Infrastructure.Redis;
@@ -29,7 +30,7 @@ public class UsageService : IUsageService
         _logger = logger;
     }
 
-    public async Task<object> GetUsageAsync(Guid organizationId, CancellationToken ct)
+    public async Task<ServiceResult<object>> GetUsageAsync(Guid organizationId, CancellationToken ct)
     {
         var plan = await GetCurrentPlan(organizationId, ct);
         var db = _redis.GetDatabase();
@@ -54,15 +55,16 @@ public class UsageService : IUsageService
             metrics.Add(new UsageMetric(metricName, currentValue, limit, percentUsed));
         }
 
-        return new UsageResponse(metrics);
+        return ServiceResult<object>.Ok(new UsageResponse(metrics), "Usage retrieved.");
     }
 
-    public async Task IncrementAsync(Guid organizationId, string metricName, long value, CancellationToken ct)
+    public async Task<ServiceResult<object>> IncrementAsync(Guid organizationId, string metricName, long value, CancellationToken ct)
     {
         var db = _redis.GetDatabase();
         var key = RedisKeys.Usage(organizationId, metricName);
         await db.StringIncrementAsync(key, value);
         await db.KeyExpireAsync(key, TimeSpan.FromMinutes(5), ExpireWhen.HasNoExpiry);
+        return ServiceResult<object>.Ok(new { }, "Usage incremented.");
     }
 
     private async Task<Plan> GetCurrentPlan(Guid organizationId, CancellationToken ct)

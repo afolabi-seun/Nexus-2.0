@@ -22,7 +22,7 @@ public class NotificationController : ControllerBase
     public async Task<IActionResult> Dispatch(
         [FromBody] DispatchNotificationRequest request, CancellationToken ct)
     {
-        return (await _notificationService.DispatchAsync(request, ct)).ToActionResult();
+        return (await _notificationService.DispatchAsync(request, ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("notification-logs")]
@@ -34,6 +34,6 @@ public class NotificationController : ControllerBase
         PaginationHelper.Normalize(ref page, ref pageSize);
         var userId = Guid.Parse(HttpContext.Items["userId"]?.ToString()!);
         var orgId = Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
-        return (await _notificationService.GetUserHistoryAsync(userId, orgId, filter, page, pageSize, ct)).ToActionResult();
+        return (await _notificationService.GetUserHistoryAsync(userId, orgId, filter, page, pageSize, ct)).ToActionResult(HttpContext);
     }
 }

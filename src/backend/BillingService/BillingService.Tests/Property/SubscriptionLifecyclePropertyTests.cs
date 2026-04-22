@@ -1,3 +1,4 @@
+using BillingService.Domain.Results;
 using BillingService.Application.DTOs;
 using BillingService.Application.DTOs.Subscriptions;
 using BillingService.Application.DTOs.Usage;
@@ -214,12 +215,12 @@ public class SubscriptionLifecyclePropertyTests
         _planRepo.Setup(r => r.GetByIdAsync(starter.PlanId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(starter);
         _usageSvc.Setup(u => u.GetUsageAsync(orgId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new UsageResponse(new List<UsageMetric>
+            .ReturnsAsync(ServiceResult<object>.Ok(new UsageResponse(new List<UsageMetric>
             {
                 new("active_members", 5, 100, 5.0),
                 new("stories_created", 10, 0, 0),
                 new("storage_bytes", 0, 0, 0)
-            }));
+            })));
 
         var service = CreateService();
         await service.DowngradeAsync(orgId, new DowngradeSubscriptionRequest(starter.PlanId), CancellationToken.None);

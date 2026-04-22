@@ -1,3 +1,4 @@
+using BillingService.Domain.Results;
 using BillingService.Application.DTOs.Subscriptions;
 using BillingService.Application.DTOs.Usage;
 using BillingService.Domain.Entities;
@@ -127,16 +128,16 @@ public class SubscriptionServiceTests
         _planRepo.Setup(r => r.GetByIdAsync(plan.PlanId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(plan);
         _usageSvc.Setup(u => u.GetUsageAsync(orgId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new UsageResponse(new List<UsageMetric>
+            .ReturnsAsync(ServiceResult<object>.Ok(new UsageResponse(new List<UsageMetric>
             {
                 new("active_members", 5, 25, 20.0),
                 new("stories_created", 10, 500, 2.0),
                 new("storage_bytes", 0, 0, 0)
-            }));
+            })));
 
         var service = CreateService();
         var result = await service.GetCurrentAsync(orgId, CancellationToken.None);
-        var detail = result as SubscriptionDetailResponse;
+        var detail = result.Data as SubscriptionDetailResponse;
 
         Assert.NotNull(detail);
         Assert.Equal(sub.SubscriptionId, detail!.Subscription.SubscriptionId);
