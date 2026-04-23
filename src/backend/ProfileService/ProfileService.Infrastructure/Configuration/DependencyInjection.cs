@@ -134,6 +134,8 @@ public static class DependencyInjection
                 p.CircuitBreakerAsync(5, TimeSpan.FromSeconds(30)))
             .AddPolicyHandler(Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(10)));
 
+        services.AddHostedService<Services.BackgroundServices.ErrorCodeValidationHostedService>();
+
         return services;
     }
 }

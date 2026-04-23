@@ -242,7 +242,7 @@ The DB-driven navigation table (`NavigationItems`) is never seeded. All deployme
 - [ ] **Consistent API response messages** — Resolved by ServiceResult pattern — messages now live in service methods, not controllers. 37 controller actions previously missing messages.
 - [x] **Error code registry seed (all services)** — Seeded all 154 error codes from all 5 services into UtilityService error_code_entries table. Composite unique index on (Code, ServiceName). Extracted to ErrorCodeSeeds.cs.
 - [x] **Startup error code validation (UtilityService)** — ErrorCodeValidationHostedService validates local ErrorCodes.cs against DB registry on startup. Logs warnings for missing codes.
-- [ ] **Startup error code validation (other services)** — Add ErrorCodeValidationHostedService to BillingService, ProfileService, WorkService, SecurityService. These call UtilityService GET /api/v1/error-codes API instead of querying DB directly.
+- [x] **Startup error code validation (other services)** — Added ErrorCodeValidationHostedService to BillingService, ProfileService, WorkService, SecurityService. These call UtilityService GET /api/v1/error-codes API instead of querying DB directly.
 
 ---
 

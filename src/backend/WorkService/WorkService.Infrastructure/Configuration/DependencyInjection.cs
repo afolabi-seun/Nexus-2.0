@@ -173,6 +173,7 @@ public static class DependencyInjection
         services.AddHostedService<CostSnapshotHostedService>();
         services.AddHostedService<AnalyticsSnapshotHostedService>();
         services.AddHostedService<SprintNotificationHostedService>();
+        services.AddHostedService<Services.BackgroundServices.ErrorCodeValidationHostedService>();
 
         // Infrastructure service clients
         services.AddScoped<IProfileServiceClient, ProfileServiceClient>();
