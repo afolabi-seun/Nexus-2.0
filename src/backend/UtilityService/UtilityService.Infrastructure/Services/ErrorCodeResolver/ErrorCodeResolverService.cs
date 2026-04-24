@@ -1,8 +1,10 @@
+using System.Collections.Concurrent;
 using StackExchange.Redis;
 using UtilityService.Domain.Interfaces.Repositories.ErrorCodeEntries;
 using UtilityService.Domain.Interfaces.Services.ErrorCodeResolver;
 using DomainErrorCodes = UtilityService.Domain.Exceptions.ErrorCodes;
 using UtilityService.Infrastructure.Redis;
+using Microsoft.Extensions.Logging;
 
 namespace UtilityService.Infrastructure.Services.ErrorCodeResolver;
 
@@ -10,7 +12,11 @@ public class ErrorCodeResolverService : IErrorCodeResolverService
 {
     private readonly IErrorCodeEntryRepository _repo;
     private readonly IConnectionMultiplexer _redis;
+    private readonly ILogger<ErrorCodeResolverService> _logger;
     private static readonly string CacheKey = RedisKeys.ErrorCodesRegistry;
+
+    private readonly ConcurrentDictionary<string, (string ResponseCode, string ResponseDescription)>
+        _memoryCache = new();
 
     private static readonly Dictionary<string, (string ResponseCode, string Description)> StaticFallback = new()
     {
@@ -37,36 +43,106 @@ public class ErrorCodeResolverService : IErrorCodeResolverService
         [DomainErrorCodes.InternalError] = ("98", "An unexpected error occurred"),
     };
 
-    public ErrorCodeResolverService(IErrorCodeEntryRepository repo, IConnectionMultiplexer redis)
+    public ErrorCodeResolverService(
+        IErrorCodeEntryRepository repo,
+        IConnectionMultiplexer redis,
+        ILogger<ErrorCodeResolverService> logger)
     {
         _repo = repo;
         _redis = redis;
+        _logger = logger;
     }
 
     public async Task<(string ResponseCode, string ResponseDescription)> ResolveAsync(string errorCode, CancellationToken ct = default)
     {
-        // Tier 1: Redis cache
-        var db = _redis.GetDatabase();
-        var cached = await db.HashGetAsync(CacheKey, errorCode);
-        if (cached.HasValue)
+        // Tier 1: In-memory cache
+        if (_memoryCache.TryGetValue(errorCode, out var memoryCached))
+            return memoryCached;
+
+        // Tier 2: Redis cache
+        try
         {
-            var parts = cached.ToString().Split('|', 2);
-            if (parts.Length == 2) return (parts[0], parts[1]);
+            var db = _redis.GetDatabase();
+            var cached = await db.HashGetAsync(CacheKey, errorCode);
+            if (cached.HasValue)
+            {
+                var parts = cached.ToString().Split('|', 2);
+                if (parts.Length == 2)
+                {
+                    var redisValue = (parts[0], parts[1]);
+                    _memoryCache.TryAdd(errorCode, redisValue);
+                    return redisValue;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Redis cache lookup failed for error code {ErrorCode}.", errorCode);
         }
 
-        // Tier 2: Database
-        var entry = await _repo.GetByCodeAsync(errorCode, ct);
-        if (entry != null)
+        // Tier 3: Database
+        try
         {
-            await db.HashSetAsync(CacheKey, errorCode, $"{entry.ResponseCode}|{entry.Description}");
-            await db.KeyExpireAsync(CacheKey, TimeSpan.FromHours(24));
-            return (entry.ResponseCode, entry.Description);
+            var entry = await _repo.GetByCodeAsync(errorCode, ct);
+            if (entry != null)
+            {
+                var dbValue = (entry.ResponseCode, entry.Description);
+                _memoryCache.TryAdd(errorCode, dbValue);
+
+                try
+                {
+                    var db = _redis.GetDatabase();
+                    await db.HashSetAsync(CacheKey, errorCode, $"{entry.ResponseCode}|{entry.Description}");
+                    await db.KeyExpireAsync(CacheKey, TimeSpan.FromHours(24));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to populate Redis cache for error code {ErrorCode}.", errorCode);
+                }
+
+                return dbValue;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Database lookup failed for error code {ErrorCode}.", errorCode);
         }
 
-        // Tier 3: Static fallback
+        // Tier 4: Static fallback
         if (StaticFallback.TryGetValue(errorCode, out var fallback))
             return fallback;
 
         return ("99", errorCode);
     }
+
+    public async Task RefreshCacheAsync(CancellationToken ct = default)
+    {
+        var entries = await _repo.ListAsync(ct);
+
+        _memoryCache.Clear();
+        foreach (var entry in entries)
+        {
+            _memoryCache.TryAdd(entry.Code, (entry.ResponseCode, entry.Description));
+        }
+
+        try
+        {
+            var db = _redis.GetDatabase();
+            var hashEntries = entries.Select(e =>
+                new HashEntry(e.Code, $"{e.ResponseCode}|{e.Description}")).ToArray();
+
+            await db.KeyDeleteAsync(CacheKey);
+            if (hashEntries.Length > 0)
+            {
+                await db.HashSetAsync(CacheKey, hashEntries);
+                await db.KeyExpireAsync(CacheKey, TimeSpan.FromHours(24));
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to populate Redis cache during refresh.");
+        }
+    }
+
+    public void ClearMemoryCache() => _memoryCache.Clear();
 }

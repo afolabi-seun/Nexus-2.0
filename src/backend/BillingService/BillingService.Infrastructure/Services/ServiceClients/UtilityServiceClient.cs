@@ -48,4 +48,37 @@ public class UtilityServiceClient : IUtilityServiceClient
 
         return apiResponse.Data;
     }
+
+    public async Task<Dictionary<string, (string ResponseCode, string ResponseDescription)>> GetAllErrorCodesAsync(CancellationToken ct = default)
+    {
+        var client = _httpClientFactory.CreateClient(ClientName);
+        var response = await client.GetAsync("/api/v1/error-codes", ct);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogWarning("UtilityService returned {StatusCode} when fetching all error codes.",
+                response.StatusCode);
+            throw new Exception($"UtilityService returned {response.StatusCode} when fetching all error codes.");
+        }
+
+        var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponseWrapper>(JsonOptions, ct);
+        if (apiResponse?.Data is null)
+            return new Dictionary<string, (string, string)>();
+
+        return apiResponse.Data.ToDictionary(
+            e => e.Code,
+            e => (e.ResponseCode, e.Description));
+    }
+
+    private class ApiResponseWrapper
+    {
+        public List<ErrorCodeEntry>? Data { get; set; }
+    }
+
+    private class ErrorCodeEntry
+    {
+        public string Code { get; set; } = string.Empty;
+        public string ResponseCode { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+    }
 }

@@ -4,6 +4,7 @@ using Npgsql;
 using ProfileService.Application.DTOs;
 using ProfileService.Domain.Exceptions;
 using ProfileService.Domain.Interfaces.Services.ErrorCodeResolver;
+using ProfileService.Domain.Interfaces.Services.Outbox;
 
 namespace ProfileService.Api.Middleware;
 
@@ -11,6 +12,7 @@ public class GlobalExceptionHandlerMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<GlobalExceptionHandlerMiddleware> _logger;
+    private const string ServiceName = "ProfileService";
 
     public GlobalExceptionHandlerMiddleware(RequestDelegate next, ILogger<GlobalExceptionHandlerMiddleware> logger)
     {
@@ -70,6 +72,11 @@ public class GlobalExceptionHandlerMiddleware
         context.Response.StatusCode = (int)ex.StatusCode;
         context.Response.ContentType = "application/problem+json";
         await context.Response.WriteAsJsonAsync(response);
+
+        if (ex is not RateLimitExceededException)
+        {
+            await PublishErrorLogAsync(context, ex.ErrorCode, ex.Message, "Warning", ex.StackTrace);
+        }
     }
 
     private async Task HandleDbUpdateExceptionAsync(HttpContext context, DbUpdateException ex)
@@ -98,6 +105,8 @@ public class GlobalExceptionHandlerMiddleware
             context.Response.StatusCode = (int)statusCode;
             context.Response.ContentType = "application/problem+json";
             await context.Response.WriteAsJsonAsync(response);
+
+            await PublishErrorLogAsync(context, errorCode, message, "Error", ex.StackTrace);
             return;
         }
 
@@ -119,6 +128,9 @@ public class GlobalExceptionHandlerMiddleware
         context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
         context.Response.ContentType = "application/problem+json";
         await context.Response.WriteAsJsonAsync(fallback);
+
+        await PublishErrorLogAsync(context, "INTERNAL_ERROR",
+            $"{ex.GetType().Name}: {ex.InnerException?.Message ?? ex.Message}", "Error", ex.StackTrace);
     }
 
     private async Task HandleUnhandledExceptionAsync(HttpContext context, Exception ex)
@@ -143,6 +155,44 @@ public class GlobalExceptionHandlerMiddleware
         context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
         context.Response.ContentType = "application/problem+json";
         await context.Response.WriteAsJsonAsync(response);
+
+        var innerMessage = ex.InnerException?.Message ?? ex.Message;
+        await PublishErrorLogAsync(context, "INTERNAL_ERROR",
+            $"{ex.GetType().Name}: {innerMessage}", "Error", ex.StackTrace);
+    }
+
+    private async Task PublishErrorLogAsync(HttpContext context,
+        string errorCode, string message, string severity, string? stackTrace)
+    {
+        try
+        {
+            var outboxService = context.RequestServices.GetService<IOutboxService>();
+            if (outboxService is null) return;
+
+            var envelope = new
+            {
+                Type = "error",
+                Payload = new
+                {
+                    TenantId = context.Items["TenantId"]?.ToString(),
+                    ServiceName,
+                    ErrorCode = errorCode,
+                    Message = message,
+                    StackTrace = stackTrace,
+                    CorrelationId = context.Items["CorrelationId"]?.ToString(),
+                    Severity = severity
+                },
+                Timestamp = DateTime.UtcNow
+            };
+
+            await outboxService.PublishAsync(envelope);
+
+            context.Items["ErrorLogged"] = true;
+        }
+        catch (Exception pubEx)
+        {
+            _logger.LogError(pubEx, "Failed to publish error log to outbox for {ErrorCode}.", errorCode);
+        }
     }
 
     private static (string ErrorCode, int ErrorValue, string Message, HttpStatusCode StatusCode) MapPostgresException(PostgresException pgEx)

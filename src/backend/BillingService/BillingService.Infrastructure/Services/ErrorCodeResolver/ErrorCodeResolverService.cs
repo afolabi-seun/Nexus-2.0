@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using BillingService.Application.Contracts;
@@ -18,6 +19,9 @@ public class ErrorCodeResolverService : IErrorCodeResolverService
         PropertyNameCaseInsensitive = true
     };
 
+    private readonly ConcurrentDictionary<string, (string ResponseCode, string ResponseDescription)>
+        _memoryCache = new();
+
     private readonly IUtilityServiceClient _utilityClient;
     private readonly IConnectionMultiplexer _redis;
     private readonly ILogger<ErrorCodeResolverService> _logger;
@@ -35,25 +39,51 @@ public class ErrorCodeResolverService : IErrorCodeResolverService
     public async Task<(string responseCode, string responseDescription)> ResolveAsync(
         string errorCode, CancellationToken ct)
     {
+        // Tier 1: In-memory cache
+        if (_memoryCache.TryGetValue(errorCode, out var memoryCached))
+            return memoryCached;
+
         var db = _redis.GetDatabase();
         var cacheKey = RedisKeys.ErrorCode(errorCode);
 
-        // 1. Check Redis cache
-        var cached = await db.StringGetAsync(cacheKey);
-        if (cached.HasValue)
+        // Tier 2: Redis cache
+        try
         {
-            var cachedResult = JsonSerializer.Deserialize<ErrorCodeResponse>(cached!, JsonOptions);
-            if (cachedResult is not null)
-                return (cachedResult.ResponseCode, cachedResult.ResponseDescription);
+            var cached = await db.StringGetAsync(cacheKey);
+            if (cached.HasValue)
+            {
+                var cachedResult = JsonSerializer.Deserialize<ErrorCodeResponse>(cached!, JsonOptions);
+                if (cachedResult is not null)
+                {
+                    var redisValue = (cachedResult.ResponseCode, cachedResult.ResponseDescription);
+                    _memoryCache.TryAdd(errorCode, redisValue);
+                    return redisValue;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Redis cache lookup failed for error code {ErrorCode}.", errorCode);
         }
 
-        // 2. Call UtilityService
+        // Tier 3: HTTP call to UtilityService
         try
         {
             var result = await _utilityClient.GetErrorCodeAsync(errorCode, ct);
-            var json = JsonSerializer.Serialize(result, JsonOptions);
-            await db.StringSetAsync(cacheKey, json, CacheTtl);
-            return (result.ResponseCode, result.ResponseDescription);
+            var httpValue = (result.ResponseCode, result.ResponseDescription);
+            _memoryCache.TryAdd(errorCode, httpValue);
+
+            try
+            {
+                var json = JsonSerializer.Serialize(result, JsonOptions);
+                await db.StringSetAsync(cacheKey, json, CacheTtl);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to populate Redis cache for error code {ErrorCode}.", errorCode);
+            }
+
+            return httpValue;
         }
         catch (Exception ex)
         {
@@ -62,7 +92,7 @@ public class ErrorCodeResolverService : IErrorCodeResolverService
                 errorCode);
         }
 
-        // 3. Fallback to static mapping
+        // Tier 4: Static fallback
         var (code, description) = errorCode switch
         {
             "SUBSCRIPTION_ALREADY_EXISTS" => ("06", "Organization already has an active subscription."),
@@ -89,4 +119,36 @@ public class ErrorCodeResolverService : IErrorCodeResolverService
 
         return (code, description);
     }
+
+    public async Task RefreshCacheAsync(CancellationToken ct = default)
+    {
+        var allCodes = await _utilityClient.GetAllErrorCodesAsync(ct);
+
+        _memoryCache.Clear();
+        foreach (var (code, value) in allCodes)
+        {
+            _memoryCache.TryAdd(code, value);
+        }
+
+        try
+        {
+            var db = _redis.GetDatabase();
+            foreach (var (code, (responseCode, description)) in allCodes)
+            {
+                var response = new ErrorCodeResponse
+                {
+                    ResponseCode = responseCode,
+                    ResponseDescription = description
+                };
+                var json = JsonSerializer.Serialize(response, JsonOptions);
+                await db.StringSetAsync(RedisKeys.ErrorCode(code), json, CacheTtl);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to populate Redis cache during refresh.");
+        }
+    }
+
+    public void ClearMemoryCache() => _memoryCache.Clear();
 }

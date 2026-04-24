@@ -39,11 +39,6 @@ builder.Services.AddApiControllers();
 // FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<CreateSubscriptionRequestValidator>();
 builder.Services.AddFluentValidationAutoValidation();
-builder.Services.Configure<Microsoft.AspNetCore.Mvc.ApiBehaviorOptions>(options =>
-{
-    options.SuppressModelStateInvalidFilter = true;
-});
-
 // Authentication & Authorization
 builder.Services.AddNexusAuthentication(appSettings);
 

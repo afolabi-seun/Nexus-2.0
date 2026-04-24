@@ -16,6 +16,10 @@ public static class RedisKeys
     // Auth
     public static string Blacklist(string jti) => $"{P}blacklist:{jti}";
 
+    // Outbox (publisher side)
+    public const string Outbox = $"{P}outbox:utility";
+    public const string Dlq = $"{P}dlq:utility";
+
     // Outbox (consumer side)
     public const string OutboxSecurity = $"{P}outbox:security";
     public const string OutboxProfile = $"{P}outbox:profile";
