@@ -153,7 +153,7 @@ export function ProjectBugsTab({ projectId }: ProjectBugsTabProps) {
                         pageSize={pageSize}
                         totalCount={totalCount}
                         onPageChange={setPage}
-                        onPageSizeChange={(s) => { setPage(1); }}
+                        onPageSizeChange={() => { setPage(1); }}
                     />
                 </>
             )}
