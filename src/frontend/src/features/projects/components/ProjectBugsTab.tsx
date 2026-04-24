@@ -6,28 +6,11 @@ import { Badge } from '@/components/common/Badge';
 import { EmptyState } from '@/components/common/EmptyState';
 import { SkeletonLoader } from '@/components/common/SkeletonLoader';
 import type { StoryListItem } from '@/types/work';
-import { Bug, AlertTriangle } from 'lucide-react';
+import { Bug } from 'lucide-react';
 
 interface ProjectBugsTabProps {
     projectId: string;
 }
-
-const priorityColor: Record<string, string> = {
-    Critical: 'red',
-    High: 'orange',
-    Medium: 'blue',
-    Low: 'gray',
-};
-
-const statusColor: Record<string, string> = {
-    Backlog: 'gray',
-    Ready: 'blue',
-    InProgress: 'yellow',
-    InReview: 'purple',
-    QA: 'indigo',
-    Done: 'green',
-    Closed: 'gray',
-};
 
 export function ProjectBugsTab({ projectId }: ProjectBugsTabProps) {
     const navigate = useNavigate();
@@ -81,12 +64,12 @@ export function ProjectBugsTab({ projectId }: ProjectBugsTabProps) {
         {
             key: 'priority',
             header: 'Priority',
-            render: (b) => <Badge color={priorityColor[b.priority] ?? 'gray'}>{b.priority}</Badge>,
+            render: (b) => <Badge variant="priority" value={b.priority} />,
         },
         {
             key: 'status',
             header: 'Status',
-            render: (b) => <Badge color={statusColor[b.status] ?? 'gray'}>{b.status}</Badge>,
+            render: (b) => <Badge variant="status" value={b.status} />,
         },
         {
             key: 'assigneeName',
@@ -100,7 +83,7 @@ export function ProjectBugsTab({ projectId }: ProjectBugsTabProps) {
         },
     ];
 
-    if (loading && bugs.length === 0) return <SkeletonLoader lines={6} />;
+    if (loading && bugs.length === 0) return <SkeletonLoader variant="table" rows={6} />;
 
     return (
         <div className="space-y-4">
@@ -157,7 +140,7 @@ export function ProjectBugsTab({ projectId }: ProjectBugsTabProps) {
                     description="Bugs will appear here when stories are created with type 'Bug'. Use the story form to report a bug."
                 />
             ) : (
-                <DataTable
+                <DataTable<StoryListItem>
                     columns={columns}
                     data={bugs}
                     page={page}
