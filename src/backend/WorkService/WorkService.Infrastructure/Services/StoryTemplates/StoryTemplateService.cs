@@ -59,6 +59,7 @@ public class StoryTemplateService : IStoryTemplateService
             DefaultDescription = req.DefaultDescription,
             DefaultAcceptanceCriteria = req.DefaultAcceptanceCriteria,
             DefaultPriority = req.DefaultPriority ?? "Medium",
+            DefaultStoryType = req.DefaultStoryType ?? "Feature",
             DefaultStoryPoints = req.DefaultStoryPoints,
             DefaultLabelsJson = req.DefaultLabels != null ? JsonSerializer.Serialize(req.DefaultLabels) : null,
             DefaultTaskTypesJson = req.DefaultTaskTypes != null ? JsonSerializer.Serialize(req.DefaultTaskTypes) : null,
@@ -81,6 +82,7 @@ public class StoryTemplateService : IStoryTemplateService
         if (req.DefaultDescription != null) template.DefaultDescription = req.DefaultDescription;
         if (req.DefaultAcceptanceCriteria != null) template.DefaultAcceptanceCriteria = req.DefaultAcceptanceCriteria;
         if (req.DefaultPriority != null) template.DefaultPriority = req.DefaultPriority;
+        if (req.DefaultStoryType != null) template.DefaultStoryType = req.DefaultStoryType;
         if (req.DefaultStoryPoints.HasValue) template.DefaultStoryPoints = req.DefaultStoryPoints;
         if (req.DefaultLabels != null) template.DefaultLabelsJson = JsonSerializer.Serialize(req.DefaultLabels);
         if (req.DefaultTaskTypes != null) template.DefaultTaskTypesJson = JsonSerializer.Serialize(req.DefaultTaskTypes);
@@ -111,6 +113,7 @@ public class StoryTemplateService : IStoryTemplateService
         DefaultDescription = t.DefaultDescription,
         DefaultAcceptanceCriteria = t.DefaultAcceptanceCriteria,
         DefaultPriority = t.DefaultPriority,
+        DefaultStoryType = t.DefaultStoryType,
         DefaultStoryPoints = t.DefaultStoryPoints,
         DefaultLabels = !string.IsNullOrEmpty(t.DefaultLabelsJson)
             ? JsonSerializer.Deserialize<List<string>>(t.DefaultLabelsJson) : null,

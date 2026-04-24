@@ -7,6 +7,7 @@ public class UpdateStoryRequest
     public string? AcceptanceCriteria { get; set; }
     public int? StoryPoints { get; set; }
     public string? Priority { get; set; }
+    public string? StoryType { get; set; }
     public Guid? DepartmentId { get; set; }
     public DateTime? DueDate { get; set; }
 }

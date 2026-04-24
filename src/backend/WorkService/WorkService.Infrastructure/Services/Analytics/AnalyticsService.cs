@@ -503,10 +503,10 @@ public class AnalyticsService : IAnalyticsService
         var recentVelocity = await _velocitySnapshotRepo.GetByProjectAsync(projectId, 3, ct);
 
         // Count open bugs (stories with Priority = "Bug" or type = "Bug" that are not Done/Closed)
-        var (allStories, _) = await _storyRepo.ListAsync(orgId, 1, int.MaxValue, projectId, null, null, null, null, null, null, null, null, ct);
+        var (allStories, _) = await _storyRepo.ListAsync(orgId, 1, int.MaxValue, projectId, null, null, null, null, null, null, null, null, null, ct);
         var storyList = allStories.ToList();
         var activeStories = storyList.Where(s => s.Status is not ("Done" or "Closed")).ToList();
-        var openBugCount = activeStories.Count(s => s.Priority == "Bug");
+        var openBugCount = activeStories.Count(s => s.StoryType == "Bug");
         var totalActiveStories = activeStories.Count;
 
         // Overdue stories
@@ -567,12 +567,12 @@ public class AnalyticsService : IAnalyticsService
         }
         else
         {
-            var (allStories, _) = await _storyRepo.ListAsync(orgId, 1, int.MaxValue, projectId, null, null, null, null, null, null, null, null, ct);
+            var (allStories, _) = await _storyRepo.ListAsync(orgId, 1, int.MaxValue, projectId, null, null, null, null, null, null, null, null, null, ct);
             stories = allStories;
         }
 
         var storyArray = stories.ToList();
-        var bugs = storyArray.Where(s => s.Priority == "Bug").ToList();
+        var bugs = storyArray.Where(s => s.StoryType == "Bug").ToList();
 
         var totalBugs = bugs.Count;
         var openBugs = bugs.Count(b => b.Status is not ("Done" or "Closed"));
@@ -601,7 +601,7 @@ public class AnalyticsService : IAnalyticsService
             foreach (var sid in sprintStoryIds)
             {
                 var story = await _storyRepo.GetByIdAsync(sid, ct);
-                if (story?.Priority == "Bug") sprintBugCount++;
+                if (story?.StoryType == "Bug") sprintBugCount++;
             }
 
             bugTrend.Add(new BugTrendItem
@@ -665,9 +665,9 @@ public class AnalyticsService : IAnalyticsService
         // Active bugs
         var project = await _projectRepo.GetByIdAsync(projectId, ct);
         var orgId = project?.OrganizationId ?? Guid.Empty;
-        var (allStories, _) = await _storyRepo.ListAsync(orgId, 1, int.MaxValue, projectId, null, null, null, null, null, null, null, null, ct);
+        var (allStories, _) = await _storyRepo.ListAsync(orgId, 1, int.MaxValue, projectId, null, null, null, null, null, null, null, null, null, ct);
         var storyList = allStories.ToList();
-        var activeBugCount = storyList.Count(s => s.Priority == "Bug" && s.Status is not ("Done" or "Closed"));
+        var activeBugCount = storyList.Count(s => s.StoryType == "Bug" && s.Status is not ("Done" or "Closed"));
 
         // Active risks
         var activeRiskCount = await _riskRepo.CountActiveByProjectAsync(projectId, ct);

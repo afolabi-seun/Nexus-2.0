@@ -92,7 +92,7 @@ public class AnalyticsController : ControllerBase
 
         // Fetch all stories for the project
         var (stories, _) = await _storyRepo.ListAsync(orgId, 1, int.MaxValue, projectId,
-            null, null, null, null, null, null, null, null, ct);
+            null, null, null, null, null, null, null, null, null, ct);
         var storyList = stories.ToList();
 
         // Fetch all links for those stories

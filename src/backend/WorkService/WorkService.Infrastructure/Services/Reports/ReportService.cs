@@ -89,7 +89,7 @@ public class ReportService : IReportService
     public async Task<object> GetCycleTimeAsync(Guid organizationId, DateTime? dateFrom, DateTime? dateTo, CancellationToken ct = default)
     {
         var (stories, _) = await _storyRepo.ListAsync(organizationId, 1, 10000, null,
-            "Done", null, null, null, null, null, dateFrom, dateTo, ct);
+            "Done", null, null, null, null, null, null, dateFrom, dateTo, ct);
 
         return stories.Where(s => s.CompletedDate.HasValue).Select(s =>
         {

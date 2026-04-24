@@ -8,6 +8,7 @@ public class StoryListResponse
     public string StoryKey { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string Priority { get; set; } = string.Empty;
+    public string StoryType { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public int? StoryPoints { get; set; }
     public string? AssigneeName { get; set; }

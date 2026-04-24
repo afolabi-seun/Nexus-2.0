@@ -14,6 +14,7 @@ public class Story : IOrganizationEntity
     public string? AcceptanceCriteria { get; set; }
     public int? StoryPoints { get; set; }
     public string Priority { get; set; } = "Medium";
+    public string StoryType { get; set; } = "Feature";
     public string Status { get; set; } = "Backlog";
     public Guid? AssigneeId { get; set; }
     public Guid ReporterId { get; set; }

@@ -46,7 +46,7 @@ public class BoardService : IBoardService
         }
 
         var (stories, _) = await _storyRepo.ListAsync(organizationId, 1, 1000, projectId,
-            null, priority, departmentId, assigneeId, sprintId, labels, null, null, ct);
+            null, priority, null, departmentId, assigneeId, sprintId, labels, null, null, ct);
 
         var columns = StoryStatuses.Select(status =>
         {
@@ -117,7 +117,7 @@ public class BoardService : IBoardService
         }
 
         var (stories, _) = await _storyRepo.ListAsync(organizationId, 1, 1000, projectId,
-            null, null, null, null, null, null, null, null, ct);
+            null, null, null, null, null, null, null, null, null, ct);
 
         var backlogStories = stories.Where(s => s.SprintId == null).ToList();
 
@@ -166,7 +166,7 @@ public class BoardService : IBoardService
         if (projectId.HasValue)
         {
             var storyIds = (await _storyRepo.ListAsync(organizationId, 1, 10000, projectId,
-                null, null, null, null, null, null, null, null, ct)).Items.Select(s => s.StoryId).ToHashSet();
+                null, null, null, null, null, null, null, null, null, ct)).Items.Select(s => s.StoryId).ToHashSet();
             taskList = taskList.Where(t => storyIds.Contains(t.StoryId)).ToList();
         }
 

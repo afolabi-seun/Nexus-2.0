@@ -97,6 +97,7 @@ public class WorkDbContext : DbContext
             entity.Property(e => e.AcceptanceCriteria).HasMaxLength(5000);
             entity.Property(e => e.StoryKey).IsRequired().HasMaxLength(20);
             entity.Property(e => e.Priority).IsRequired().HasDefaultValue("Medium");
+            entity.Property(e => e.StoryType).IsRequired().HasDefaultValue("Feature").HasMaxLength(20);
             entity.Property(e => e.Status).IsRequired().HasDefaultValue("Backlog");
             entity.Property(e => e.FlgStatus).IsRequired().HasDefaultValue("A");
             entity.HasOne<Project>().WithMany().HasForeignKey(e => e.ProjectId);

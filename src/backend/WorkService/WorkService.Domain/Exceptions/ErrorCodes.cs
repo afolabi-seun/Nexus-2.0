@@ -154,6 +154,9 @@ public static class ErrorCodes
     public const string SnapshotGenerationFailed = "SNAPSHOT_GENERATION_FAILED";
     public const int SnapshotGenerationFailedValue = 4065;
 
+    public const string InvalidStoryType = "INVALID_STORY_TYPE";
+    public const int InvalidStoryTypeValue = 4066;
+
     // Database Constraints
     public const string UniqueConstraintViolation = "UNIQUE_CONSTRAINT_VIOLATION";
     public const int UniqueConstraintViolationValue = 9001;

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Priority } from '@/types/enums';
+import { Priority, StoryType } from '@/types/enums';
 
 const FIBONACCI_POINTS = [1, 2, 3, 5, 8, 13, 21] as const;
 
@@ -12,6 +12,7 @@ export const createStorySchema = z.object({
     description: z.string().max(5000, 'Description must be 5000 characters or fewer').optional(),
     acceptanceCriteria: z.string().optional(),
     priority: z.nativeEnum(Priority).optional(),
+    storyType: z.nativeEnum(StoryType).optional(),
     storyPoints: z
         .number()
         .refine((v) => FIBONACCI_POINTS.includes(v as (typeof FIBONACCI_POINTS)[number]), {
@@ -33,6 +34,7 @@ export const updateStorySchema = z.object({
     description: z.string().max(5000, 'Description must be 5000 characters or fewer').optional(),
     acceptanceCriteria: z.string().optional(),
     priority: z.nativeEnum(Priority).optional(),
+    storyType: z.nativeEnum(StoryType).optional(),
     storyPoints: z
         .number()
         .refine((v) => FIBONACCI_POINTS.includes(v as (typeof FIBONACCI_POINTS)[number]), {

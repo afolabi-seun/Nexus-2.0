@@ -16,6 +16,7 @@ public class StoryDetailResponse
     public string? AcceptanceCriteria { get; set; }
     public int? StoryPoints { get; set; }
     public string Priority { get; set; } = string.Empty;
+    public string StoryType { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public Guid? AssigneeId { get; set; }
     public string? AssigneeName { get; set; }
