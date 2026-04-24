@@ -8,6 +8,7 @@ public class CreateStoryRequest
     public string? AcceptanceCriteria { get; set; }
     public int? StoryPoints { get; set; }
     public string Priority { get; set; } = "Medium";
+    public string StoryType { get; set; } = "Feature";
     public Guid? DepartmentId { get; set; }
     public DateTime? DueDate { get; set; }
 }

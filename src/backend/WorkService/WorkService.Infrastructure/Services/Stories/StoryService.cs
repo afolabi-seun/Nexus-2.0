@@ -25,6 +25,7 @@ public class StoryService : IStoryService
 {
     private static readonly HashSet<int> FibonacciSet = [1, 2, 3, 5, 8, 13, 21];
     private static readonly HashSet<string> ValidPriorities = ["Critical", "High", "Medium", "Low"];
+    private static readonly HashSet<string> ValidStoryTypes = ["Feature", "Bug", "Improvement", "Epic", "Task"];
 
     private readonly IStoryRepository _storyRepo;
     private readonly IProjectRepository _projectRepo;
@@ -67,6 +68,8 @@ public class StoryService : IStoryService
             throw new InvalidStoryPointsException(req.StoryPoints.Value);
         if (!ValidPriorities.Contains(req.Priority))
             throw new InvalidPriorityException(req.Priority);
+        if (!ValidStoryTypes.Contains(req.StoryType))
+            throw new InvalidStoryTypeException(req.StoryType);
 
         var (storyKey, seqNum) = await _storyIdGenerator.GenerateNextIdAsync(req.ProjectId, ct);
 
@@ -81,6 +84,7 @@ public class StoryService : IStoryService
             AcceptanceCriteria = req.AcceptanceCriteria,
             StoryPoints = req.StoryPoints,
             Priority = req.Priority,
+            StoryType = req.StoryType,
             Status = "Backlog",
             ReporterId = reporterId,
             DepartmentId = req.DepartmentId,
@@ -118,16 +122,16 @@ public class StoryService : IStoryService
     }
 
     public async Task<object> ListAsync(Guid organizationId, int page, int pageSize, Guid? projectId,
-        string? status, string? priority, Guid? departmentId, Guid? assigneeId, Guid? sprintId,
+        string? status, string? priority, string? storyType, Guid? departmentId, Guid? assigneeId, Guid? sprintId,
         List<string>? labels, DateTime? dateFrom, DateTime? dateTo, CancellationToken ct = default)
     {
         var (items, totalCount) = await _storyRepo.ListAsync(organizationId, page, pageSize, projectId,
-            status, priority, departmentId, assigneeId, sprintId, labels, dateFrom, dateTo, ct);
+            status, priority, storyType, departmentId, assigneeId, sprintId, labels, dateFrom, dateTo, ct);
 
         var responses = items.Select(s => new StoryListResponse
         {
             StoryId = s.StoryId, StoryKey = s.StoryKey, Title = s.Title,
-            Priority = s.Priority, Status = s.Status, StoryPoints = s.StoryPoints,
+            Priority = s.Priority, StoryType = s.StoryType, Status = s.Status, StoryPoints = s.StoryPoints,
             DueDate = s.DueDate, DateCreated = s.DateCreated
         }).ToList();
 
@@ -168,6 +172,14 @@ public class StoryService : IStoryService
             var old = story.Priority;
             story.Priority = req.Priority;
             await LogActivity(story, "PriorityChanged", actorId, old, req.Priority, "Priority changed", ct);
+        }
+        if (req.StoryType != null && req.StoryType != story.StoryType)
+        {
+            if (!ValidStoryTypes.Contains(req.StoryType))
+                throw new InvalidStoryTypeException(req.StoryType);
+            var old = story.StoryType;
+            story.StoryType = req.StoryType;
+            await LogActivity(story, "TypeChanged", actorId, old, req.StoryType, "Story type changed", ct);
         }
         if (req.DepartmentId.HasValue) story.DepartmentId = req.DepartmentId;
         if (req.DueDate.HasValue)
@@ -376,7 +388,7 @@ public class StoryService : IStoryService
             StoryKey = story.StoryKey, SequenceNumber = story.SequenceNumber,
             Title = story.Title, Description = story.Description,
             AcceptanceCriteria = story.AcceptanceCriteria, StoryPoints = story.StoryPoints,
-            Priority = story.Priority, Status = story.Status,
+            Priority = story.Priority, StoryType = story.StoryType, Status = story.Status,
             AssigneeId = story.AssigneeId, ReporterId = story.ReporterId,
             SprintId = story.SprintId, DepartmentId = story.DepartmentId,
             DueDate = story.DueDate, CompletedDate = story.CompletedDate,

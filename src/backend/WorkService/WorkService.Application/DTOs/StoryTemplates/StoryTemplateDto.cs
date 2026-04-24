@@ -9,6 +9,7 @@ public class StoryTemplateResponse
     public string? DefaultDescription { get; set; }
     public string? DefaultAcceptanceCriteria { get; set; }
     public string DefaultPriority { get; set; } = "Medium";
+    public string DefaultStoryType { get; set; } = "Feature";
     public int? DefaultStoryPoints { get; set; }
     public List<string>? DefaultLabels { get; set; }
     public List<string>? DefaultTaskTypes { get; set; }
@@ -23,6 +24,7 @@ public class CreateStoryTemplateRequest
     public string? DefaultDescription { get; set; }
     public string? DefaultAcceptanceCriteria { get; set; }
     public string DefaultPriority { get; set; } = "Medium";
+    public string DefaultStoryType { get; set; } = "Feature";
     public int? DefaultStoryPoints { get; set; }
     public List<string>? DefaultLabels { get; set; }
     public List<string>? DefaultTaskTypes { get; set; }
@@ -36,6 +38,7 @@ public class UpdateStoryTemplateRequest
     public string? DefaultDescription { get; set; }
     public string? DefaultAcceptanceCriteria { get; set; }
     public string? DefaultPriority { get; set; }
+    public string? DefaultStoryType { get; set; }
     public int? DefaultStoryPoints { get; set; }
     public List<string>? DefaultLabels { get; set; }
     public List<string>? DefaultTaskTypes { get; set; }

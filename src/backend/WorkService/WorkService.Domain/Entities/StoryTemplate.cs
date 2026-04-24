@@ -28,6 +28,9 @@ public class StoryTemplate
     /// <summary>Default priority (Critical, High, Medium, Low).</summary>
     public string DefaultPriority { get; set; } = "Medium";
 
+    /// <summary>Default story type (Feature, Bug, Improvement, Epic, Task).</summary>
+    public string DefaultStoryType { get; set; } = "Feature";
+
     /// <summary>Default story point estimate.</summary>
     public int? DefaultStoryPoints { get; set; }
 

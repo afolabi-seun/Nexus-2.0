@@ -89,7 +89,8 @@ public class StoryController : ControllerBase
     public async Task<IActionResult> List(
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20,
         [FromQuery] Guid? projectId = null, [FromQuery] string? status = null,
-        [FromQuery] string? priority = null, [FromQuery] Guid? departmentId = null,
+        [FromQuery] string? priority = null, [FromQuery] string? storyType = null,
+        [FromQuery] Guid? departmentId = null,
         [FromQuery] Guid? assigneeId = null, [FromQuery] Guid? sprintId = null,
         [FromQuery] List<string>? labels = null,
         [FromQuery] DateTime? dateFrom = null, [FromQuery] DateTime? dateTo = null,
@@ -97,7 +98,7 @@ public class StoryController : ControllerBase
     {
         PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = GetOrganizationId();
-        var result = await _storyService.ListAsync(orgId, page, pageSize, projectId, status, priority, departmentId, assigneeId, sprintId, labels, dateFrom, dateTo, ct);
+        var result = await _storyService.ListAsync(orgId, page, pageSize, projectId, status, priority, storyType, departmentId, assigneeId, sprintId, labels, dateFrom, dateTo, ct);
         return ApiResponse<object>.Ok(result, "Stories retrieved.").ToActionResult(HttpContext);
     }
 

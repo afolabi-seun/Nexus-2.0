@@ -22,7 +22,7 @@ public class StoryRepository : GenericRepository<Story>, IStoryRepository
 
     public async Task<(IEnumerable<Story> Items, int TotalCount)> ListAsync(
         Guid organizationId, int page, int pageSize, Guid? projectId, string? status,
-        string? priority, Guid? departmentId, Guid? assigneeId, Guid? sprintId,
+        string? priority, string? storyType, Guid? departmentId, Guid? assigneeId, Guid? sprintId,
         List<string>? labels, DateTime? dateFrom, DateTime? dateTo, CancellationToken ct = default)
     {
         var query = _db.Stories.Where(s => s.OrganizationId == organizationId);
@@ -30,6 +30,7 @@ public class StoryRepository : GenericRepository<Story>, IStoryRepository
         if (projectId.HasValue) query = query.Where(s => s.ProjectId == projectId.Value);
         if (!string.IsNullOrEmpty(status)) query = query.Where(s => s.Status == status);
         if (!string.IsNullOrEmpty(priority)) query = query.Where(s => s.Priority == priority);
+        if (!string.IsNullOrEmpty(storyType)) query = query.Where(s => s.StoryType == storyType);
         if (departmentId.HasValue) query = query.Where(s => s.DepartmentId == departmentId.Value);
         if (assigneeId.HasValue) query = query.Where(s => s.AssigneeId == assigneeId.Value);
         if (sprintId.HasValue) query = query.Where(s => s.SprintId == sprintId.Value);
