@@ -18,6 +18,7 @@ export interface StoryListItem {
     title: string;
     status: StoryStatus;
     priority: Priority;
+    storyType: string;
     storyPoints: number | null;
     assigneeName: string | null;
     sprintName: string | null;
@@ -39,6 +40,7 @@ export interface StoryDetail {
     acceptanceCriteria: string | null;
     storyPoints: number | null;
     priority: Priority;
+    storyType: string;
     status: StoryStatus;
     assigneeId: string | null;
     assigneeName: string | null;
@@ -84,6 +86,7 @@ export interface CreateStoryRequest {
     description?: string;
     acceptanceCriteria?: string;
     priority?: Priority;
+    storyType?: string;
     storyPoints?: number;
     departmentId?: string;
     dueDate?: string;
@@ -95,6 +98,7 @@ export interface UpdateStoryRequest {
     description?: string;
     acceptanceCriteria?: string;
     priority?: Priority;
+    storyType?: string;
     storyPoints?: number;
     departmentId?: string;
     dueDate?: string;
@@ -115,8 +119,9 @@ export interface CreateStoryLinkRequest {
 
 export interface StoryFilters {
     projectId?: string;
-    status?: string[];
-    priority?: string[];
+    status?: string[] | string;
+    priority?: string[] | string;
+    storyType?: string;
     departmentId?: string;
     assigneeId?: string;
     sprintId?: string;
@@ -523,6 +528,7 @@ export interface StoryTemplateResponse {
     defaultDescription: string | null;
     defaultAcceptanceCriteria: string | null;
     defaultPriority: string;
+    defaultStoryType: string;
     defaultStoryPoints: number | null;
     defaultLabels: string[] | null;
     defaultTaskTypes: string[] | null;
@@ -536,6 +542,7 @@ export interface CreateStoryTemplateRequest {
     defaultDescription?: string;
     defaultAcceptanceCriteria?: string;
     defaultPriority?: string;
+    defaultStoryType?: string;
     defaultStoryPoints?: number;
     defaultLabels?: string[];
     defaultTaskTypes?: string[];

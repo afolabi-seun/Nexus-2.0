@@ -17,11 +17,13 @@ import type { ProjectDetail, StoryListItem, SprintListItem } from '@/types/work'
 import { ProjectAnalyticsTab } from '../components/ProjectAnalyticsTab';
 import { ProjectCostTimeTab } from '../components/ProjectCostTimeTab';
 import { ProjectExportTab } from '../components/ProjectExportTab';
+import { ProjectBugsTab } from '../components/ProjectBugsTab';
 import { updateProjectSchema, type UpdateProjectFormData } from '../schemas';
-import { ArrowLeft, Pencil, LayoutDashboard, TrendingUp, DollarSign, Download } from 'lucide-react';
+import { ArrowLeft, Pencil, LayoutDashboard, TrendingUp, DollarSign, Download, Bug } from 'lucide-react';
 
 const PROJECT_TABS = [
     { key: 'overview', label: 'Overview', icon: <LayoutDashboard size={14} /> },
+    { key: 'bugs', label: 'Bugs', icon: <Bug size={14} /> },
     { key: 'analytics', label: 'Analytics', icon: <TrendingUp size={14} /> },
     { key: 'cost-time', label: 'Cost & Time', icon: <DollarSign size={14} /> },
     { key: 'export', label: 'Export', icon: <Download size={14} /> },
@@ -226,6 +228,7 @@ export function ProjectDetailPage() {
                 )}
 
                 {activeTab === 'analytics' && <ProjectAnalyticsTab projectId={id!} />}
+                {activeTab === 'bugs' && <ProjectBugsTab projectId={id!} />}
                 {activeTab === 'cost-time' && <ProjectCostTimeTab projectId={id!} />}
                 {activeTab === 'export' && <ProjectExportTab projectId={id!} projectName={project.name} />}
             </div>

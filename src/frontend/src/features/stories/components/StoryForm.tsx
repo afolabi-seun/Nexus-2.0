@@ -8,7 +8,7 @@ import { MarkdownEditor } from '@/components/forms/MarkdownEditor';
 import { useToast } from '@/components/common/Toast';
 import { mapErrorCode } from '@/utils/errorMapping';
 import { ApiError } from '@/types/api';
-import { Priority } from '@/types/enums';
+import { Priority, StoryType } from '@/types/enums';
 import { createStorySchema, updateStorySchema, FIBONACCI_OPTIONS, type CreateStoryFormData, type UpdateStoryFormData } from '../schemas';
 import type { StoryDetail, ProjectListItem, Label, StoryTemplateResponse } from '@/types/work';
 import type { Department } from '@/types/profile';
@@ -54,6 +54,7 @@ export function StoryForm({ mode = 'create', story, defaultProjectId, onSuccess 
                 description: story.description ?? '',
                 acceptanceCriteria: story.acceptanceCriteria ?? '',
                 priority: story.priority,
+                storyType: (story as any).storyType ?? 'Feature',
                 storyPoints: story.storyPoints ?? undefined,
                 departmentId: story.departmentId ?? '',
                 dueDate: story.dueDate?.split('T')[0] ?? '',
@@ -64,6 +65,7 @@ export function StoryForm({ mode = 'create', story, defaultProjectId, onSuccess 
                 description: '',
                 acceptanceCriteria: '',
                 priority: Priority.Medium,
+                storyType: StoryType.Feature,
                 departmentId: '',
                 dueDate: '',
             },
@@ -157,6 +159,7 @@ export function StoryForm({ mode = 'create', story, defaultProjectId, onSuccess 
                                 if (tmpl.defaultDescription) setValue('description', tmpl.defaultDescription);
                                 if (tmpl.defaultAcceptanceCriteria) setValue('acceptanceCriteria' as 'title', tmpl.defaultAcceptanceCriteria);
                                 if (tmpl.defaultPriority) setValue('priority' as 'title', tmpl.defaultPriority as Priority);
+                                if (tmpl.defaultStoryType) setValue('storyType' as any, tmpl.defaultStoryType);
                             }
                         }}
                     >
@@ -204,11 +207,19 @@ export function StoryForm({ mode = 'create', story, defaultProjectId, onSuccess 
                 />
             </FormField>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
                 <FormField name="priority" label="Priority" error={errors.priority?.message}>
                     <select id="priority" {...register('priority')} className={inputClass}>
                         {Object.values(Priority).map((p) => (
                             <option key={p} value={p}>{p}</option>
+                        ))}
+                    </select>
+                </FormField>
+
+                <FormField name="storyType" label="Type" error={(errors as any).storyType?.message}>
+                    <select id="storyType" {...register('storyType' as any)} className={inputClass}>
+                        {Object.values(StoryType).map((t) => (
+                            <option key={t} value={t}>{t}</option>
                         ))}
                     </select>
                 </FormField>

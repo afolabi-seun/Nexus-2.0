@@ -29,6 +29,14 @@ export enum Priority {
     Low = 'Low',
 }
 
+export enum StoryType {
+    Feature = 'Feature',
+    Bug = 'Bug',
+    Improvement = 'Improvement',
+    Epic = 'Epic',
+    Task = 'Task',
+}
+
 export enum TaskType {
     Development = 'Development',
     Testing = 'Testing',
