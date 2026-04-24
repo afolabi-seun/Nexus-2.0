@@ -118,6 +118,7 @@ public static class DependencyInjection
         services.AddHostedService<TrialExpiryHostedService>();
         services.AddHostedService<UsagePersistenceHostedService>();
         services.AddHostedService<Services.BackgroundServices.ErrorCodeValidationHostedService>();
+        services.AddHostedService<Services.BackgroundServices.ErrorCodeCacheRefreshService>();
 
         return services;
     }

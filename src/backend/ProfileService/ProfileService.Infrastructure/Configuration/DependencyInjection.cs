@@ -135,6 +135,7 @@ public static class DependencyInjection
             .AddPolicyHandler(Policy.TimeoutAsync<HttpResponseMessage>(TimeSpan.FromSeconds(10)));
 
         services.AddHostedService<Services.BackgroundServices.ErrorCodeValidationHostedService>();
+        services.AddHostedService<Services.BackgroundServices.ErrorCodeCacheRefreshService>();
 
         return services;
     }

@@ -16,33 +16,36 @@ public static class MiddlewarePipelineExtensions
         // 3. CorrelationId
         app.UseMiddleware<CorrelationIdMiddleware>();
 
-        // 3. GlobalExceptionHandler
+        // 4. GlobalExceptionHandler
         app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
-        // 4. RateLimiter
+        // 5. ErrorResponseLogging
+        app.UseMiddleware<ErrorResponseLoggingMiddleware>();
+
+        // 6. RateLimiter
         app.UseMiddleware<RateLimiterMiddleware>();
 
-        // 5. Routing
+        // 7. Routing
         app.UseRouting();
 
-        // 6. Authentication
+        // 8. Authentication
         app.UseAuthentication();
 
-        // 7. Authorization
+        // 9. Authorization
         app.UseAuthorization();
 
-        // 8. JwtClaims
+        // 10. JwtClaims
         app.UseMiddleware<JwtClaimsMiddleware>();
 
-        // 9. TokenBlacklist
+        // 11. TokenBlacklist
         app.UseMiddleware<TokenBlacklistMiddleware>();
 
         // Note: No FirstTimeUserMiddleware — enforced by SecurityService
 
-        // 10. RoleAuthorization
+        // 12. RoleAuthorization
         app.UseMiddleware<RoleAuthorizationMiddleware>();
 
-        // 11. OrganizationScope
+        // 13. OrganizationScope
         app.UseMiddleware<OrganizationScopeMiddleware>();
 
         return app;

@@ -76,6 +76,7 @@ public static class DependencyInjection
         services.AddScoped<IPiiRedactionService, PiiRedactionService>();
         services.AddScoped<ITemplateRenderer, TemplateRenderer>();
         services.AddScoped<IOutboxMessageRouter, OutboxMessageRouter>();
+        services.AddScoped<IOutboxService, OutboxService>();
         services.AddScoped<IErrorCodeResolverService, ErrorCodeResolverService>();
 
         // Background hosted services
@@ -84,6 +85,7 @@ public static class DependencyInjection
         services.AddHostedService<NotificationRetryHostedService>();
         services.AddHostedService<DueDateNotificationHostedService>();
         services.AddHostedService<ErrorCodeValidationHostedService>();
+        services.AddHostedService<ErrorCodeCacheRefreshService>();
 
         // CorrelationId delegating handler for outgoing HTTP calls
         services.AddTransient<CorrelationIdDelegatingHandler>();
