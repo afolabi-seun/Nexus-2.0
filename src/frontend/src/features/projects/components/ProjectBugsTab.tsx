@@ -4,6 +4,7 @@ import { workApi } from '@/api/workApi';
 import { DataTable, type Column } from '@/components/common/DataTable';
 import { Badge } from '@/components/common/Badge';
 import { EmptyState } from '@/components/common/EmptyState';
+import { Pagination } from '@/components/common/Pagination';
 import { SkeletonLoader } from '@/components/common/SkeletonLoader';
 import type { StoryListItem } from '@/types/work';
 import { Bug } from 'lucide-react';
@@ -140,15 +141,21 @@ export function ProjectBugsTab({ projectId }: ProjectBugsTabProps) {
                     description="Bugs will appear here when stories are created with type 'Bug'. Use the story form to report a bug."
                 />
             ) : (
-                <DataTable<StoryListItem>
-                    columns={columns}
-                    data={bugs}
-                    page={page}
-                    pageSize={pageSize}
-                    totalCount={totalCount}
-                    onPageChange={setPage}
-                    emptyMessage="No bugs match the current filters."
-                />
+                <>
+                    <DataTable<StoryListItem>
+                        columns={columns}
+                        data={bugs}
+                        keyExtractor={(b) => b.storyId}
+                        emptyMessage="No bugs match the current filters."
+                    />
+                    <Pagination
+                        page={page}
+                        pageSize={pageSize}
+                        totalCount={totalCount}
+                        onPageChange={setPage}
+                        onPageSizeChange={(s) => { setPage(1); }}
+                    />
+                </>
             )}
         </div>
     );
