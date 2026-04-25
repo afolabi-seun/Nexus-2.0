@@ -309,3 +309,30 @@ The DB-driven navigation table (`NavigationItems`) is never seeded. All deployme
 
 ### Test Stability
 - [x] **Flaky test fix** — Stabilized BillingService Property14 and Property4 timing assertions by capturing `DateTime.UtcNow` before async method calls instead of after.
+
+### Standardized API Responses (spec: standardized-api-responses)
+- [x] **ApiResponseExtensions** — `ToActionResult()` and `ToBadRequest()` extension methods on `ApiResponse<T>` across all 5 services.
+- [x] **Controller migration** — All 46 controllers migrated to use `ToActionResult()`, private `Wrap()` methods removed.
+- [x] **Property-based tests** — 6 properties per service (response body preservation, error code mapping, success status codes, custom status code ignored for errors, CorrelationId injection, ToBadRequest structure).
+- [x] **Unit tests** — Null response handling, exact-match error codes, ToBadRequest edge cases across all 5 services.
+
+### Generic Repository Pattern (spec: generic-repository-pattern)
+- [x] **IGenericRepository<T> / GenericRepository<T>** — Created in all 5 services with 10 methods + `FindWithoutFiltersAsync`.
+- [x] **Repository migration** — ~43 repositories migrated across all 5 services (SecurityService → BillingService → UtilityService → ProfileService → WorkService).
+- [x] **SaveChangesAsync to service layer** — Moved from repository methods to service layer across all 5 services.
+- [x] **DI registration verified** — All repositories registered against service-specific interfaces, no open-generic registrations.
+
+### Architecture Hardening (spec: architecture-hardening)
+- [x] **JSON null suppression** — `WhenWritingNull` on all 5 services' serializer configs. Null fields omitted from API responses.
+- [x] **NullBodyFilter** — Global action filter returning 422 for null `[FromBody]` params across all 5 services.
+- [x] **InvalidModelStateResponseFactory** — Structured field errors in `data` array with `responseCode: "96"` across all 5 services.
+- [x] **In-memory cache tier** — `ConcurrentDictionary` Tier 1 in `ErrorCodeResolverService` with promotion on Redis/HTTP hits across all 5 services.
+- [x] **ErrorCodeCacheRefreshService** — Background service refreshing error code caches every 24 hours across all 5 services.
+- [x] **ErrorResponseLoggingMiddleware** — Publishes 5xx non-exception errors to outbox across all 5 services.
+- [x] **GlobalExceptionHandler outbox publishing** — DomainException and unhandled exception outbox publishing with `ErrorLogged` flag to prevent double-logging across all 5 services.
+- [x] **10 property-based tests** — FsCheck, 100 iterations each. 110 total tests passing.
+
+### Standardized Filters Tests (spec: standardized-filters)
+- [x] **useListFilters hook tests** — 4 property tests (filter round-trip, clear idempotency, URL sync round-trip, page reset) + 8 unit tests (debounce, syncToUrl, hasActiveFilters).
+- [x] **ListFilter component tests** — 2 property tests (badge count accuracy, config-to-field rendering) + 11 unit tests (aria-expanded, filter region, clear all, saved filters, FilterField types, async loading, ARIA).
+- [x] **Integration property tests** — 4 property tests (saved filter apply, debounce timing, hasActiveFilters consistency, async-search threshold). 43 total tests passing.
