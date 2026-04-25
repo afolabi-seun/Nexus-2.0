@@ -344,13 +344,13 @@ The DB-driven navigation table (`NavigationItems`) is never seeded. All deployme
 Prioritized by impact and dependency order. Items marked with `*` are optional test tasks.
 
 ### 1. WorkService ServiceResult Migration (spec: work-service) — HIGH PRIORITY
-The biggest remaining alignment gap with the WEP reference architecture. 9 parent tasks show as incomplete but all sub-tasks are done — these are parent checkboxes that need marking complete, plus the ServiceResult migration itself (Phase 11 in TODO).
+The biggest remaining alignment gap with the WEP reference architecture. All implementation sub-tasks are complete — parent task checkboxes have been marked done.
 
+- [x] **Mark completed parent tasks** — Tasks 2, 3, 6, 7, 8, 9, 10, 13, 14 in work-service spec had all sub-tasks done but parent checkboxes were unchecked. Now fixed.
 - [ ] **ServiceResult pattern (WorkService)** — 81 service methods, 18 controllers, 179 tests. This is the last service without ServiceResult. Completing this closes the "Consistent API response messages" item too.
-- [ ] **Mark completed parent tasks** — Tasks 2, 3, 6, 7, 8, 9, 10, 13, 14 in work-service spec have all sub-tasks done but parent checkboxes are unchecked.
 
-### 2. SecurityService — 1 task remaining (spec: security-service)
-- [ ] **Task 13: Api layer — Controllers** — Parent task unchecked, sub-tasks likely done. Quick verification and mark complete.
+### 2. SecurityService — DONE ✅ (spec: security-service)
+- [x] **Task 13: Api layer — Controllers** — All sub-tasks were complete. Parent checkbox marked done.
 
 ### 3. Frontend Missing UI — optional tests only (spec: frontend-missing-ui)
 All implementation done. Only optional (`*`) property test tasks remain:
@@ -358,13 +358,11 @@ All implementation done. Only optional (`*`) property test tasks remain:
 - [ ]* MemberProfilePage status management tests (3.2, 3.3)
 - [ ]* StoryDetailPage/TaskRow deletion tests (5.3–5.6)
 
-### 4. ProfileService — 6 parent tasks unchecked (spec: profile-service)
-Similar to WorkService — parent tasks unchecked but sub-tasks appear done. Needs verification.
-- [ ] **Verify and mark parent tasks** — Tasks 6, 8, 9, 10, 13, 14
+### 4. ProfileService — DONE ✅ (spec: profile-service)
+- [x] **All parent tasks marked complete** — Tasks 5, 6, 7, 8, 9, 10, 12, 13, 14, 17 had all sub-tasks done. Parent checkboxes fixed.
 
-### 5. UtilityService — scaffolding tasks (spec: utility-service)
-Has incomplete scaffolding tasks (1.1, 1.2, 2.x, 3). These may be from an older spec that predates the actual implementation. Needs audit against actual code.
-- [ ] **Audit spec vs code** — Check if UtilityService code already exists and mark tasks accordingly.
+### 5. UtilityService — DONE ✅ (spec: utility-service)
+- [x] **All tasks marked complete** — Code already existed but spec wasn't updated. All tasks marked done.
 
 ### 6. Doc Alignment Audit (reference: /docs/*.md)
 After completing the above, audit the codebase against the WEP reference docs to catch any remaining gaps:

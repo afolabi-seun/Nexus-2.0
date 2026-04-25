@@ -8,7 +8,7 @@ WorkService is the largest service in the platform — managing projects, storie
 
 ## Tasks
 
-- [-] 1. Solution and project scaffolding
+- [x] 1. Solution and project scaffolding
   - [x] 1.1 Create monorepo folder structure and .NET 8 projects with project references
     - Create `src/backend/WorkService/` directory
     - Create `src/backend/WorkService/WorkService.Domain` (class library, net8.0, zero project references)
@@ -27,7 +27,7 @@ WorkService is the largest service in the platform — managing projects, storie
     - Tests: `xunit`, `xunit.runner.visualstudio`, `FsCheck.Xunit`, `Moq`, `Microsoft.EntityFrameworkCore.InMemory`, `FluentAssertions`
     - _Requirements: 37.2, 37.3, 37.4, 37.5_
 
-- [ ] 2. Domain layer — Entities, exceptions, error codes, enums, helpers, interfaces
+- [x] 2. Domain layer — Entities, exceptions, error codes, enums, helpers, interfaces
   - [x] 2.1 Create domain entities (13 entities including Project)
     - Implement `Project` entity with `ProjectId`, `OrganizationId`, `ProjectName`, `ProjectKey`, `Description`, `LeadId`, `FlgStatus`, `DateCreated`, `DateUpdated` — implements `IOrganizationEntity`
     - Implement `Story` entity with `StoryId`, `OrganizationId`, `ProjectId`, `StoryKey`, `SequenceNumber`, `Title`, `Description`, `AcceptanceCriteria`, `StoryPoints`, `Priority`, `Status`, `AssigneeId`, `ReporterId`, `SprintId`, `DepartmentId`, `DueDate`, `CompletedDate`, `FlgStatus`, `SearchVector`, `DateCreated`, `DateUpdated` — implements `IOrganizationEntity`
@@ -100,7 +100,7 @@ WorkService is the largest service in the platform — managing projects, storie
     - `ISavedFilterRepository` (GetByIdAsync, AddAsync, RemoveAsync, ListByMemberAsync)
     - _Requirements: 36.13, 36.14_
 
-- [ ] 3. Application layer — DTOs, validators, contracts
+- [x] 3. Application layer — DTOs, validators, contracts
   - [x] 3.1 Create `ApiResponse<T>` envelope, `ErrorDetail`, and `PaginatedResponse<T>` classes
     - `ApiResponse<T>` with `ResponseCode`, `Success`, `Data`, `ErrorCode`, `ErrorValue`, `Message`, `CorrelationId`, `Errors`
     - `ErrorDetail` with `Field`, `Message`
@@ -170,7 +170,7 @@ WorkService is the largest service in the platform — managing projects, storie
 - [x] 4. Checkpoint — Verify Domain and Application layers compile
   - Ensure all tests pass, ask the user if questions arise.
 
-- [-] 5. Infrastructure layer — Data access (EF Core + PostgreSQL)
+- [x] 5. Infrastructure layer — Data access (EF Core + PostgreSQL)
   - [x] 5.1 Create `WorkDbContext` with entity configurations, global query filters, and full-text search
     - Configure all 13 entities with PKs, indexes, unique constraints, max lengths, default values
     - Configure `Project`: PK `ProjectId`, unique index on `ProjectKey` (global), unique index on `(OrganizationId, ProjectName)`, `ProjectKey` max 10, `ProjectName` max 200
@@ -210,7 +210,7 @@ WorkService is the largest service in the platform — managing projects, storie
     - `SavedFilterRepository` — GetByIdAsync, AddAsync, RemoveAsync, ListByMemberAsync
     - _Requirements: 1.3, 1.4, 2.6, 3.3, 7.4, 12.4, 21.7, 24.2, 25.1, 25.7, 36.13, 36.14_
 
-- [ ] 6. Infrastructure layer — Configuration
+- [x] 6. Infrastructure layer — Configuration
   - [x] 6.1 Create `AppSettings` configuration class
     - `AppSettings.FromEnvironment()` loading from env vars via DotNetEnv
     - All configurable values: DB connection, Redis connection, JWT settings (SecretKey, Issuer, Audience), service URLs (ProfileService, SecurityService, UtilityService), allowed origins, service auth (ServiceId, ServiceName, ServiceSecret)
@@ -221,7 +221,7 @@ WorkService is the largest service in the platform — managing projects, storie
     - Document all env vars with sensible defaults for local development
     - _Requirements: 52.1_
 
-- [ ] 7. Infrastructure layer — Redis services
+- [x] 7. Infrastructure layer — Redis services
   - [x] 7.1 Implement `OutboxService` (Redis LPUSH to `outbox:work`)
     - `PublishAsync` — serialize `OutboxMessage` to JSON, LPUSH to `outbox:work`
     - Retry up to 3 times with exponential backoff on failure
@@ -235,7 +235,7 @@ WorkService is the largest service in the platform — managing projects, storie
     - Fall back to static `MapErrorToResponseCode` mapping on failure
     - _Requirements: 56.2, 39.1_
 
-- [ ] 8. Infrastructure layer — Core services (Project, Story, Task, Sprint)
+- [x] 8. Infrastructure layer — Core services (Project, Story, Task, Sprint)
   - [x] 8.1 Implement `ProjectService`
     - `CreateAsync` — validate ProjectKey format (regex `^[A-Z0-9]{2,10}$`), validate ProjectKey global uniqueness, validate ProjectName uniqueness within org, restrict to OrgAdmin/DeptLead, create project with `FlgStatus=A`, return 201
     - `GetByIdAsync` — return project detail with story count, sprint count, lead info
@@ -290,7 +290,7 @@ WorkService is the largest service in the platform — managing projects, storie
     - `GetActiveSprintAsync` — return current active sprint for org/project
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7, 14.1, 14.2, 14.3, 14.4, 14.5, 14.6, 15.1, 15.2, 15.3, 16.1, 16.2, 16.3_
 
-- [ ] 9. Infrastructure layer — Supporting services (Comment, Label, ActivityLog, Search, Board, Report, Workflow)
+- [x] 9. Infrastructure layer — Supporting services (Comment, Label, ActivityLog, Search, Board, Report, Workflow)
   - [x] 9.1 Implement `CommentService`
     - `CreateAsync` — create comment with AuthorId, support threaded replies via ParentCommentId, resolve @mentions (by displayName or email) via ProfileServiceClient, publish MentionedInComment notification with MentionerName/StoryKey/CommentPreview (first 100 chars), create activity log entry, return 201
     - `UpdateAsync` — only author can edit, set IsEdited=true, return 403 `COMMENT_NOT_AUTHOR` for non-authors
@@ -343,7 +343,7 @@ WorkService is the largest service in the platform — managing projects, storie
     - Workflow validation checks org-level overrides first, then falls back to defaults
     - _Requirements: 32.1, 32.2, 32.3, 32.4_
 
-- [ ] 10. Infrastructure layer — Service clients and DI registration
+- [x] 10. Infrastructure layer — Service clients and DI registration
   - [x] 10.1 Create `IProfileServiceClient` and `ProfileServiceClient` typed client
     - `GetOrganizationSettingsAsync` — call ProfileService `GET /api/v1/organizations/{id}/settings` for sprint duration defaults
     - `GetTeamMemberAsync` — look up team member by ID
@@ -378,7 +378,7 @@ WorkService is the largest service in the platform — managing projects, storie
 - [x] 11. Checkpoint — Verify Infrastructure layer compiles
   - Ensure all tests pass, ask the user if questions arise.
 
-- [-] 12. Api layer — Middleware pipeline
+- [x] 12. Api layer — Middleware pipeline
   - [x] 12.1 Implement `CorrelationIdMiddleware`
     - Generate or propagate `X-Correlation-Id` header, store in `HttpContext.Items["CorrelationId"]`, include in response headers
     - _Requirements: 43.1, 43.2, 43.4_
@@ -427,7 +427,7 @@ WorkService is the largest service in the platform — managing projects, storie
     - Note: WorkService does NOT include FirstTimeUserMiddleware — that is enforced by SecurityService
     - _Requirements: 57.1_
 
-- [ ] 13. Api layer — Controllers (11 controllers)
+- [x] 13. Api layer — Controllers (11 controllers)
   - [x] 13.1 Implement `ProjectController`
     - `POST /api/v1/projects` — Bearer (OrgAdmin, DeptLead) — CreateProjectRequest → 201 ProjectDetailResponse
     - `GET /api/v1/projects` — Bearer — Paginated ProjectListResponse (filterable by status)
@@ -533,7 +533,7 @@ WorkService is the largest service in the platform — managing projects, storie
     - `DELETE /api/v1/saved-filters/{id}` — Bearer — 200
     - _Requirements: 26.1, 26.2, 26.3, 34.1_
 
-- [ ] 14. Api layer — Program.cs, extensions, Dockerfile
+- [x] 14. Api layer — Program.cs, extensions, Dockerfile
   - [x] 14.1 Create `Program.cs` with full DI registration and middleware pipeline
     - Load `.env` via DotNetEnv, build `AppSettings`
     - Register Infrastructure services via `DependencyInjection` extension
