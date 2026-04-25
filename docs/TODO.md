@@ -336,3 +336,39 @@ The DB-driven navigation table (`NavigationItems`) is never seeded. All deployme
 - [x] **useListFilters hook tests** — 4 property tests (filter round-trip, clear idempotency, URL sync round-trip, page reset) + 8 unit tests (debounce, syncToUrl, hasActiveFilters).
 - [x] **ListFilter component tests** — 2 property tests (badge count accuracy, config-to-field rendering) + 11 unit tests (aria-expanded, filter region, clear all, saved filters, FilterField types, async loading, ARIA).
 - [x] **Integration property tests** — 4 property tests (saved filter apply, debounce timing, hasActiveFilters consistency, async-search threshold). 43 total tests passing.
+
+---
+
+## Next Up — Remaining Spec Work
+
+Prioritized by impact and dependency order. Items marked with `*` are optional test tasks.
+
+### 1. WorkService ServiceResult Migration (spec: work-service) — HIGH PRIORITY
+The biggest remaining alignment gap with the WEP reference architecture. 9 parent tasks show as incomplete but all sub-tasks are done — these are parent checkboxes that need marking complete, plus the ServiceResult migration itself (Phase 11 in TODO).
+
+- [ ] **ServiceResult pattern (WorkService)** — 81 service methods, 18 controllers, 179 tests. This is the last service without ServiceResult. Completing this closes the "Consistent API response messages" item too.
+- [ ] **Mark completed parent tasks** — Tasks 2, 3, 6, 7, 8, 9, 10, 13, 14 in work-service spec have all sub-tasks done but parent checkboxes are unchecked.
+
+### 2. SecurityService — 1 task remaining (spec: security-service)
+- [ ] **Task 13: Api layer — Controllers** — Parent task unchecked, sub-tasks likely done. Quick verification and mark complete.
+
+### 3. Frontend Missing UI — optional tests only (spec: frontend-missing-ui)
+All implementation done. Only optional (`*`) property test tasks remain:
+- [ ]* API client property tests (1.4, 1.5)
+- [ ]* MemberProfilePage status management tests (3.2, 3.3)
+- [ ]* StoryDetailPage/TaskRow deletion tests (5.3–5.6)
+
+### 4. ProfileService — 6 parent tasks unchecked (spec: profile-service)
+Similar to WorkService — parent tasks unchecked but sub-tasks appear done. Needs verification.
+- [ ] **Verify and mark parent tasks** — Tasks 6, 8, 9, 10, 13, 14
+
+### 5. UtilityService — scaffolding tasks (spec: utility-service)
+Has incomplete scaffolding tasks (1.1, 1.2, 2.x, 3). These may be from an older spec that predates the actual implementation. Needs audit against actual code.
+- [ ] **Audit spec vs code** — Check if UtilityService code already exists and mark tasks accordingly.
+
+### 6. Doc Alignment Audit (reference: /docs/*.md)
+After completing the above, audit the codebase against the WEP reference docs to catch any remaining gaps:
+- [ ] **Middleware pipeline order** — Verify all 5 services match the documented order (CorrelationId → GlobalExceptionHandler → ErrorResponseLogging → RateLimiter → Auth → etc.)
+- [ ] **Response code mapping consistency** — Verify `MapErrorToResponseCode` switch expressions match across all services
+- [ ] **Outbox envelope format** — Verify all services publish the same envelope structure (type, payload, timestamp)
+- [ ] **Update docs to reflect Nexus naming** — The reference docs use WEP/CoreService naming; actual code uses Nexus/Service naming. Decide whether to update docs or keep as reference spec.
