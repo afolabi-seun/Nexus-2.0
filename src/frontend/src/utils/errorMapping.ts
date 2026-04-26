@@ -97,6 +97,125 @@ const errorCodeMap: Record<string, string> = {
     INTERNAL_ERROR: 'Something went wrong. Please try again.',
     NETWORK_ERROR:
         'Unable to connect to the server. Please check your connection.',
+
+    // Auth/Security
+    FIRST_TIME_USER_RESTRICTED:
+        'You must change your password before accessing other features.',
+    INVALID_TOKEN: 'Your session is invalid. Please log in again.',
+    TOKEN_EXPIRED: 'Your session has expired. Please log in again.',
+    TOKEN_REVOKED: 'Your session has been revoked. Please log in again.',
+    SESSION_EXPIRED: 'Your session has expired. Please log in again.',
+    OTP_VERIFICATION_FAILED: 'Invalid verification code.',
+    RATE_LIMIT_EXCEEDED: 'Too many requests. Please wait and try again.',
+    SERVICE_NOT_AUTHORIZED: 'Service authorization failed.',
+    ORGANIZATION_MISMATCH:
+        "You don't have access to this organization's data.",
+
+    // Project/Story/Task
+    PROJECT_NOT_FOUND: 'Project not found.',
+    PROJECT_KEY_IMMUTABLE:
+        'Project key cannot be changed after stories have been created.',
+    PROJECT_KEY_INVALID_FORMAT:
+        'Project key must be 2–10 uppercase alphanumeric characters.',
+    STORY_NOT_FOUND: 'Story not found.',
+    STORY_KEY_NOT_FOUND: 'Story not found with this key.',
+    STORY_DESCRIPTION_REQUIRED:
+        'Story must have a description before this transition.',
+    STORY_IN_ACTIVE_SPRINT:
+        'Story cannot be deleted while in an active sprint.',
+    STORY_NOT_IN_SPRINT: 'Story is not in this sprint.',
+    INVALID_STORY_TYPE: 'Invalid story type.',
+    TASK_NOT_FOUND: 'Task not found.',
+    TASK_IN_PROGRESS: 'Task cannot be deleted while in progress.',
+    INVALID_TASK_TYPE: 'Invalid task type.',
+    MAX_LABELS_PER_STORY: 'Maximum of 10 labels per story reached.',
+
+    // Sprint
+    SPRINT_NOT_FOUND: 'Sprint not found.',
+    SPRINT_OVERLAP: 'Sprint dates overlap with an existing sprint.',
+    SPRINT_ALREADY_ACTIVE: 'This sprint is already active.',
+    SPRINT_ALREADY_COMPLETED: 'This sprint is already completed.',
+
+    // Comment/Label
+    COMMENT_NOT_FOUND: 'Comment not found.',
+    LABEL_NOT_FOUND: 'Label not found.',
+
+    // Member/Department
+    MEMBER_NOT_FOUND: 'Team member not found.',
+    MEMBER_NOT_IN_DEPARTMENT: 'Member is not in this department.',
+    MEMBER_MUST_HAVE_DEPARTMENT:
+        'Member must be assigned to a department.',
+    DEPARTMENT_NOT_FOUND: 'Department not found.',
+    DEPARTMENT_ACCESS_DENIED:
+        "You don't have access to this department.",
+    DEPARTMENT_HAS_ACTIVE_MEMBERS:
+        'Cannot delete department with active members.',
+    DEFAULT_DEPARTMENT_CANNOT_DELETE:
+        'The default department cannot be deleted.',
+    EMAIL_ALREADY_REGISTERED: 'This email is already registered.',
+    INVALID_ROLE_ASSIGNMENT: 'Invalid role assignment.',
+    INVALID_DEPARTMENT_ROLE: 'Invalid department role.',
+    INVALID_AVAILABILITY_STATUS: 'Invalid availability status.',
+
+    // Time Tracking
+    TIME_ENTRY_NOT_FOUND: 'Time entry not found.',
+    DAILY_HOURS_EXCEEDED:
+        'Adding this entry would exceed the daily maximum hours.',
+    HOURS_MUST_BE_POSITIVE: 'Hours must be a positive value.',
+    COST_RATE_DUPLICATE:
+        'A cost rate with these parameters already exists.',
+    INVALID_COST_RATE: 'Invalid cost rate configuration.',
+    INVALID_TIME_POLICY: 'Invalid time policy configuration.',
+    TIMER_ALREADY_ACTIVE:
+        'A timer is already running. Stop it before starting a new one.',
+    NO_ACTIVE_TIMER: 'No active timer to stop.',
+
+    // Analytics/Risk
+    INVALID_ANALYTICS_PARAMETER: 'Invalid analytics parameter.',
+    SNAPSHOT_GENERATION_FAILED:
+        'Failed to generate analytics snapshot.',
+    RISK_NOT_FOUND: 'Risk entry not found.',
+    INVALID_RISK_LIKELIHOOD: 'Invalid risk likelihood value.',
+    INVALID_RISK_SEVERITY: 'Invalid risk severity value.',
+    INVALID_MITIGATION_STATUS: 'Invalid mitigation status.',
+
+    // Search
+    SEARCH_QUERY_TOO_SHORT:
+        'Search query must be at least 2 characters.',
+
+    // Billing
+    PLAN_ALREADY_EXISTS: 'A plan with this code already exists.',
+    PLAN_CODE_IMMUTABLE: 'Plan code cannot be changed.',
+    INVALID_WEBHOOK_PAYLOAD: 'Invalid webhook payload.',
+    INVALID_WEBHOOK_SIGNATURE: 'Invalid webhook signature.',
+
+    // Utility
+    AUDIT_LOG_IMMUTABLE: 'Audit logs cannot be modified.',
+    ERROR_CODE_DUPLICATE: 'This error code already exists.',
+    ERROR_CODE_NOT_FOUND: 'Error code not found.',
+    NOTIFICATION_DISPATCH_FAILED: 'Failed to send notification.',
+    REFERENCE_DATA_DUPLICATE:
+        'This reference data entry already exists.',
+    REFERENCE_DATA_NOT_FOUND: 'Reference data not found.',
+    RETENTION_PERIOD_INVALID: 'Invalid retention period.',
+    INVALID_NOTIFICATION_TYPE: 'Invalid notification type.',
+    INVALID_CHANNEL: 'Invalid notification channel.',
+    OUTBOX_PROCESSING_FAILED: 'Message processing failed.',
+    TEMPLATE_NOT_FOUND: 'Template not found.',
+    PREFERENCE_KEY_UNKNOWN: 'Unknown preference key.',
+
+    // Generic
+    NOT_FOUND: 'The requested resource was not found.',
+    CONFLICT:
+        'A conflict occurred. The resource may have been modified.',
+    SERVICE_UNAVAILABLE:
+        'Service temporarily unavailable. Please try again later.',
+    FOREIGN_KEY_VIOLATION:
+        'Cannot complete this action because it references other data.',
+    UNIQUE_CONSTRAINT_VIOLATION:
+        'A record with this value already exists.',
+    STORY_SEQUENCE_INIT_FAILED:
+        'Failed to initialize story sequence. Please try again.',
 };
 
 const FALLBACK_MESSAGE = 'Something went wrong. Please try again.';
