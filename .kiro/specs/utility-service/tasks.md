@@ -8,8 +8,8 @@ UtilityService is the cross-cutting operational microservice — it provides aud
 
 ## Tasks
 
-- [-] 1. Solution and project scaffolding
-  - [ ] 1.1 Create monorepo folder structure and .NET 8 projects with project references
+- [x] 1. Solution and project scaffolding
+  - [x] 1.1 Create monorepo folder structure and .NET 8 projects with project references
     - Create `src/backend/UtilityService/` directory
     - Create `src/backend/UtilityService/UtilityService.Domain` (class library, net8.0, zero project references)
     - Create `src/backend/UtilityService/UtilityService.Application` (class library, net8.0, references Domain)
@@ -19,7 +19,7 @@ UtilityService is the cross-cutting operational microservice — it provides aud
     - Add all projects to `Nexus-2.0.sln`
     - _Requirements: REQ-086 (Requirement 17)_
 
-  - [ ] 1.2 Add NuGet package references to each project
+  - [x] 1.2 Add NuGet package references to each project
     - Domain: no external packages
     - Application: `FluentValidation` only
     - Infrastructure: `Npgsql.EntityFrameworkCore.PostgreSQL`, `StackExchange.Redis`, `Microsoft.Extensions.Http.Polly`, `Polly`, `Microsoft.AspNetCore.Authentication.JwtBearer`, `System.IdentityModel.Tokens.Jwt`, `AspNetCore.HealthChecks.NpgSql`, `AspNetCore.HealthChecks.Redis`, `DotNetEnv`
@@ -27,8 +27,8 @@ UtilityService is the cross-cutting operational microservice — it provides aud
     - Tests: `FsCheck.Xunit`, `Moq`, `Microsoft.EntityFrameworkCore.InMemory`
     - _Requirements: REQ-086 (Requirement 17)_
 
-- [ ] 2. Domain layer — Entities, exceptions, helpers, interfaces
-  - [ ] 2.1 Create domain entities (9 entities)
+- [x] 2. Domain layer — Entities, exceptions, helpers, interfaces
+  - [x] 2.1 Create domain entities (9 entities)
     - Implement `AuditLog` entity with `AuditLogId`, `OrganizationId`, `ServiceName`, `Action`, `EntityType`, `EntityId`, `UserId`, `OldValue`, `NewValue`, `IpAddress`, `CorrelationId`, `DateCreated` — implements `IOrganizationEntity`
     - Implement `ArchivedAuditLog` entity with same fields as AuditLog plus `ArchivedAuditLogId` (PK) and `ArchivedDate`
     - Implement `ErrorLog` entity with `ErrorLogId`, `OrganizationId`, `ServiceName`, `ErrorCode`, `Message`, `StackTrace`, `CorrelationId`, `Severity`, `DateCreated` — implements `IOrganizationEntity`
@@ -41,16 +41,16 @@ UtilityService is the cross-cutting operational microservice — it provides aud
     - Create `IOrganizationEntity` marker interface in `Common/`
     - _Requirements: REQ-083 (Requirement 14), REQ-084 (Requirement 15)_
 
-  - [ ] 2.2 Create `ErrorCodes` static class and `DomainException` base class
+  - [x] 2.2 Create `ErrorCodes` static class and `DomainException` base class
     - Implement `ErrorCodes` with all constants: VALIDATION_ERROR (1000), AUDIT_LOG_IMMUTABLE (6001), ERROR_CODE_DUPLICATE (6002), ERROR_CODE_NOT_FOUND (6003), NOTIFICATION_DISPATCH_FAILED (6004), REFERENCE_DATA_NOT_FOUND (6005), ORGANIZATION_MISMATCH (6006), TEMPLATE_NOT_FOUND (6007), NOT_FOUND (6008), CONFLICT (6009), SERVICE_UNAVAILABLE (6010), INVALID_NOTIFICATION_TYPE (6011), INVALID_CHANNEL (6012), RETENTION_PERIOD_INVALID (6013), REFERENCE_DATA_DUPLICATE (6014), OUTBOX_PROCESSING_FAILED (6015), INTERNAL_ERROR (9999)
     - Implement `DomainException` base class with `ErrorValue`, `ErrorCode`, `StatusCode`, `CorrelationId`
     - _Requirements: REQ-071–REQ-085 (Requirement 16)_
 
-  - [ ] 2.3 Create all concrete domain exception classes (15 exceptions)
+  - [x] 2.3 Create all concrete domain exception classes (15 exceptions)
     - `AuditLogImmutableException` (6001, 405), `ErrorCodeDuplicateException` (6002, 409), `ErrorCodeNotFoundException` (6003, 404), `NotificationDispatchFailedException` (6004, 500), `ReferenceDataNotFoundException` (6005, 404), `OrganizationMismatchException` (6006, 403), `TemplateNotFoundException` (6007, 404), `NotFoundException` (6008, 404), `ConflictException` (6009, 409), `ServiceUnavailableException` (6010, 503), `InvalidNotificationTypeException` (6011, 400), `InvalidChannelException` (6012, 400), `RetentionPeriodInvalidException` (6013, 400), `ReferenceDataDuplicateException` (6014, 409), `OutboxProcessingFailedException` (6015, 500)
     - _Requirements: REQ-071–REQ-085 (Requirement 16)_
 
-  - [ ] 2.4 Create helper constants and enums
+  - [x] 2.4 Create helper constants and enums
     - `NotificationTypes` with 8 types: StoryAssigned, TaskAssigned, SprintStarted, SprintEnded, MentionedInComment, StoryStatusChanged, TaskStatusChanged, DueDateApproaching
     - `NotificationChannels` with Email, Push, InApp
     - `NotificationStatuses` with Pending, Sent, Failed, PermanentlyFailed
@@ -58,7 +58,7 @@ UtilityService is the cross-cutting operational microservice — it provides aud
     - `EntityStatuses` with Active = "A", Suspended = "S", Deactivated = "D"
     - _Requirements: REQ-074 (Requirement 4), REQ-075 (Requirement 5), REQ-072 (Requirement 2)_
 
-  - [ ] 2.5 Create domain service interfaces
+  - [x] 2.5 Create domain service interfaces
     - `IAuditLogService` (CreateAsync, QueryAsync, QueryArchiveAsync)
     - `IErrorLogService` (CreateAsync, QueryAsync)
     - `IErrorCodeService` (CreateAsync, ListAsync, UpdateAsync, DeleteAsync)
@@ -71,7 +71,7 @@ UtilityService is the cross-cutting operational microservice — it provides aud
     - `IErrorCodeResolverService` (ResolveAsync)
     - _Requirements: REQ-071 (Requirement 1), REQ-072 (Requirement 2), REQ-073 (Requirement 3), REQ-074 (Requirement 4), REQ-076 (Requirement 6), REQ-077 (Requirement 7), REQ-080 (Requirement 9)_
 
-  - [ ] 2.6 Create repository interfaces (9 repositories)
+  - [x] 2.6 Create repository interfaces (9 repositories)
     - `IAuditLogRepository` (AddAsync, QueryAsync)
     - `IArchivedAuditLogRepository` (AddRangeAsync, QueryAsync)
     - `IErrorLogRepository` (AddAsync, QueryAsync)
@@ -83,14 +83,14 @@ UtilityService is the cross-cutting operational microservice — it provides aud
     - `IWorkflowStateRepository` (ListAsync, AddRangeAsync, ExistsAsync)
     - _Requirements: REQ-083 (Requirement 14)_
 
-- [ ] 3. Application layer — DTOs, validators, OutboxMessage
-  - [ ] 3.1 Create `ApiResponse<T>` envelope, `ErrorDetail`, and `PaginatedResponse<T>` classes
+- [x] 3. Application layer — DTOs, validators, OutboxMessage
+  - [x] 3.1 Create `ApiResponse<T>` envelope, `ErrorDetail`, and `PaginatedResponse<T>` classes
     - `ApiResponse<T>` with `ResponseCode`, `ResponseDescription`, `Success`, `Data`, `ErrorCode`, `ErrorValue`, `Message`, `CorrelationId`, `Errors`
     - `ErrorDetail` with `Field`, `Message`
     - `PaginatedResponse<T>` with `TotalCount`, `Page`, `PageSize`, `TotalPages`, `Data`
     - _Requirements: REQ-088 (Requirement 19), REQ-096 (Requirement 24)_
 
-  - [ ] 3.2 Create request DTOs
+  - [x] 3.2 Create request DTOs
     - `CreateAuditLogRequest` (OrganizationId, ServiceName, Action, EntityType, EntityId, UserId, OldValue, NewValue, IpAddress, CorrelationId)
     - `AuditLogFilterRequest` (ServiceName, Action, EntityType, UserId, DateFrom, DateTo)
     - `CreateErrorLogRequest` (OrganizationId, ServiceName, ErrorCode, Message, StackTrace, CorrelationId, Severity)
@@ -103,7 +103,7 @@ UtilityService is the cross-cutting operational microservice — it provides aud
     - `CreatePriorityLevelRequest` (Name, SortOrder, Color)
     - _Requirements: REQ-071 (Requirement 1), REQ-072 (Requirement 2), REQ-073 (Requirement 3), REQ-074 (Requirement 4), REQ-077 (Requirement 7)_
 
-  - [ ] 3.3 Create response DTOs
+  - [x] 3.3 Create response DTOs
     - `AuditLogResponse` (AuditLogId, OrganizationId, ServiceName, Action, EntityType, EntityId, UserId, OldValue, NewValue, IpAddress, CorrelationId, DateCreated, ArchivedDate)
     - `ErrorLogResponse` (ErrorLogId, OrganizationId, ServiceName, ErrorCode, Message, StackTrace, CorrelationId, Severity, DateCreated)
     - `ErrorCodeResponse` (ErrorCodeEntryId, Code, Value, HttpStatusCode, ResponseCode, Description, ServiceName, DateCreated, DateUpdated)
@@ -111,12 +111,12 @@ UtilityService is the cross-cutting operational microservice — it provides aud
     - `DepartmentTypeResponse`, `PriorityLevelResponse`, `TaskTypeRefResponse`, `WorkflowStateResponse`
     - _Requirements: REQ-071 (Requirement 1), REQ-072 (Requirement 2), REQ-073 (Requirement 3), REQ-074 (Requirement 4), REQ-077 (Requirement 7)_
 
-  - [ ] 3.4 Create `OutboxMessage` DTO and `ErrorCodeResolverResponse` contract
+  - [x] 3.4 Create `OutboxMessage` DTO and `ErrorCodeResolverResponse` contract
     - `OutboxMessage` with `Id`, `Type` (audit/notification), `Payload` (JSON), `Timestamp`, `RetryCount`
     - `ErrorCodeResolverResponse` with `ResponseCode`, `Description`
     - _Requirements: REQ-080 (Requirement 9), REQ-093_
 
-  - [ ] 3.5 Create FluentValidation validators for all request DTOs (7 validators)
+  - [x] 3.5 Create FluentValidation validators for all request DTOs (7 validators)
     - `CreateAuditLogRequestValidator` (OrganizationId, ServiceName, Action, EntityType, EntityId, UserId, CorrelationId all required)
     - `CreateErrorLogRequestValidator` (OrganizationId, ServiceName, ErrorCode, Message, CorrelationId required; Severity must be Info/Warning/Error/Critical)
     - `CreateErrorCodeRequestValidator` (Code required, Value > 0, HttpStatusCode 100–599, ResponseCode required max 10, Description required, ServiceName required)
@@ -126,7 +126,7 @@ UtilityService is the cross-cutting operational microservice — it provides aud
     - `CreatePriorityLevelRequestValidator` (Name required, SortOrder > 0, Color valid hex #RRGGBB)
     - _Requirements: REQ-090 (Requirement 20)_
 
-- [ ] 4. Checkpoint — Verify Domain and Application layers compile
+- [x] 4. Checkpoint — Verify Domain and Application layers compile
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 5. Infrastructure layer — Data access (EF Core + PostgreSQL)
@@ -377,52 +377,52 @@ UtilityService is the cross-cutting operational microservice — it provides aud
 - [x] 13. Checkpoint — Full build verification
   - Ensure all projects compile, all tests pass, ask the user if questions arise.
 
-- [ ] 14. Testing
-  - [ ] 14.1 Write property tests for PII redaction
+- [x] 14. Testing
+  - [x] 14.1 Write property tests for PII redaction
     - **Property 1: PII redaction replaces all PII patterns** — Generate random strings with embedded emails, IPv4, IPv6 addresses. Verify all are replaced with `[REDACTED]`.
     - **Property 2: PII redaction preserves non-PII content** — Generate random strings without PII patterns. Verify output equals input.
     - **Validates: Requirements 2.1, 2.6**
 
-  - [ ] 14.2 Write property tests for audit log immutability
+  - [x] 14.2 Write property tests for audit log immutability
     - **Property 3: Audit log immutability** — Generate random audit logs, attempt update/delete, verify rejection with AUDIT_LOG_IMMUTABLE (6001).
     - **Validates: Requirements 1.3**
 
-  - [ ] 14.3 Write property tests for error code uniqueness and CRUD
+  - [x] 14.3 Write property tests for error code uniqueness and CRUD
     - **Property 5: Error code uniqueness enforcement** — Generate random error codes, attempt duplicate creation, verify rejection with ERROR_CODE_DUPLICATE (6002).
     - **Property 6: Error code CRUD round-trip with cache invalidation** — Create, read, update, delete error codes and verify consistency and Redis cache invalidation.
     - **Property 7: Error code not-found handling** — Generate random non-existent codes, verify 404 with ERROR_CODE_NOT_FOUND (6003).
     - **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8**
 
-  - [ ] 14.4 Write property tests for notification dispatch and preferences
+  - [x] 14.4 Write property tests for notification dispatch and preferences
     - **Property 8: Notification dispatch creates log entries per channel** — Generate dispatch requests with various channels, verify N log entries created.
     - **Property 9: Notification preference filtering** — Generate preferences with disabled channels, verify skipped channels.
     - **Property 10: Invalid notification type or channel rejection** — Generate invalid types/channels, verify rejection with INVALID_NOTIFICATION_TYPE (6011) or INVALID_CHANNEL (6012).
     - **Validates: Requirements 4.1, 4.2, 4.5, 4.7, 4.8**
 
-  - [ ] 14.5 Write property tests for template rendering
+  - [x] 14.5 Write property tests for template rendering
     - **Property 11: Template rendering injects all variables** — Generate random template variables, verify all appear in rendered output. Email → HTML, Push/InApp → plain-text.
     - **Validates: Requirements 5.2, 6.1, 6.2, 6.3**
 
-  - [ ] 14.6 Write property tests for reference data
+  - [x] 14.6 Write property tests for reference data
     - **Property 12: Reference data queries return only active entries** — Generate reference data with mixed FlgStatus, verify only active returned.
     - **Property 13: Reference data creation with cache invalidation** — Create reference data, verify in list and cache invalidated.
     - **Property 14: Reference data duplicate rejection** — Generate duplicate names/codes, verify rejection with REFERENCE_DATA_DUPLICATE (6014).
     - **Validates: Requirements 7.1, 7.2, 7.3, 7.4, 7.6, 7.7, 7.8, 25.2**
 
-  - [ ] 14.7 Write property tests for retention archival
+  - [x] 14.7 Write property tests for retention archival
     - **Property 15: Retention archival moves only expired logs** — Generate audit logs with various dates, run archival, verify only expired moved to archive with ArchivedDate set.
     - **Validates: Requirements 8.1, 8.2**
 
-  - [ ] 14.8 Write property tests for outbox processing
+  - [x] 14.8 Write property tests for outbox processing
     - **Property 16: Outbox message routing by type** — Generate messages with audit/notification/unknown types, verify correct routing or DLQ.
     - **Property 17: Outbox retry and dead-letter queue escalation** — Generate failing messages, verify retry count increment and DLQ after 3 failures.
     - **Validates: Requirements 9.2, 9.3, 9.5, 9.6, 9.7**
 
-  - [ ] 14.9 Write property tests for notification retry
+  - [x] 14.9 Write property tests for notification retry
     - **Property 18: Notification retry with exponential backoff** — Generate failed notifications, verify retry timing (2^RetryCount minutes), status transitions (Sent on success, PermanentlyFailed at max).
     - **Validates: Requirements 10.2, 10.3, 10.4**
 
-  - [ ] 14.10 Write property tests for seed data, org isolation, soft delete, pagination, validation
+  - [x] 14.10 Write property tests for seed data, org isolation, soft delete, pagination, validation
     - **Property 19: Seed data idempotence** — Run seed multiple times, verify no duplicates.
     - **Property 20: Organization isolation via global query filters** — Generate data across orgs, verify query isolation.
     - **Property 21: Soft delete retains records physically** — Soft-delete reference data, verify physical existence but query exclusion.
@@ -432,7 +432,7 @@ UtilityService is the cross-cutting operational microservice — it provides aud
     - **Property 25: DueDateNotification deduplication** — Generate entities with approaching due dates, run service multiple times, verify no duplicate notifications.
     - **Validates: Requirements 15.6, 18.1, 18.5, 25.1, 25.2, 24.1, 24.2, 24.3, 12.4, 20.2, 2.5, 10.5**
 
-  - [ ] 14.11 Write unit tests for middleware pipeline and validators
+  - [x] 14.11 Write unit tests for middleware pipeline and validators
     - Test middleware registration order matches Requirement 30 specification
     - Test GlobalExceptionHandlerMiddleware returns correct ApiResponse for DomainException and unhandled exceptions
     - Test TokenBlacklistMiddleware rejects blacklisted tokens

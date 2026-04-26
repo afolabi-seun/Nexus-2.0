@@ -35,7 +35,7 @@ Add four feature areas to the Nexus 2.0 React/TypeScript frontend: Audit Logs Pa
     - Import `UpdateSprintRequest` from `@/types/work`
     - _Requirements: 14.7_
 
-- [ ] 2. Implement AuditLogsPage
+- [x] 2. Implement AuditLogsPage
   - [x] 2.1 Create `src/frontend/src/features/admin/pages/AuditLogsPage.tsx`
     - Implement state: logs, loading, page (default 1), pageSize (default 20), totalCount, isArchive (boolean), and filter state (filterAction, filterEntityType, filterActorId, filterDateFrom, filterDateTo)
     - Implement `fetchLogs` callback that builds params from filters + pagination and calls `utilityApi.getAuditLogs()` or `utilityApi.getArchivedAuditLogs()` based on `isArchive`
@@ -58,7 +58,7 @@ Add four feature areas to the Nexus 2.0 React/TypeScript frontend: Audit Logs Pa
     - Use `fast-check` to generate random filter states and page numbers; toggle archive; assert filters unchanged and page = 1
     - **Validates: Requirements 3.3**
 
-- [ ] 3. Implement ErrorLogsPage
+- [x] 3. Implement ErrorLogsPage
   - [x] 3.1 Create `src/frontend/src/features/admin/pages/ErrorLogsPage.tsx`
     - Implement state: logs, loading, page, pageSize, totalCount, expandedRows (Set<string>), and filter state (filterServiceName, filterErrorCode, filterSeverity, filterDateFrom, filterDateTo)
     - Implement `fetchLogs` callback calling `utilityApi.getErrorLogs()` with filter + pagination params
@@ -84,7 +84,7 @@ Add four feature areas to the Nexus 2.0 React/TypeScript frontend: Audit Logs Pa
 - [x] 4. Checkpoint — Verify audit and error log pages
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 5. Implement ReferenceDataPage
+- [x] 5. Implement ReferenceDataPage
   - [x] 5.1 Create `src/frontend/src/features/admin/pages/ReferenceDataPage.tsx`
     - Implement state: activeTab ('departmentTypes' | 'priorityLevels' | 'taskTypes' | 'workflowStates'), data arrays for each type, loading, createModalOpen, saving, form state (code, name, level), errors
     - On mount, fetch all four reference data lists via `utilityApi.getDepartmentTypes()`, `utilityApi.getPriorityLevels()`, `utilityApi.getTaskTypes()`, `utilityApi.getWorkflowStates()`
@@ -103,7 +103,7 @@ Add four feature areas to the Nexus 2.0 React/TypeScript frontend: Audit Logs Pa
     - Use `fast-check` to generate random tab selections; assert correct data displayed in DataTable
     - **Validates: Requirements 9.2**
 
-- [ ] 6. Implement Sprint Edit on SprintDetailPage
+- [x] 6. Implement Sprint Edit on SprintDetailPage
   - [x] 6.1 Add SprintEditModal and edit button to `src/frontend/src/features/sprints/pages/SprintDetailPage.tsx`
     - Add `editOpen` state to SprintDetailPage
     - Use `useAuth()` to get `user.roleName`; show "Edit" button (Pencil icon) only when role is `OrgAdmin` or `DeptLead`; hide for `Member`/`Viewer`

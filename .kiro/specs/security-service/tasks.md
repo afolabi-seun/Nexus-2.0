@@ -64,7 +64,7 @@ Incremental implementation of the SecurityService microservice following Clean A
     - `IPasswordHistoryRepository` (GetLastNByUserIdAsync, AddAsync)
     - _Requirements: REQ-011, REQ-020_
 
-- [-] 3. Application layer — DTOs, contracts, validators
+- [x] 3. Application layer — DTOs, contracts, validators
   - [x] 3.1 Create `ApiResponse<T>` envelope and `ErrorDetail` classes
     - `ApiResponse<T>` with `ResponseCode`, `Success`, `Data`, `ErrorCode`, `ErrorValue`, `Message`, `CorrelationId`, `Errors`
     - `ErrorDetail` with `Field`, `Message`
@@ -131,7 +131,7 @@ Incremental implementation of the SecurityService microservice following Clean A
     - Document all env vars with sensible defaults
     - _Requirements: REQ-025_
 
-- [-] 7. Infrastructure layer — Redis services
+- [x] 7. Infrastructure layer — Redis services
   - [x] 7.1 Implement `RateLimiterService` with Redis Lua sliding window script
     - `CheckRateLimitAsync` using sorted set with ZREMRANGEBYSCORE + ZCARD + ZADD
     - Return `(IsAllowed, RetryAfterSeconds)`
@@ -165,7 +165,7 @@ Incremental implementation of the SecurityService microservice following Clean A
     - **Property: For N requests within a window of max M, the first M are allowed and request M+1 is denied with RetryAfterSeconds > 0**
     - **Validates: REQ-012.1, REQ-012.4**
 
-- [-] 8. Infrastructure layer — JWT and password services
+- [x] 8. Infrastructure layer — JWT and password services
   - [x] 8.1 Implement `JwtService`
     - `GenerateAccessToken` — create JWT with userId, organizationId, departmentId, roleName, departmentRole, deviceId, jti claims; configurable expiry
     - `GenerateRefreshToken` — cryptographically random token string
@@ -230,7 +230,7 @@ Incremental implementation of the SecurityService microservice following Clean A
 - [x] 11. Checkpoint — Verify Infrastructure layer compiles and unit tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [-] 12. Api layer — Middleware pipeline
+- [x] 12. Api layer — Middleware pipeline
   - [x] 12.1 Implement `CorrelationIdMiddleware`
     - Generate or propagate `X-Correlation-Id` header, store in `HttpContext.Items["CorrelationId"]`, include in response headers
     - _Requirements: REQ-017.4_
@@ -287,7 +287,7 @@ Incremental implementation of the SecurityService microservice following Clean A
     - CORS → CorrelationId → GlobalExceptionHandler → RateLimiter → Routing → Authentication → Authorization → JwtClaims → TokenBlacklist → FirstTimeUserGuard → AuthenticatedRateLimiter → RoleAuthorization → OrganizationScope → Controllers
     - _Requirements: REQ-017.1_
 
-- [ ] 13. Api layer — Controllers
+- [x] 13. Api layer — Controllers
   - [x] 13.1 Implement `AuthController`
     - `POST /api/v1/auth/login` — no auth, accepts `LoginRequest`, returns `LoginResponse`
     - `POST /api/v1/auth/logout` — Bearer auth, invalidates current session

@@ -42,6 +42,7 @@ using WorkService.Domain.Interfaces.Services.CostRates;
 using WorkService.Domain.Interfaces.Services.CostSnapshots;
 using WorkService.Domain.Interfaces.Services.RiskRegisters;
 using WorkService.Domain.Interfaces.Services.StoryTemplates;
+using WorkService.Domain.Interfaces.Services.SavedFilters;
 using WorkService.Domain.Interfaces.Services.TimeEntries;
 using WorkService.Domain.Interfaces.Services.TimePolicies;
 using WorkService.Domain.Interfaces.Services.TimerSessions;
@@ -87,6 +88,7 @@ using WorkService.Infrastructure.Services.CostSnapshots;
 using WorkService.Infrastructure.Services.SprintNotifications;
 using WorkService.Infrastructure.Services.RiskRegisters;
 using WorkService.Infrastructure.Services.StoryTemplates;
+using WorkService.Infrastructure.Services.SavedFilters;
 using WorkService.Infrastructure.Services.TimeEntries;
 using WorkService.Infrastructure.Services.TimePolicies;
 using WorkService.Infrastructure.Services.TimerSessions;
@@ -168,6 +170,7 @@ public static class DependencyInjection
         services.AddScoped<IRiskRegisterService, RiskRegisterService>();
         services.AddScoped<IStoryTemplateService, StoryTemplateService>();
         services.AddScoped<IAnalyticsSnapshotService, AnalyticsSnapshotHostedService>();
+        services.AddScoped<ISavedFilterService, SavedFilterService>();
 
         // Background services
         services.AddHostedService<CostSnapshotHostedService>();

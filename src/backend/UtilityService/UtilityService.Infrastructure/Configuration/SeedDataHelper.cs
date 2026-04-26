@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using UtilityService.Domain.Entities;
 using UtilityService.Infrastructure.Data;
 
@@ -6,7 +9,18 @@ namespace UtilityService.Infrastructure.Configuration;
 
 public static class SeedDataHelper
 {
-    public static async Task SeedAsync(UtilityDbContext context)
+    public static async Task SeedAsync(WebApplication app)
+    {
+        using var scope = app.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<UtilityDbContext>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<UtilityDbContext>>();
+
+        logger.LogInformation("Seeding UtilityService reference data...");
+        await SeedCoreDataAsync(context);
+        logger.LogInformation("UtilityService reference data seeded.");
+    }
+
+    private static async Task SeedCoreDataAsync(UtilityDbContext context)
     {
         if (!await context.DepartmentTypes.AnyAsync())
         {

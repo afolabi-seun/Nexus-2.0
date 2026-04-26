@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkService.Api.Extensions;
-using WorkService.Application.DTOs;
 using WorkService.Domain.Interfaces.Services.Reports;
 
 namespace WorkService.Api.Controllers;
@@ -23,8 +22,7 @@ public class ReportController : ControllerBase
         [FromQuery] int count = 10, CancellationToken ct = default)
     {
         var orgId = GetOrganizationId();
-        var result = await _reportService.GetVelocityChartAsync(orgId, count, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _reportService.GetVelocityChartAsync(orgId, count, ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("department-workload")]
@@ -32,8 +30,7 @@ public class ReportController : ControllerBase
         [FromQuery] Guid? sprintId = null, CancellationToken ct = default)
     {
         var orgId = GetOrganizationId();
-        var result = await _reportService.GetDepartmentWorkloadAsync(orgId, sprintId, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _reportService.GetDepartmentWorkloadAsync(orgId, sprintId, ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("capacity")]
@@ -41,8 +38,7 @@ public class ReportController : ControllerBase
         [FromQuery] Guid? departmentId = null, CancellationToken ct = default)
     {
         var orgId = GetOrganizationId();
-        var result = await _reportService.GetCapacityUtilizationAsync(orgId, departmentId, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _reportService.GetCapacityUtilizationAsync(orgId, departmentId, ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("cycle-time")]
@@ -51,8 +47,7 @@ public class ReportController : ControllerBase
         CancellationToken ct = default)
     {
         var orgId = GetOrganizationId();
-        var result = await _reportService.GetCycleTimeAsync(orgId, dateFrom, dateTo, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _reportService.GetCycleTimeAsync(orgId, dateFrom, dateTo, ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("task-completion")]
@@ -62,8 +57,7 @@ public class ReportController : ControllerBase
         CancellationToken ct = default)
     {
         var orgId = GetOrganizationId();
-        var result = await _reportService.GetTaskCompletionAsync(orgId, sprintId, dateFrom, dateTo, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _reportService.GetTaskCompletionAsync(orgId, sprintId, dateFrom, dateTo, ct)).ToActionResult(HttpContext);
     }
 
     private Guid GetOrganizationId() => Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);

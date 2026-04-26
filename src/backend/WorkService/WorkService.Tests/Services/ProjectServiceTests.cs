@@ -3,10 +3,10 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using WorkService.Application.DTOs.Projects;
 using WorkService.Domain.Entities;
-using WorkService.Domain.Exceptions;
 using WorkService.Domain.Interfaces.Repositories.Projects;
 using WorkService.Domain.Interfaces.Repositories.Stories;
 using WorkService.Domain.Interfaces.Services.Outbox;
+using WorkService.Domain.Results;
 using WorkService.Infrastructure.Data;
 using WorkService.Tests.Helpers;
 using WorkService.Infrastructure.Services.Projects;
@@ -45,48 +45,59 @@ public class ProjectServiceTests
 
         var result = await _sut.CreateAsync(_orgId, _creatorId, request);
 
-        Assert.NotNull(result);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(201, result.StatusCode);
+        Assert.NotNull(result.Data);
         _projectRepo.Verify(r => r.AddAsync(It.IsAny<Project>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task CreateAsync_DuplicateProjectKey_Throws()
+    public async Task CreateAsync_DuplicateProjectKey_ReturnsConflict()
     {
         _projectRepo.Setup(r => r.GetByKeyAsync("DUPE", It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Project { ProjectKey = "DUPE" });
 
         var request = new CreateProjectRequest { ProjectName = "Test", ProjectKey = "DUPE" };
 
-        await Assert.ThrowsAsync<ProjectKeyDuplicateException>(
-            () => _sut.CreateAsync(_orgId, _creatorId, request));
+        var result = await _sut.CreateAsync(_orgId, _creatorId, request);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(409, result.StatusCode);
+        Assert.Equal("PROJECT_KEY_DUPLICATE", result.ErrorCode);
     }
 
     [Fact]
-    public async Task CreateAsync_DuplicateProjectName_Throws()
+    public async Task CreateAsync_DuplicateProjectName_ReturnsConflict()
     {
         _projectRepo.Setup(r => r.GetByNameAsync(_orgId, "Existing", It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Project { ProjectName = "Existing" });
 
         var request = new CreateProjectRequest { ProjectName = "Existing", ProjectKey = "NEW" };
 
-        await Assert.ThrowsAsync<ProjectNameDuplicateException>(
-            () => _sut.CreateAsync(_orgId, _creatorId, request));
+        var result = await _sut.CreateAsync(_orgId, _creatorId, request);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(409, result.StatusCode);
+        Assert.Equal("PROJECT_NAME_DUPLICATE", result.ErrorCode);
     }
 
     [Theory]
     [InlineData("ab")]
     [InlineData("lower")]
     [InlineData("AB CD")]
-    public async Task CreateAsync_InvalidProjectKeyFormat_Throws(string key)
+    public async Task CreateAsync_InvalidProjectKeyFormat_ReturnsBadRequest(string key)
     {
         var request = new CreateProjectRequest { ProjectName = "Test", ProjectKey = key };
 
-        await Assert.ThrowsAsync<ProjectKeyInvalidFormatException>(
-            () => _sut.CreateAsync(_orgId, _creatorId, request));
+        var result = await _sut.CreateAsync(_orgId, _creatorId, request);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(400, result.StatusCode);
+        Assert.Equal("PROJECT_KEY_INVALID_FORMAT", result.ErrorCode);
     }
 
     [Fact]
-    public async Task UpdateAsync_ProjectKeyImmutable_WhenStoriesExist_Throws()
+    public async Task UpdateAsync_ProjectKeyImmutable_WhenStoriesExist_ReturnsBadRequest()
     {
         var projectId = Guid.NewGuid();
         var project = new Project { ProjectId = projectId, OrganizationId = _orgId, ProjectKey = "OLD", ProjectName = "P" };
@@ -98,7 +109,10 @@ public class ProjectServiceTests
 
         var request = new UpdateProjectRequest { ProjectKey = "NEW" };
 
-        await Assert.ThrowsAsync<ProjectKeyImmutableException>(
-            () => _sut.UpdateAsync(projectId, request));
+        var result = await _sut.UpdateAsync(projectId, request);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(400, result.StatusCode);
+        Assert.Equal("PROJECT_KEY_IMMUTABLE", result.ErrorCode);
     }
 }

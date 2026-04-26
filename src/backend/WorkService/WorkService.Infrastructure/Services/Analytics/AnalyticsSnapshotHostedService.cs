@@ -7,6 +7,7 @@ using WorkService.Application.DTOs.Analytics;
 using WorkService.Domain.Interfaces.Repositories.Projects;
 using WorkService.Domain.Interfaces.Repositories.Sprints;
 using WorkService.Domain.Interfaces.Services.Analytics;
+using WorkService.Domain.Results;
 using WorkService.Infrastructure.Redis;
 
 namespace WorkService.Infrastructure.Services.Analytics;
@@ -28,32 +29,31 @@ public class AnalyticsSnapshotHostedService : BackgroundService, IAnalyticsSnaps
         _logger = logger;
     }
 
-    public async System.Threading.Tasks.Task TriggerSprintCloseSnapshotsAsync(Guid sprintId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> TriggerSprintCloseSnapshotsAsync(Guid sprintId, CancellationToken ct = default)
     {
         using var scope = _scopeFactory.CreateScope();
         var analyticsService = scope.ServiceProvider.GetRequiredService<IAnalyticsService>();
         var sprintRepo = scope.ServiceProvider.GetRequiredService<ISprintRepository>();
 
         var sprint = await sprintRepo.GetByIdAsync(sprintId, ct);
-        if (sprint == null) return;
+        if (sprint == null) return ServiceResult<object>.NoContent("Sprint not found.");
 
         var projectId = sprint.ProjectId;
 
-        // Generate velocity snapshot
         await analyticsService.GenerateVelocitySnapshotAsync(sprintId, ct);
         _logger.LogInformation("Generated velocity snapshot for sprint {SprintId}", sprintId);
 
-        // Generate health snapshot
         await analyticsService.GenerateHealthSnapshotAsync(projectId, ct);
         _logger.LogInformation("Generated health snapshot for project {ProjectId}", projectId);
 
-        // Generate resource allocation snapshot
         await analyticsService.GenerateResourceAllocationSnapshotAsync(
             projectId, sprint.StartDate, sprint.EndDate, ct);
         _logger.LogInformation("Generated resource allocation snapshot for project {ProjectId}", projectId);
+
+        return ServiceResult<object>.NoContent("Sprint close snapshots generated.");
     }
 
-    public async System.Threading.Tasks.Task GeneratePeriodicSnapshotsAsync(CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GeneratePeriodicSnapshotsAsync(CancellationToken ct = default)
     {
         using var scope = _scopeFactory.CreateScope();
         var projectRepo = scope.ServiceProvider.GetRequiredService<IProjectRepository>();
@@ -81,7 +81,6 @@ public class AnalyticsSnapshotHostedService : BackgroundService, IAnalyticsSnaps
             }
         }
 
-        // Store status in Redis with 24h TTL
         var status = new SnapshotStatusResponse
         {
             LastRunTime = DateTime.UtcNow,
@@ -93,9 +92,11 @@ public class AnalyticsSnapshotHostedService : BackgroundService, IAnalyticsSnaps
         var db = _redis.GetDatabase();
         var json = JsonSerializer.Serialize(status);
         await db.StringSetAsync(RedisKeys.AnalyticsSnapshotStatus, json, TimeSpan.FromHours(24));
+
+        return ServiceResult<object>.NoContent("Periodic snapshots generated.");
     }
 
-    public async Task<object> GetSnapshotStatusAsync(CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetSnapshotStatusAsync(CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
         var cached = await db.StringGetAsync(RedisKeys.AnalyticsSnapshotStatus);
@@ -103,16 +104,16 @@ public class AnalyticsSnapshotHostedService : BackgroundService, IAnalyticsSnaps
         if (cached.HasValue)
         {
             var status = JsonSerializer.Deserialize<SnapshotStatusResponse>(cached!);
-            if (status != null) return status;
+            if (status != null) return ServiceResult<object>.Ok(status, "Snapshot status retrieved.");
         }
 
-        return new SnapshotStatusResponse
+        return ServiceResult<object>.Ok(new SnapshotStatusResponse
         {
             LastRunTime = null,
             ProjectsProcessed = 0,
             ErrorsEncountered = 0,
             NextScheduledRun = null
-        };
+        }, "Snapshot status retrieved.");
     }
 
     protected override async System.Threading.Tasks.Task ExecuteAsync(CancellationToken stoppingToken)

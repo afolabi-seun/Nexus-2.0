@@ -39,8 +39,7 @@ public class TimeEntryController : ControllerBase
     {
         var orgId = GetOrganizationId();
         var userId = GetUserId();
-        var result = await _timeEntryService.CreateAsync(orgId, userId, request, ct);
-        return ApiResponse<object>.Ok(result, "Time entry created successfully.").ToActionResult(HttpContext, 201);
+        return (await _timeEntryService.CreateAsync(orgId, userId, request, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -58,9 +57,8 @@ public class TimeEntryController : ControllerBase
     {
         PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = GetOrganizationId();
-        var result = await _timeEntryService.ListAsync(orgId, storyId, projectId, sprintId,
-            memberId, dateFrom, dateTo, isBillable, status, page, pageSize, ct);
-        return ApiResponse<object>.Ok(result, "Time entries retrieved.").ToActionResult(HttpContext);
+        return (await _timeEntryService.ListAsync(orgId, storyId, projectId, sprintId,
+            memberId, dateFrom, dateTo, isBillable, status, page, pageSize, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -74,8 +72,7 @@ public class TimeEntryController : ControllerBase
         Guid timeEntryId, [FromBody] UpdateTimeEntryRequest request, CancellationToken ct)
     {
         var userId = GetUserId();
-        var result = await _timeEntryService.UpdateAsync(timeEntryId, userId, request, ct);
-        return ApiResponse<object>.Ok(result, "Time entry updated.").ToActionResult(HttpContext);
+        return (await _timeEntryService.UpdateAsync(timeEntryId, userId, request, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -88,8 +85,7 @@ public class TimeEntryController : ControllerBase
     public async Task<IActionResult> Delete(Guid timeEntryId, CancellationToken ct)
     {
         var userId = GetUserId();
-        await _timeEntryService.DeleteAsync(timeEntryId, userId, ct);
-        return ApiResponse<object>.Ok(null!, "Time entry deleted.").ToActionResult(HttpContext);
+        return (await _timeEntryService.DeleteAsync(timeEntryId, userId, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -104,8 +100,7 @@ public class TimeEntryController : ControllerBase
         var approverId = GetUserId();
         var approverRole = GetRole();
         var approverDeptId = GetDepartmentId();
-        var result = await _timeEntryService.ApproveAsync(timeEntryId, approverId, approverRole, approverDeptId, ct);
-        return ApiResponse<object>.Ok(result, "Time entry approved.").ToActionResult(HttpContext);
+        return (await _timeEntryService.ApproveAsync(timeEntryId, approverId, approverRole, approverDeptId, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -121,8 +116,7 @@ public class TimeEntryController : ControllerBase
         var approverId = GetUserId();
         var approverRole = GetRole();
         var approverDeptId = GetDepartmentId();
-        var result = await _timeEntryService.RejectAsync(timeEntryId, approverId, approverRole, approverDeptId, request.Reason, ct);
-        return ApiResponse<object>.Ok(result, "Time entry rejected.").ToActionResult(HttpContext);
+        return (await _timeEntryService.RejectAsync(timeEntryId, approverId, approverRole, approverDeptId, request.Reason, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -136,8 +130,7 @@ public class TimeEntryController : ControllerBase
     {
         var userId = GetUserId();
         var orgId = GetOrganizationId();
-        var result = await _timerSessionService.StartAsync(userId, request.StoryId, orgId, ct);
-        return ApiResponse<object>.Ok(result, "Timer started.").ToActionResult(HttpContext);
+        return (await _timerSessionService.StartAsync(userId, request.StoryId, orgId, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -150,8 +143,7 @@ public class TimeEntryController : ControllerBase
     {
         var userId = GetUserId();
         var orgId = GetOrganizationId();
-        var result = await _timerSessionService.StopAsync(userId, orgId, ct);
-        return ApiResponse<object>.Ok(result, "Timer stopped.").ToActionResult(HttpContext);
+        return (await _timerSessionService.StopAsync(userId, orgId, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -164,9 +156,9 @@ public class TimeEntryController : ControllerBase
     {
         var userId = GetUserId();
         var result = await _timerSessionService.GetStatusAsync(userId, ct);
-        if (result == null)
+        if (result.IsSuccess && result.Data == null)
             return NoContent();
-        return ApiResponse<object>.Ok(result, "Timer status retrieved.").ToActionResult(HttpContext);
+        return result.ToActionResult(HttpContext);
     }
 
     private Guid GetOrganizationId() => Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);

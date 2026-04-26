@@ -4,6 +4,7 @@ using WorkService.Domain.Interfaces.Repositories.Sprints;
 using WorkService.Domain.Interfaces.Repositories.Stories;
 using WorkService.Domain.Interfaces.Repositories.Tasks;
 using WorkService.Domain.Interfaces.Services.Reports;
+using WorkService.Domain.Results;
 using WorkService.Infrastructure.Services.ServiceClients;
 
 namespace WorkService.Infrastructure.Services.Reports;
@@ -26,7 +27,7 @@ public class ReportService : IReportService
         _profileClient = profileClient;
     }
 
-    public async Task<object> GetVelocityChartAsync(Guid organizationId, int count, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetVelocityChartAsync(Guid organizationId, int count, CancellationToken ct = default)
     {
         var sprints = await _sprintRepo.GetCompletedAsync(organizationId, count, ct);
         var results = new List<VelocityChartResponse>();
@@ -56,15 +57,15 @@ public class ReportService : IReportService
             });
         }
 
-        return results;
+        return ServiceResult<object>.Ok(results);
     }
 
-    public async Task<object> GetDepartmentWorkloadAsync(Guid organizationId, Guid? sprintId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetDepartmentWorkloadAsync(Guid organizationId, Guid? sprintId, CancellationToken ct = default)
     {
         var tasks = await _taskRepo.ListByDepartmentAsync(organizationId, sprintId, ct);
         var taskList = tasks.ToList();
 
-        return taskList.GroupBy(t => t.DepartmentId?.ToString() ?? "Unassigned")
+        var data = taskList.GroupBy(t => t.DepartmentId?.ToString() ?? "Unassigned")
             .Select(g => new DepartmentWorkloadResponse
             {
                 DepartmentName = g.Key, TotalTasks = g.Count(),
@@ -75,23 +76,25 @@ public class ReportService : IReportService
                     ? Math.Round((decimal)g.Count() / g.Select(t => t.AssigneeId).Where(a => a.HasValue).Distinct().Count(), 2)
                     : 0
             }).ToList();
+
+        return ServiceResult<object>.Ok(data);
     }
 
-    public async Task<object> GetCapacityUtilizationAsync(Guid organizationId, Guid? departmentId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetCapacityUtilizationAsync(Guid organizationId, Guid? departmentId, CancellationToken ct = default)
     {
         var results = new List<CapacityUtilizationResponse>();
         // Capacity utilization requires ProfileService for member data
         // Return empty list if ProfileService is not available
         await System.Threading.Tasks.Task.CompletedTask;
-        return results;
+        return ServiceResult<object>.Ok(results);
     }
 
-    public async Task<object> GetCycleTimeAsync(Guid organizationId, DateTime? dateFrom, DateTime? dateTo, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetCycleTimeAsync(Guid organizationId, DateTime? dateFrom, DateTime? dateTo, CancellationToken ct = default)
     {
         var (stories, _) = await _storyRepo.ListAsync(organizationId, 1, 10000, null,
             "Done", null, null, null, null, null, null, dateFrom, dateTo, ct);
 
-        return stories.Where(s => s.CompletedDate.HasValue).Select(s =>
+        var data = stories.Where(s => s.CompletedDate.HasValue).Select(s =>
         {
             var cycleTimeDays = s.CompletedDate.HasValue
                 ? (int)(s.CompletedDate.Value - s.DateCreated).TotalDays
@@ -105,9 +108,11 @@ public class ReportService : IReportService
                 CompletedDate = s.CompletedDate!.Value
             };
         }).ToList();
+
+        return ServiceResult<object>.Ok(data);
     }
 
-    public async Task<object> GetTaskCompletionAsync(Guid organizationId, Guid? sprintId, DateTime? dateFrom, DateTime? dateTo, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetTaskCompletionAsync(Guid organizationId, Guid? sprintId, DateTime? dateFrom, DateTime? dateTo, CancellationToken ct = default)
     {
         var tasks = await _taskRepo.ListByDepartmentAsync(organizationId, sprintId, ct);
         var taskList = tasks.ToList();
@@ -115,7 +120,7 @@ public class ReportService : IReportService
         if (dateFrom.HasValue) taskList = taskList.Where(t => t.DateCreated >= dateFrom.Value).ToList();
         if (dateTo.HasValue) taskList = taskList.Where(t => t.DateCreated <= dateTo.Value).ToList();
 
-        return taskList.GroupBy(t => t.DepartmentId?.ToString() ?? "Unassigned")
+        var data = taskList.GroupBy(t => t.DepartmentId?.ToString() ?? "Unassigned")
             .Select(g =>
             {
                 var completed = g.Where(t => t.Status == "Done").ToList();
@@ -132,5 +137,7 @@ public class ReportService : IReportService
                     AvgCompletionTimeHours = (decimal)avgHours
                 };
             }).ToList();
+
+        return ServiceResult<object>.Ok(data);
     }
 }

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkService.Api.Extensions;
-using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.Search;
 using WorkService.Domain.Interfaces.Services.Search;
 using WorkService.Application.Helpers;
@@ -28,8 +27,7 @@ public class SearchController : ControllerBase
         PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = GetOrganizationId();
         var request = new SearchRequest { Query = query, Page = page, PageSize = pageSize };
-        var result = await _searchService.SearchAsync(orgId, request, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _searchService.SearchAsync(orgId, request, ct)).ToActionResult(HttpContext);
     }
 
     private Guid GetOrganizationId() => Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);

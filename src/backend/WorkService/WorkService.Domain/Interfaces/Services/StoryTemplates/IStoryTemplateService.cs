@@ -1,3 +1,5 @@
+using WorkService.Domain.Results;
+
 namespace WorkService.Domain.Interfaces.Services.StoryTemplates;
 
 /// <summary>
@@ -7,9 +9,9 @@ namespace WorkService.Domain.Interfaces.Services.StoryTemplates;
 /// </summary>
 public interface IStoryTemplateService
 {
-    Task<object> ListAsync(Guid organizationId, int page, int pageSize, CancellationToken ct = default);
-    Task<object> GetByIdAsync(Guid templateId, CancellationToken ct = default);
-    Task<object> CreateAsync(Guid organizationId, object request, CancellationToken ct = default);
-    Task<object> UpdateAsync(Guid templateId, object request, CancellationToken ct = default);
-    Task DeleteAsync(Guid templateId, CancellationToken ct = default);
+    Task<ServiceResult<object>> ListAsync(Guid organizationId, int page, int pageSize, CancellationToken ct = default);
+    Task<ServiceResult<object>> GetByIdAsync(Guid templateId, CancellationToken ct = default);
+    Task<ServiceResult<object>> CreateAsync(Guid organizationId, object request, CancellationToken ct = default);
+    Task<ServiceResult<object>> UpdateAsync(Guid templateId, object request, CancellationToken ct = default);
+    Task<ServiceResult<object>> DeleteAsync(Guid templateId, CancellationToken ct = default);
 }

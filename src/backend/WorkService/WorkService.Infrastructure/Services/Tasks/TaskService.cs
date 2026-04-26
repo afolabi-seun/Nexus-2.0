@@ -8,6 +8,7 @@ using WorkService.Domain.Interfaces.Repositories.Stories;
 using WorkService.Domain.Interfaces.Repositories.Tasks;
 using WorkService.Domain.Interfaces.Services.Outbox;
 using WorkService.Domain.Interfaces.Services.Tasks;
+using WorkService.Domain.Results;
 using WorkService.Infrastructure.Data;
 using WorkService.Infrastructure.Services.ServiceClients;
 
@@ -23,7 +24,9 @@ public class TaskService : ITaskService
     private readonly IOutboxService _outbox;
     private readonly IProfileServiceClient? _profileClient;
     private readonly WorkDbContext _dbContext;
-    private readonly ILogger<TaskService> _logger;    public TaskService(
+    private readonly ILogger<TaskService> _logger;
+
+    public TaskService(
         ITaskRepository taskRepo, IStoryRepository storyRepo,
         IActivityLogRepository activityLogRepo, IOutboxService outbox,
         WorkDbContext dbContext, ILogger<TaskService> logger, IProfileServiceClient? profileClient = null)
@@ -33,13 +36,16 @@ public class TaskService : ITaskService
         _dbContext = dbContext; _logger = logger; _profileClient = profileClient;
     }
 
-    public async Task<object> CreateAsync(Guid organizationId, Guid creatorId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> CreateAsync(Guid organizationId, Guid creatorId, object request, CancellationToken ct = default)
     {
         var req = (CreateTaskRequest)request;
         var deptCode = TaskTypeDepartmentMap.GetDepartmentCode(req.TaskType);
 
-        var story = await _storyRepo.GetByIdAsync(req.StoryId, ct)
-            ?? throw new StoryNotFoundException(req.StoryId);
+        var story = await _storyRepo.GetByIdAsync(req.StoryId, ct);
+        if (story == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.StoryNotFoundValue, ErrorCodes.StoryNotFound,
+                $"Story with ID '{req.StoryId}' was not found.", 404);
 
         Guid? departmentId = null;
         if (_profileClient != null)
@@ -71,35 +77,44 @@ public class TaskService : ITaskService
         }, ct);
         await _dbContext.SaveChangesAsync(ct);
 
-        return BuildTaskResponse(task, story.StoryKey);
+        return ServiceResult<object>.Created(BuildTaskResponse(task, story.StoryKey), "Task created successfully.");
     }
 
-    public async Task<object> GetByIdAsync(Guid taskId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetByIdAsync(Guid taskId, CancellationToken ct = default)
     {
-        var task = await _taskRepo.GetByIdAsync(taskId, ct)
-            ?? throw new TaskNotFoundException(taskId);
+        var task = await _taskRepo.GetByIdAsync(taskId, ct);
+        if (task == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.TaskNotFoundValue, ErrorCodes.TaskNotFound,
+                $"Task with ID '{taskId}' was not found.", 404);
         var story = await _storyRepo.GetByIdAsync(task.StoryId, ct);
-        return BuildTaskResponse(task, story?.StoryKey ?? "");
+        return ServiceResult<object>.Ok(BuildTaskResponse(task, story?.StoryKey ?? ""));
     }
 
-    public async Task<object> ListByStoryAsync(Guid storyId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> ListByStoryAsync(Guid storyId, CancellationToken ct = default)
     {
         var story = await _storyRepo.GetByIdAsync(storyId, ct);
         var tasks = await _taskRepo.ListByStoryAsync(storyId, ct);
-        return tasks.Select(t => BuildTaskResponse(t, story?.StoryKey ?? "")).ToList();
+        return ServiceResult<object>.Ok(tasks.Select(t => BuildTaskResponse(t, story?.StoryKey ?? "")).ToList());
     }
 
-    public async Task<object> UpdateAsync(Guid taskId, Guid actorId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> UpdateAsync(Guid taskId, Guid actorId, object request, CancellationToken ct = default)
     {
         var req = (UpdateTaskRequest)request;
-        var task = await _taskRepo.GetByIdAsync(taskId, ct)
-            ?? throw new TaskNotFoundException(taskId);
+        var task = await _taskRepo.GetByIdAsync(taskId, ct);
+        if (task == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.TaskNotFoundValue, ErrorCodes.TaskNotFound,
+                $"Task with ID '{taskId}' was not found.", 404);
 
         if (req.Title != null) task.Title = req.Title;
         if (req.Description != null) task.Description = req.Description;
         if (req.Priority != null)
         {
-            if (!ValidPriorities.Contains(req.Priority)) throw new InvalidPriorityException(req.Priority);
+            if (!ValidPriorities.Contains(req.Priority))
+                return ServiceResult<object>.Fail(
+                    ErrorCodes.InvalidPriorityValue, ErrorCodes.InvalidPriority,
+                    $"Priority '{req.Priority}' is not valid.", 400);
             task.Priority = req.Priority;
         }
         if (req.EstimatedHours.HasValue) task.EstimatedHours = req.EstimatedHours;
@@ -109,31 +124,45 @@ public class TaskService : ITaskService
         await _taskRepo.UpdateAsync(task, ct);
         await _dbContext.SaveChangesAsync(ct);
         var story = await _storyRepo.GetByIdAsync(task.StoryId, ct);
-        return BuildTaskResponse(task, story?.StoryKey ?? "");
+        return ServiceResult<object>.Ok(BuildTaskResponse(task, story?.StoryKey ?? ""), "Task updated.");
     }
 
-    public async System.Threading.Tasks.Task DeleteAsync(Guid taskId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> DeleteAsync(Guid taskId, CancellationToken ct = default)
     {
-        var task = await _taskRepo.GetByIdAsync(taskId, ct)
-            ?? throw new TaskNotFoundException(taskId);
-        if (task.Status == "InProgress") throw new TaskInProgressException(taskId);
+        var task = await _taskRepo.GetByIdAsync(taskId, ct);
+        if (task == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.TaskNotFoundValue, ErrorCodes.TaskNotFound,
+                $"Task with ID '{taskId}' was not found.", 404);
+        if (task.Status == "InProgress")
+            return ServiceResult<object>.Fail(
+                ErrorCodes.TaskInProgressValue, ErrorCodes.TaskInProgress,
+                $"Task '{taskId}' is currently in progress and cannot be deleted.", 400);
 
         task.FlgStatus = "D";
         task.DateUpdated = DateTime.UtcNow;
         await _taskRepo.UpdateAsync(task, ct);
         await _dbContext.SaveChangesAsync(ct);
+        return ServiceResult<object>.NoContent("Task deleted.");
     }
 
-    public async Task<object> TransitionStatusAsync(Guid taskId, Guid actorId, string newStatus, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> TransitionStatusAsync(Guid taskId, Guid actorId, string newStatus, CancellationToken ct = default)
     {
-        var task = await _taskRepo.GetByIdAsync(taskId, ct)
-            ?? throw new TaskNotFoundException(taskId);
+        var task = await _taskRepo.GetByIdAsync(taskId, ct);
+        if (task == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.TaskNotFoundValue, ErrorCodes.TaskNotFound,
+                $"Task with ID '{taskId}' was not found.", 404);
 
         if (!WorkflowStateMachine.IsValidTaskTransition(task.Status, newStatus))
-            throw new InvalidTaskTransitionException(task.Status, newStatus);
+            return ServiceResult<object>.Fail(
+                ErrorCodes.InvalidTaskTransitionValue, ErrorCodes.InvalidTaskTransition,
+                $"Cannot transition task from '{task.Status}' to '{newStatus}'.", 400);
 
         if (newStatus == "InProgress" && !task.AssigneeId.HasValue)
-            throw new StoryRequiresAssigneeException();
+            return ServiceResult<object>.Fail(
+                ErrorCodes.StoryRequiresAssigneeValue, ErrorCodes.StoryRequiresAssignee,
+                "Task must be assigned before moving to InProgress.", 400);
 
         var oldStatus = task.Status;
         task.Status = newStatus;
@@ -154,26 +183,33 @@ public class TaskService : ITaskService
 
         await _outbox.PublishAsync(new { MessageType = "NotificationRequest", Action = "TaskStatusChanged", EntityType = "Task", EntityId = taskId.ToString() }, ct);
 
-        return BuildTaskResponse(task, story?.StoryKey ?? "");
+        return ServiceResult<object>.Ok(BuildTaskResponse(task, story?.StoryKey ?? ""), "Task status updated.");
     }
 
-    public async Task<object> AssignAsync(Guid taskId, Guid actorId, Guid assigneeId, string actorRole, Guid actorDepartmentId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> AssignAsync(Guid taskId, Guid actorId, Guid assigneeId, string actorRole, Guid actorDepartmentId, CancellationToken ct = default)
     {
-        var task = await _taskRepo.GetByIdAsync(taskId, ct)
-            ?? throw new TaskNotFoundException(taskId);
+        var task = await _taskRepo.GetByIdAsync(taskId, ct);
+        if (task == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.TaskNotFoundValue, ErrorCodes.TaskNotFound,
+                $"Task with ID '{taskId}' was not found.", 404);
 
         if (_profileClient != null && task.DepartmentId.HasValue)
         {
             var members = await _profileClient.GetDepartmentMembersAsync(task.DepartmentId.Value, ct);
             if (!members.Any(m => m.Id == assigneeId))
-                throw new AssigneeNotInDepartmentException(assigneeId, task.DepartmentId.Value.ToString());
+                return ServiceResult<object>.Fail(
+                    ErrorCodes.AssigneeNotInDepartmentValue, ErrorCodes.AssigneeNotInDepartment,
+                    $"Assignee '{assigneeId}' is not a member of department '{task.DepartmentId.Value}'.", 400);
 
             var member = members.FirstOrDefault(m => m.Id == assigneeId);
             if (member != null)
             {
                 var activeCount = await _taskRepo.CountActiveByAssigneeAsync(assigneeId, ct);
                 if (activeCount >= member.MaxConcurrentTasks)
-                    throw new AssigneeAtCapacityException(assigneeId);
+                    return ServiceResult<object>.Fail(
+                        ErrorCodes.AssigneeAtCapacityValue, ErrorCodes.AssigneeAtCapacity,
+                        $"Assignee '{assigneeId}' has reached their maximum concurrent task limit.", 400);
             }
         }
 
@@ -183,13 +219,16 @@ public class TaskService : ITaskService
         await _dbContext.SaveChangesAsync(ct);
 
         var story = await _storyRepo.GetByIdAsync(task.StoryId, ct);
-        return BuildTaskResponse(task, story?.StoryKey ?? "");
+        return ServiceResult<object>.Ok(BuildTaskResponse(task, story?.StoryKey ?? ""), "Task assigned.");
     }
 
-    public async Task<object> SelfAssignAsync(Guid taskId, Guid userId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> SelfAssignAsync(Guid taskId, Guid userId, CancellationToken ct = default)
     {
-        var task = await _taskRepo.GetByIdAsync(taskId, ct)
-            ?? throw new TaskNotFoundException(taskId);
+        var task = await _taskRepo.GetByIdAsync(taskId, ct);
+        if (task == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.TaskNotFoundValue, ErrorCodes.TaskNotFound,
+                $"Task with ID '{taskId}' was not found.", 404);
 
         task.AssigneeId = userId;
         task.DateUpdated = DateTime.UtcNow;
@@ -199,13 +238,16 @@ public class TaskService : ITaskService
         await _outbox.PublishAsync(new { MessageType = "NotificationRequest", Action = "TaskAssigned", EntityType = "Task", EntityId = taskId.ToString() }, ct);
 
         var story = await _storyRepo.GetByIdAsync(task.StoryId, ct);
-        return BuildTaskResponse(task, story?.StoryKey ?? "");
+        return ServiceResult<object>.Ok(BuildTaskResponse(task, story?.StoryKey ?? ""), "Task self-assigned.");
     }
 
-    public async System.Threading.Tasks.Task UnassignAsync(Guid taskId, Guid actorId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> UnassignAsync(Guid taskId, Guid actorId, CancellationToken ct = default)
     {
-        var task = await _taskRepo.GetByIdAsync(taskId, ct)
-            ?? throw new TaskNotFoundException(taskId);
+        var task = await _taskRepo.GetByIdAsync(taskId, ct);
+        if (task == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.TaskNotFoundValue, ErrorCodes.TaskNotFound,
+                $"Task with ID '{taskId}' was not found.", 404);
         task.AssigneeId = null;
         task.DateUpdated = DateTime.UtcNow;
         await _taskRepo.UpdateAsync(task, ct);
@@ -216,30 +258,38 @@ public class TaskService : ITaskService
             Action = "Unassigned", ActorId = actorId, ActorName = "System", Description = "Task unassigned"
         }, ct);
         await _dbContext.SaveChangesAsync(ct);
+        return ServiceResult<object>.NoContent("Task unassigned.");
     }
 
-    public async System.Threading.Tasks.Task LogHoursAsync(Guid taskId, Guid actorId, decimal hours, string? description, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> LogHoursAsync(Guid taskId, Guid actorId, decimal hours, string? description, CancellationToken ct = default)
     {
-        if (hours <= 0) throw new HoursMustBePositiveException();
+        if (hours <= 0)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.HoursMustBePositiveValue, ErrorCodes.HoursMustBePositive,
+                "Hours must be a positive value.", 400);
 
-        var task = await _taskRepo.GetByIdAsync(taskId, ct)
-            ?? throw new TaskNotFoundException(taskId);
+        var task = await _taskRepo.GetByIdAsync(taskId, ct);
+        if (task == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.TaskNotFoundValue, ErrorCodes.TaskNotFound,
+                $"Task with ID '{taskId}' was not found.", 404);
 
         task.ActualHours = (task.ActualHours ?? 0) + hours;
         task.DateUpdated = DateTime.UtcNow;
         await _taskRepo.UpdateAsync(task, ct);
         await _dbContext.SaveChangesAsync(ct);
+        return ServiceResult<object>.NoContent("Hours logged.");
     }
 
-    public async Task<object> SuggestAssigneeAsync(string taskType, Guid organizationId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> SuggestAssigneeAsync(string taskType, Guid organizationId, CancellationToken ct = default)
     {
         var deptCode = TaskTypeDepartmentMap.GetDepartmentCode(taskType);
 
         if (_profileClient == null)
-            return new SuggestAssigneeResponse();
+            return ServiceResult<object>.Ok(new SuggestAssigneeResponse());
 
         var dept = await _profileClient.GetDepartmentByCodeAsync(organizationId, deptCode, ct);
-        if (dept == null) return new SuggestAssigneeResponse();
+        if (dept == null) return ServiceResult<object>.Ok(new SuggestAssigneeResponse());
 
         var members = await _profileClient.GetDepartmentMembersAsync(dept.DepartmentId, ct);
         Application.Contracts.TeamMemberResponse? best = null;
@@ -255,13 +305,13 @@ public class TaskService : ITaskService
             }
         }
 
-        return new SuggestAssigneeResponse
+        return ServiceResult<object>.Ok(new SuggestAssigneeResponse
         {
             SuggestedAssigneeId = best?.Id,
             SuggestedAssigneeName = best?.DisplayName,
             ActiveTaskCount = best != null ? lowestCount : 0,
             MaxConcurrentTasks = best?.MaxConcurrentTasks ?? 0
-        };
+        });
     }
 
     private static TaskDetailResponse BuildTaskResponse(Domain.Entities.Task task, string storyKey) => new()

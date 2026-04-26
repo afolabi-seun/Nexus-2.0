@@ -5,6 +5,7 @@ using WorkService.Domain.Entities;
 using WorkService.Domain.Exceptions;
 using WorkService.Domain.Interfaces.Repositories.RiskRegisters;
 using WorkService.Domain.Interfaces.Services.RiskRegisters;
+using WorkService.Domain.Results;
 using WorkService.Infrastructure.Data;
 
 namespace WorkService.Infrastructure.Services.RiskRegisters;
@@ -29,7 +30,7 @@ public class RiskRegisterService : IRiskRegisterService
         _logger = logger;
     }
 
-    public async Task<object> CreateAsync(Guid orgId, Guid userId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> CreateAsync(Guid orgId, Guid userId, object request, CancellationToken ct = default)
     {
         var req = (CreateRiskRequest)request;
 
@@ -53,15 +54,16 @@ public class RiskRegisterService : IRiskRegisterService
         await _dbContext.SaveChangesAsync(ct);
         _logger.LogInformation("Created risk register entry {RiskId} for project {ProjectId}", risk.RiskRegisterId, risk.ProjectId);
 
-        return MapToResponse(risk);
+        return ServiceResult<object>.Created(MapToResponse(risk), "Risk register entry created.");
     }
 
-    public async Task<object> UpdateAsync(Guid riskId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> UpdateAsync(Guid riskId, object request, CancellationToken ct = default)
     {
         var req = (UpdateRiskRequest)request;
 
-        var risk = await _riskRepo.GetByIdAsync(riskId, ct)
-            ?? throw new RiskNotFoundException(riskId);
+        var risk = await _riskRepo.GetByIdAsync(riskId, ct);
+        if (risk == null)
+            return ServiceResult<object>.Fail(4064, "RISK_NOT_FOUND", $"Risk with ID '{riskId}' was not found.", 404);
 
         if (req.Severity != null)
         {
@@ -91,21 +93,24 @@ public class RiskRegisterService : IRiskRegisterService
         await _riskRepo.UpdateAsync(risk, ct);
         await _dbContext.SaveChangesAsync(ct);
 
-        return MapToResponse(risk);
+        return ServiceResult<object>.Ok(MapToResponse(risk), "Risk register entry updated.");
     }
 
-    public async System.Threading.Tasks.Task DeleteAsync(Guid riskId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> DeleteAsync(Guid riskId, CancellationToken ct = default)
     {
-        var risk = await _riskRepo.GetByIdAsync(riskId, ct)
-            ?? throw new RiskNotFoundException(riskId);
+        var risk = await _riskRepo.GetByIdAsync(riskId, ct);
+        if (risk == null)
+            return ServiceResult<object>.Fail(4064, "RISK_NOT_FOUND", $"Risk with ID '{riskId}' was not found.", 404);
 
         risk.FlgStatus = "D";
         risk.DateUpdated = DateTime.UtcNow;
         await _riskRepo.UpdateAsync(risk, ct);
         await _dbContext.SaveChangesAsync(ct);
+
+        return ServiceResult<object>.NoContent("Risk register entry deleted.");
     }
 
-    public async Task<object> ListAsync(Guid orgId, Guid projectId, Guid? sprintId,
+    public async Task<ServiceResult<object>> ListAsync(Guid orgId, Guid projectId, Guid? sprintId,
         string? severity, string? mitigationStatus,
         int page, int pageSize, CancellationToken ct = default)
     {
@@ -114,14 +119,14 @@ public class RiskRegisterService : IRiskRegisterService
 
         var responses = items.Select(MapToResponse).ToList();
 
-        return new PaginatedResponse<RiskRegisterResponse>
+        return ServiceResult<object>.Ok(new PaginatedResponse<RiskRegisterResponse>
         {
             Data = responses,
             TotalCount = totalCount,
             Page = page,
             PageSize = pageSize,
             TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-        };
+        }, "Risk register entries retrieved.");
     }
 
     private static void ValidateEnums(string severity, string likelihood, string mitigationStatus)

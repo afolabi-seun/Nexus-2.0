@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WorkService.Api.Extensions;
 using WorkService.Application.DTOs;
 using WorkService.Domain.Interfaces.Services.Tasks;
 
@@ -18,11 +19,8 @@ public class StoryTaskController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<object>>> ListByStory(Guid storyId, CancellationToken ct)
+    public async Task<IActionResult> ListByStory(Guid storyId, CancellationToken ct)
     {
-        var result = await _taskService.ListByStoryAsync(storyId, ct);
-        var response = ApiResponse<object>.Ok(result, "Tasks retrieved.");
-        response.CorrelationId = HttpContext.Items["CorrelationId"]?.ToString();
-        return Ok(response);
+        return (await _taskService.ListByStoryAsync(storyId, ct)).ToActionResult(HttpContext);
     }
 }

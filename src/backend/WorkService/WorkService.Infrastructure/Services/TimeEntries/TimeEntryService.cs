@@ -13,6 +13,7 @@ using WorkService.Domain.Interfaces.Repositories.TimePolicies;
 using WorkService.Domain.Interfaces.Services.CostRates;
 using WorkService.Domain.Interfaces.Services.Outbox;
 using WorkService.Domain.Interfaces.Services.TimeEntries;
+using WorkService.Domain.Results;
 using WorkService.Infrastructure.Data;
 
 namespace WorkService.Infrastructure.Services.TimeEntries;
@@ -57,31 +58,27 @@ public class TimeEntryService : ITimeEntryService
         _logger = logger;
     }
 
-    public async Task<object> CreateAsync(Guid orgId, Guid userId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> CreateAsync(Guid orgId, Guid userId, object request, CancellationToken ct = default)
     {
         var req = (CreateTimeEntryRequest)request;
 
-        // Validate story exists
-        var story = await _storyRepo.GetByIdAsync(req.StoryId, ct)
-            ?? throw new StoryNotFoundException(req.StoryId);
+        var story = await _storyRepo.GetByIdAsync(req.StoryId, ct);
+        if (story == null)
+            return ServiceResult<object>.Fail(4001, "STORY_NOT_FOUND", $"Story with ID '{req.StoryId}' was not found.", 404);
 
-        // Get time policy for org (use defaults if none configured)
         var policy = await _timePolicyRepo.GetByOrganizationAsync(orgId, ct)
             ?? new TimePolicy();
 
-        // Check daily hours limit
         var dailyTotalMinutes = await _timeEntryRepo.GetDailyTotalMinutesAsync(userId, req.Date, ct);
         var newTotalMinutes = dailyTotalMinutes + req.DurationMinutes;
         var maxDailyMinutes = (int)(policy.MaxDailyHours * 60);
 
         if (newTotalMinutes > maxDailyMinutes)
-            throw new DailyHoursExceededException(policy.MaxDailyHours);
+            return ServiceResult<object>.Fail(4056, "DAILY_HOURS_EXCEEDED", $"Adding this entry would exceed the daily maximum of {policy.MaxDailyHours} hours.", 400);
 
-        // Flag overtime
         var overtimeThresholdMinutes = (int)(policy.OvertimeThresholdHoursPerDay * 60);
         var isOvertime = newTotalMinutes > overtimeThresholdMinutes;
 
-        // Set status based on approval policy
         var status = policy.ApprovalRequired ? "Pending" : "Approved";
 
         var entry = new TimeEntry
@@ -100,7 +97,6 @@ public class TimeEntryService : ITimeEntryService
         await _timeEntryRepo.AddAsync(entry, ct);
         await _dbContext.SaveChangesAsync(ct);
 
-        // Publish activity log to outbox
         await _outbox.PublishAsync(new
         {
             MessageType = "AuditEvent",
@@ -111,27 +107,25 @@ public class TimeEntryService : ITimeEntryService
             UserId = userId
         }, ct);
 
-        return MapToResponse(entry);
+        return ServiceResult<object>.Created(MapToResponse(entry), "Time entry created successfully.");
     }
 
-    public async Task<object> UpdateAsync(Guid timeEntryId, Guid userId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> UpdateAsync(Guid timeEntryId, Guid userId, object request, CancellationToken ct = default)
     {
         var req = (UpdateTimeEntryRequest)request;
 
-        var entry = await _timeEntryRepo.GetByIdAsync(timeEntryId, ct)
-            ?? throw new TimeEntryNotFoundException(timeEntryId);
+        var entry = await _timeEntryRepo.GetByIdAsync(timeEntryId, ct);
+        if (entry == null)
+            return ServiceResult<object>.Fail(4052, "TIME_ENTRY_NOT_FOUND", $"Time entry with ID '{timeEntryId}' was not found.", 404);
 
-        // Check ownership
         if (entry.MemberId != userId)
             throw new InsufficientPermissionsException();
 
-        // Apply partial updates
         if (req.DurationMinutes.HasValue) entry.DurationMinutes = req.DurationMinutes.Value;
         if (req.Date.HasValue) entry.Date = req.Date.Value;
         if (req.IsBillable.HasValue) entry.IsBillable = req.IsBillable.Value;
         if (req.Notes != null) entry.Notes = req.Notes;
 
-        // If entry was Approved, reset to Pending
         if (entry.Status == "Approved")
             entry.Status = "Pending";
 
@@ -139,15 +133,15 @@ public class TimeEntryService : ITimeEntryService
         await _timeEntryRepo.UpdateAsync(entry, ct);
         await _dbContext.SaveChangesAsync(ct);
 
-        return MapToResponse(entry);
+        return ServiceResult<object>.Ok(MapToResponse(entry), "Time entry updated.");
     }
 
-    public async System.Threading.Tasks.Task DeleteAsync(Guid timeEntryId, Guid userId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> DeleteAsync(Guid timeEntryId, Guid userId, CancellationToken ct = default)
     {
-        var entry = await _timeEntryRepo.GetByIdAsync(timeEntryId, ct)
-            ?? throw new TimeEntryNotFoundException(timeEntryId);
+        var entry = await _timeEntryRepo.GetByIdAsync(timeEntryId, ct);
+        if (entry == null)
+            return ServiceResult<object>.Fail(4052, "TIME_ENTRY_NOT_FOUND", $"Time entry with ID '{timeEntryId}' was not found.", 404);
 
-        // Check ownership
         if (entry.MemberId != userId)
             throw new InsufficientPermissionsException();
 
@@ -155,9 +149,11 @@ public class TimeEntryService : ITimeEntryService
         entry.DateUpdated = DateTime.UtcNow;
         await _timeEntryRepo.UpdateAsync(entry, ct);
         await _dbContext.SaveChangesAsync(ct);
+
+        return ServiceResult<object>.NoContent("Time entry deleted.");
     }
 
-    public async Task<object> ListAsync(Guid orgId, Guid? storyId, Guid? projectId, Guid? sprintId,
+    public async Task<ServiceResult<object>> ListAsync(Guid orgId, Guid? storyId, Guid? projectId, Guid? sprintId,
         Guid? memberId, DateTime? dateFrom, DateTime? dateTo, bool? isBillable,
         string? status, int page, int pageSize, CancellationToken ct = default)
     {
@@ -167,33 +163,32 @@ public class TimeEntryService : ITimeEntryService
 
         var responses = items.Select(MapToResponse).ToList();
 
-        return new PaginatedResponse<TimeEntryResponse>
+        return ServiceResult<object>.Ok(new PaginatedResponse<TimeEntryResponse>
         {
             Data = responses,
             TotalCount = totalCount,
             Page = page,
             PageSize = pageSize,
             TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-        };
+        }, "Time entries retrieved.");
     }
 
-    public async Task<object> ApproveAsync(Guid timeEntryId, Guid approverId, string approverRole,
+    public async Task<ServiceResult<object>> ApproveAsync(Guid timeEntryId, Guid approverId, string approverRole,
         Guid approverDeptId, CancellationToken ct = default)
     {
-        var entry = await _timeEntryRepo.GetByIdAsync(timeEntryId, ct)
-            ?? throw new TimeEntryNotFoundException(timeEntryId);
+        var entry = await _timeEntryRepo.GetByIdAsync(timeEntryId, ct);
+        if (entry == null)
+            return ServiceResult<object>.Fail(4052, "TIME_ENTRY_NOT_FOUND", $"Time entry with ID '{timeEntryId}' was not found.", 404);
 
         var policy = await _timePolicyRepo.GetByOrganizationAsync(entry.OrganizationId, ct)
             ?? new TimePolicy();
 
-        // Check approver authorization based on workflow
         await ValidateApproverAuthorization(entry, policy, approverId, approverRole, approverDeptId, ct);
 
         entry.Status = "Approved";
         entry.DateUpdated = DateTime.UtcNow;
         await _timeEntryRepo.UpdateAsync(entry, ct);
 
-        // Create TimeApproval record
         var approval = new TimeApproval
         {
             OrganizationId = entry.OrganizationId,
@@ -204,7 +199,6 @@ public class TimeEntryService : ITimeEntryService
         await _timeApprovalRepo.AddAsync(approval, ct);
         await _dbContext.SaveChangesAsync(ct);
 
-        // Publish notification to outbox
         await _outbox.PublishAsync(new
         {
             MessageType = "NotificationRequest",
@@ -214,26 +208,25 @@ public class TimeEntryService : ITimeEntryService
             NotificationType = "TimeEntryApproved"
         }, ct);
 
-        return MapToResponse(entry);
+        return ServiceResult<object>.Ok(MapToResponse(entry), "Time entry approved.");
     }
 
-    public async Task<object> RejectAsync(Guid timeEntryId, Guid approverId, string approverRole,
+    public async Task<ServiceResult<object>> RejectAsync(Guid timeEntryId, Guid approverId, string approverRole,
         Guid approverDeptId, string reason, CancellationToken ct = default)
     {
-        var entry = await _timeEntryRepo.GetByIdAsync(timeEntryId, ct)
-            ?? throw new TimeEntryNotFoundException(timeEntryId);
+        var entry = await _timeEntryRepo.GetByIdAsync(timeEntryId, ct);
+        if (entry == null)
+            return ServiceResult<object>.Fail(4052, "TIME_ENTRY_NOT_FOUND", $"Time entry with ID '{timeEntryId}' was not found.", 404);
 
         var policy = await _timePolicyRepo.GetByOrganizationAsync(entry.OrganizationId, ct)
             ?? new TimePolicy();
 
-        // Check approver authorization based on workflow
         await ValidateApproverAuthorization(entry, policy, approverId, approverRole, approverDeptId, ct);
 
         entry.Status = "Rejected";
         entry.DateUpdated = DateTime.UtcNow;
         await _timeEntryRepo.UpdateAsync(entry, ct);
 
-        // Create TimeApproval record with reason
         var approval = new TimeApproval
         {
             OrganizationId = entry.OrganizationId,
@@ -245,7 +238,6 @@ public class TimeEntryService : ITimeEntryService
         await _timeApprovalRepo.AddAsync(approval, ct);
         await _dbContext.SaveChangesAsync(ct);
 
-        // Publish notification to outbox
         await _outbox.PublishAsync(new
         {
             MessageType = "NotificationRequest",
@@ -255,10 +247,10 @@ public class TimeEntryService : ITimeEntryService
             NotificationType = "TimeEntryRejected"
         }, ct);
 
-        return MapToResponse(entry);
+        return ServiceResult<object>.Ok(MapToResponse(entry), "Time entry rejected.");
     }
 
-    public async Task<object> GetProjectCostSummaryAsync(Guid projectId, DateTime? dateFrom,
+    public async Task<ServiceResult<object>> GetProjectCostSummaryAsync(Guid projectId, DateTime? dateFrom,
         DateTime? dateTo, CancellationToken ct = default)
     {
         var entries = await _timeEntryRepo.GetApprovedBillableByProjectAsync(projectId, dateFrom, dateTo, ct);
@@ -275,7 +267,6 @@ public class TimeEntryService : ITimeEntryService
 
         foreach (var entry in entryList)
         {
-            // Resolve applicable rate
             var memberRates = await _costRateRepo.GetActiveRatesForMemberAsync(orgId, entry.MemberId, entry.Date, ct);
             var story = await _storyRepo.GetByIdAsync(entry.StoryId, ct);
             var deptId = story?.DepartmentId ?? Guid.Empty;
@@ -294,13 +285,11 @@ public class TimeEntryService : ITimeEntryService
             totalCost += cost;
             totalBillableHours += hours;
 
-            // Group by member
             if (!memberCosts.ContainsKey(entry.MemberId))
                 memberCosts[entry.MemberId] = new MemberCostDetail { MemberId = entry.MemberId };
             memberCosts[entry.MemberId].Hours += hours;
             memberCosts[entry.MemberId].Cost += cost;
 
-            // Group by department
             if (deptId != Guid.Empty)
             {
                 if (!deptCosts.ContainsKey(deptId))
@@ -310,23 +299,21 @@ public class TimeEntryService : ITimeEntryService
             }
         }
 
-        // Calculate non-billable hours (all approved entries minus billable)
-        // GetApprovedBillableByProjectAsync only returns billable, so we need all approved for non-billable
         var allApprovedEntries = await _timeEntryRepo.ListAsync(
             orgId, null, projectId, null, null, dateFrom, dateTo, false, "Approved", 1, int.MaxValue, ct);
         var totalNonBillableHours = allApprovedEntries.Items.Sum(e => e.DurationMinutes / 60.0m);
 
-        return new ProjectCostSummaryResponse
+        return ServiceResult<object>.Ok(new ProjectCostSummaryResponse
         {
             TotalCost = totalCost,
             TotalBillableHours = totalBillableHours,
             TotalNonBillableHours = totalNonBillableHours,
             CostByMember = memberCosts.Values.ToList(),
             CostByDepartment = deptCosts.Values.ToList()
-        };
+        }, "Project cost summary retrieved.");
     }
 
-    public async Task<object> GetProjectUtilizationAsync(Guid projectId, DateTime? dateFrom,
+    public async Task<ServiceResult<object>> GetProjectUtilizationAsync(Guid projectId, DateTime? dateFrom,
         DateTime? dateTo, CancellationToken ct = default)
     {
         var project = await _projectRepo.GetByIdAsync(projectId, ct);
@@ -335,18 +322,15 @@ public class TimeEntryService : ITimeEntryService
         var policy = await _timePolicyRepo.GetByOrganizationAsync(orgId, ct)
             ?? new TimePolicy();
 
-        // Get all time entries for project in date range
         var (entries, _) = await _timeEntryRepo.ListAsync(
             orgId, null, projectId, null, null, dateFrom, dateTo, null, null, 1, int.MaxValue, ct);
         var entryList = entries.ToList();
 
-        // Calculate working days in range
         var start = dateFrom ?? entryList.MinBy(e => e.Date)?.Date ?? DateTime.UtcNow;
         var end = dateTo ?? entryList.MaxBy(e => e.Date)?.Date ?? DateTime.UtcNow;
         var workingDays = CountWorkingDays(start, end);
         var expectedHours = policy.RequiredHoursPerDay * workingDays;
 
-        // Group by member
         var memberGroups = entryList.GroupBy(e => e.MemberId);
         var members = new List<MemberUtilizationDetail>();
 
@@ -371,15 +355,14 @@ public class TimeEntryService : ITimeEntryService
             });
         }
 
-        return new ResourceUtilizationResponse
+        return ServiceResult<object>.Ok(new ResourceUtilizationResponse
         {
             Members = members
-        };
+        }, "Resource utilization retrieved.");
     }
 
-    public async Task<object> GetSprintVelocityAsync(Guid sprintId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetSprintVelocityAsync(Guid sprintId, CancellationToken ct = default)
     {
-        // Get stories in sprint via SprintStory
         var sprintStories = await _sprintStoryRepo.ListBySprintAsync(sprintId, ct);
         var storyIds = sprintStories
             .Where(ss => ss.RemovedDate == null)
@@ -399,7 +382,6 @@ public class TimeEntryService : ITimeEntryService
             }
         }
 
-        // Get approved time entries for sprint
         var approvedEntries = await _timeEntryRepo.GetApprovedBySprintAsync(sprintId, ct);
         var totalLoggedHours = approvedEntries.Sum(e => e.DurationMinutes) / 60.0m;
 
@@ -407,13 +389,13 @@ public class TimeEntryService : ITimeEntryService
             ? Math.Round(totalLoggedHours / totalStoryPoints, 2)
             : null;
 
-        return new SprintVelocityResponse
+        return ServiceResult<object>.Ok(new SprintVelocityResponse
         {
             TotalStoryPoints = totalStoryPoints,
             TotalLoggedHours = totalLoggedHours,
             AverageHoursPerPoint = averageHoursPerPoint,
             CompletedStoryCount = completedStoryCount
-        };
+        }, "Sprint velocity retrieved.");
     }
 
     private async System.Threading.Tasks.Task ValidateApproverAuthorization(
@@ -423,19 +405,16 @@ public class TimeEntryService : ITimeEntryService
         if (policy.ApprovalWorkflow == "None")
             return;
 
-        // OrgAdmin can always approve
         if (approverRole == "OrgAdmin")
             return;
 
         if (policy.ApprovalWorkflow == "DeptLeadApproval")
         {
-            // Approver must be DeptLead in the time entry owner's department
             if (approverRole != "DeptLead")
                 throw new InsufficientPermissionsException();
         }
         else if (policy.ApprovalWorkflow == "ProjectLeadApproval")
         {
-            // Approver must be the project lead of the story's project
             var story = await _storyRepo.GetByIdAsync(entry.StoryId, ct);
             if (story != null)
             {

@@ -157,7 +157,7 @@ Incremental implementation of the ProfileService microservice following Clean Ar
 - [x] 4. Checkpoint — Verify Domain and Application layers compile
   - Ensure all tests pass, ask the user if questions arise.
 
-- [-] 5. Infrastructure layer — Data access (EF Core + PostgreSQL)
+- [x] 5. Infrastructure layer — Data access (EF Core + PostgreSQL)
   - [x] 5.1 Create `ProfileDbContext` with entity configurations and global query filters
     - Configure all 11 entities with PKs, indexes, unique constraints, max lengths, JSON column types
     - Apply global query filters by `OrganizationId` on entities implementing `IOrganizationEntity` (Department, TeamMember, DepartmentMember, Invite, Device, NotificationSetting, UserPreferences)
@@ -190,7 +190,7 @@ Incremental implementation of the ProfileService microservice following Clean Ar
     - `SeedDefaultDepartmentsAsync` — seed 5 default departments per organization (Engineering/ENG, QA/QA, DevOps/DEVOPS, Product/PROD, Design/DESIGN) with `IsDefault=true`
     - _Requirements: 22.1, 22.2, 22.3_
 
-- [ ] 6. Infrastructure layer — Configuration
+- [x] 6. Infrastructure layer — Configuration
   - [x] 6.1 Create `AppSettings` configuration class
     - `AppSettings.FromEnvironment()` loading from env vars via DotNetEnv
     - All configurable values: DB connection, Redis connection, JWT settings (SecretKey, Issuer, Audience), service URLs (SecurityService, UtilityService), allowed origins, service auth (ServiceId, ServiceName, ServiceSecret), invite settings (ExpiryHours, TokenLength), device settings (MaxDevicesPerUser)
@@ -202,7 +202,7 @@ Incremental implementation of the ProfileService microservice following Clean Ar
     - Document all env vars with sensible defaults for local development
     - _Requirements: 29.1_
 
-- [-] 7. Infrastructure layer — Redis services
+- [x] 7. Infrastructure layer — Redis services
   - [x] 7.1 Implement `OutboxService` (Redis LPUSH to `outbox:profile`)
     - `PublishAsync` — serialize `OutboxMessage` to JSON, LPUSH to `outbox:profile`
     - Retry up to 3 times with exponential backoff on failure
@@ -215,7 +215,7 @@ Incremental implementation of the ProfileService microservice following Clean Ar
     - Fall back to static `MapErrorToResponseCode` mapping on failure
     - _Requirements: 39.1, 39.2, 39.3, 39.4_
 
-- [ ] 8. Infrastructure layer — Service implementations (Organization, Department, TeamMember, Role)
+- [x] 8. Infrastructure layer — Service implementations (Organization, Department, TeamMember, Role)
   - [x] 8.1 Implement `OrganizationService`
     - `CreateAsync` — validate name uniqueness, validate StoryIdPrefix uniqueness + format, create organization with `FlgStatus='A'`, seed 5 default departments, publish `OrganizationCreated` audit event, return 201
     - `GetByIdAsync` — return organization details with settings
@@ -256,7 +256,7 @@ Incremental implementation of the ProfileService microservice following Clean Ar
     - `GetByIdAsync` — return role details
     - _Requirements: 7.1, 7.2_
 
-- [ ] 9. Infrastructure layer — Service implementations (Invite, Device, Notification, Preference, PlatformAdmin)
+- [x] 9. Infrastructure layer — Service implementations (Invite, Device, Notification, Preference, PlatformAdmin)
   - [x] 9.1 Implement `InviteService`
     - `CreateAsync` — generate cryptographic token (128 chars max), set 48-hour expiry, validate email not already member, scope DeptLead invites to own department, publish email notification to outbox
     - `ListAsync` — paginated pending invites (OrgAdmin sees all, DeptLead sees own department)
@@ -288,7 +288,7 @@ Incremental implementation of the ProfileService microservice following Clean Ar
     - `UpdatePasswordAsync` — update PlatformAdmin password hash
     - _Requirements: 16.3, 16.4, 16.5, 16.6, 18.1, 18.4_
 
-- [ ] 10. Infrastructure layer — Service clients and DI registration
+- [x] 10. Infrastructure layer — Service clients and DI registration
   - [x] 10.1 Create `ISecurityServiceClient` and `SecurityServiceClient` typed client
     - `GenerateCredentialsAsync` — call SecurityService `POST /api/v1/auth/credentials/generate` with service JWT
     - Automatic service token refresh when within 30 seconds of expiry
@@ -314,7 +314,7 @@ Incremental implementation of the ProfileService microservice following Clean Ar
 - [x] 11. Checkpoint — Verify Infrastructure layer compiles
   - Ensure all tests pass, ask the user if questions arise.
 
-- [-] 12. Api layer — Middleware pipeline
+- [x] 12. Api layer — Middleware pipeline
   - [x] 12.1 Implement `CorrelationIdMiddleware`
     - Generate or propagate `X-Correlation-Id` header, store in `HttpContext.Items["CorrelationId"]`, include in response headers
     - _Requirements: 37.1, 37.2, 37.4_
@@ -372,7 +372,7 @@ Incremental implementation of the ProfileService microservice following Clean Ar
     - CORS → CorrelationId → GlobalExceptionHandler → RateLimiter → Routing → Authentication → Authorization → JwtClaims → TokenBlacklist → FirstTimeUserGuard → RoleAuthorization → OrganizationScope → Controllers
     - _Requirements: 40.1_
 
-- [ ] 13. Api layer — Controllers
+- [x] 13. Api layer — Controllers
   - [x] 13.1 Implement `OrganizationController`
     - `POST /api/v1/organizations` — OrgAdmin, PlatformAdmin — CreateOrganizationRequest → 201 OrganizationResponse
     - `GET /api/v1/organizations` — PlatformAdmin — Paginated list of all organizations (cross-org)
@@ -444,7 +444,7 @@ Incremental implementation of the ProfileService microservice following Clean Ar
     - `PATCH /api/v1/platform-admins/{id}/password` — [ServiceAuth] — {passwordHash} → 200
     - _Requirements: 16, 18, 20.1_
 
-- [ ] 14. Api layer — Program.cs, extensions, and Dockerfile
+- [x] 14. Api layer — Program.cs, extensions, and Dockerfile
   - [x] 14.1 Create `Program.cs` with full DI registration and middleware pipeline
     - Load `.env` via DotNetEnv, build `AppSettings`
     - Register Infrastructure services via `DependencyInjection` extension
@@ -518,7 +518,7 @@ Incremental implementation of the ProfileService microservice following Clean Ar
     - Support forced password change and password reset flows for PlatformAdmin using ProfileService's PlatformAdmin password endpoint
     - _Requirements: 19.6_
 
-- [-] 17. Testing
+- [x] 17. Testing
   - [x] 17.1 Set up test project infrastructure
     - Create `TestDbContextFactory` helper using InMemory database
     - Create FsCheck generators: `OrganizationGenerator`, `DepartmentGenerator`, `TeamMemberGenerator`, `InviteGenerator`, `PreferenceGenerator`

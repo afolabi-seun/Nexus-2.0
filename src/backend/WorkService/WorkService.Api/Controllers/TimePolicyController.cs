@@ -31,8 +31,7 @@ public class TimePolicyController : ControllerBase
     public async Task<IActionResult> Get(CancellationToken ct)
     {
         var orgId = GetOrganizationId();
-        var result = await _timePolicyService.GetPolicyAsync(orgId, ct);
-        return ApiResponse<object>.Ok(result, "Time policy retrieved.").ToActionResult(HttpContext);
+        return (await _timePolicyService.GetPolicyAsync(orgId, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -48,8 +47,7 @@ public class TimePolicyController : ControllerBase
         var orgId = GetOrganizationId();
         var userId = GetUserId();
         var userRole = GetRole();
-        var result = await _timePolicyService.UpsertAsync(orgId, userId, userRole, request, ct);
-        return ApiResponse<object>.Ok(result, "Time policy updated.").ToActionResult(HttpContext);
+        return (await _timePolicyService.UpsertAsync(orgId, userId, userRole, request, ct)).ToActionResult(HttpContext);
     }
 
     private Guid GetOrganizationId() => Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
