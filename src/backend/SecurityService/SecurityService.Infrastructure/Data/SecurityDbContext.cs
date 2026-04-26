@@ -5,8 +5,11 @@ namespace SecurityService.Infrastructure.Data;
 
 public class SecurityDbContext : DbContext
 {
-    public SecurityDbContext(DbContextOptions<SecurityDbContext> options) : base(options)
+    private readonly string? _databaseSchema;
+
+    public SecurityDbContext(DbContextOptions<SecurityDbContext> options, string? databaseSchema = null) : base(options)
     {
+        _databaseSchema = databaseSchema ?? Environment.GetEnvironmentVariable("DATABASE_SCHEMA");
     }
 
     public DbSet<PasswordHistory> PasswordHistories => Set<PasswordHistory>();
@@ -14,6 +17,11 @@ public class SecurityDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        if (!string.IsNullOrEmpty(_databaseSchema) && Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory")
+        {
+            modelBuilder.HasDefaultSchema(_databaseSchema);
+        }
+
         modelBuilder.Entity<PasswordHistory>(entity =>
         {
             entity.HasKey(e => e.PasswordHistoryId);

@@ -29,14 +29,15 @@ public class AppSettings
     public string? SmtpUsername { get; set; }
     public string? SmtpPassword { get; set; }
     public bool SmtpUseSsl { get; set; } = false;
+    public string? DatabaseSchema { get; set; }
 
     public static AppSettings FromEnvironment()
     {
         return new AppSettings
         {
-            DatabaseConnectionString = GetRequired("DATABASE_URL"),
-            RedisConnectionString = GetRequired("REDIS_URL"),
-            JwtSecretKey = GetRequired("JWT_SECRET"),
+            DatabaseConnectionString = GetRequired("DATABASE_CONNECTION_STRING"),
+            RedisConnectionString = GetRequired("REDIS_CONNECTION_STRING"),
+            JwtSecretKey = GetRequired("JWT_SECRET_KEY"),
             JwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "Nexus-2.0",
             JwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "Nexus-2.0",
             FrontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "http://localhost:5173",
@@ -54,6 +55,7 @@ public class AppSettings
             SmtpUsername = Environment.GetEnvironmentVariable("SMTP_USERNAME"),
             SmtpPassword = Environment.GetEnvironmentVariable("SMTP_PASSWORD"),
             SmtpUseSsl = bool.TryParse(Environment.GetEnvironmentVariable("SMTP_USE_SSL"), out var ssl) && ssl,
+            DatabaseSchema = Environment.GetEnvironmentVariable("DATABASE_SCHEMA"),
         };
     }
 

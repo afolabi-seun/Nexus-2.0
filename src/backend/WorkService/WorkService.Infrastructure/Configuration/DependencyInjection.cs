@@ -104,8 +104,16 @@ public static class DependencyInjection
         this IServiceCollection services, AppSettings appSettings)
     {
         // Database
-        services.AddDbContext<WorkDbContext>(options =>
-            options.UseNpgsql(appSettings.DatabaseConnectionString));
+        services.AddDbContext<WorkDbContext>((sp, options) =>
+        {
+            options.UseNpgsql(appSettings.DatabaseConnectionString, npgsql =>
+            {
+                if (!string.IsNullOrEmpty(appSettings.DatabaseSchema))
+                {
+                    npgsql.MigrationsHistoryTable("__EFMigrationsHistory", appSettings.DatabaseSchema);
+                }
+            });
+        });
 
         // Redis
         services.AddSingleton<IConnectionMultiplexer>(_ =>

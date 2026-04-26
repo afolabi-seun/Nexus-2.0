@@ -41,6 +41,9 @@ public class AppSettings
     // Serilog
     public string? SeqUrl { get; set; }
 
+    // Schema
+    public string? DatabaseSchema { get; set; }
+
     // Service Auth
     public string ServiceId { get; set; } = string.Empty;
     public string ServiceName { get; set; } = string.Empty;
@@ -75,6 +78,7 @@ public class AppSettings
             ServiceId = GetRequired("SERVICE_ID"),
             ServiceName = GetRequired("SERVICE_NAME"),
             ServiceSecret = GetRequired("SERVICE_SECRET"),
+            DatabaseSchema = Environment.GetEnvironmentVariable("DATABASE_SCHEMA"),
         };
 
         return settings;

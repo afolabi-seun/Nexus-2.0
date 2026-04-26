@@ -18,6 +18,7 @@ public class AppSettings
     public string ServiceSecret { get; set; } = string.Empty;
     public string StripeSecretKey { get; set; } = string.Empty;
     public string StripeWebhookSecret { get; set; } = string.Empty;
+    public string? DatabaseSchema { get; set; }
 
     public static AppSettings FromEnvironment()
     {
@@ -40,6 +41,7 @@ public class AppSettings
             ServiceSecret = GetRequired("SERVICE_SECRET"),
             StripeSecretKey = GetRequired("STRIPE_SECRET_KEY"),
             StripeWebhookSecret = GetRequired("STRIPE_WEBHOOK_SECRET"),
+            DatabaseSchema = Environment.GetEnvironmentVariable("DATABASE_SCHEMA"),
         };
     }
 

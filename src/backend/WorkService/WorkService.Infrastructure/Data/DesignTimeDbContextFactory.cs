@@ -1,17 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace UtilityService.Infrastructure.Data;
+namespace WorkService.Infrastructure.Data;
 
-/// <summary>
-/// Design-time factory for EF Core migrations.
-/// Uses DATABASE_CONNECTION_STRING env var with a localhost fallback
-/// since the full AppSettings requires Redis/JWT vars that aren't
-/// available at design time.
-/// </summary>
-public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<UtilityDbContext>
+public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<WorkDbContext>
 {
-    public UtilityDbContext CreateDbContext(string[] args)
+    public WorkDbContext CreateDbContext(string[] args)
     {
         DotNetEnv.Env.Load();
 
@@ -19,7 +13,7 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<UtilityDbC
             ?? "Host=localhost;Port=5432;Database=nexusDb;Username=postgres;Password=pass.123";
         var schema = Environment.GetEnvironmentVariable("DATABASE_SCHEMA");
 
-        var optionsBuilder = new DbContextOptionsBuilder<UtilityDbContext>();
+        var optionsBuilder = new DbContextOptionsBuilder<WorkDbContext>();
         optionsBuilder.UseNpgsql(connectionString, npgsql =>
         {
             if (!string.IsNullOrEmpty(schema))
@@ -28,6 +22,6 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<UtilityDbC
             }
         });
 
-        return new UtilityDbContext(optionsBuilder.Options, schema);
+        return new WorkDbContext(optionsBuilder.Options, databaseSchema: schema);
     }
 }
