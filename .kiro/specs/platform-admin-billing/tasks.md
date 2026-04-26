@@ -47,17 +47,17 @@ Implement cross-organization billing management for PlatformAdmin users. The bac
     - Implement `GetOrganizationUsageListAsync` — per-org usage with plan limits, calculate `percentUsed`, filter by threshold if provided, paginate
     - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2, 2.3, 3.1, 3.2, 3.4, 3.5, 4.1, 4.2, 4.3, 4.4, 8.1, 8.2, 8.3, 8.4_
 
-  - [ ] 3.2 Write property test for status filter correctness
+  - [x] 3.2 Write property test for status filter correctness
     - **Property 2: Status filter correctness**
     - Generate random subscription lists with mixed statuses, apply each valid status filter, assert all results match the filter and no matching subscriptions are omitted
     - **Validates: Requirements 1.2**
 
-  - [ ] 3.3 Write property test for search filter case-insensitive partial match
+  - [x] 3.3 Write property test for search filter case-insensitive partial match
     - **Property 3: Search filter case-insensitive partial match**
     - Generate random org names and search substrings, assert all results contain the search term case-insensitively
     - **Validates: Requirements 1.3**
 
-  - [ ] 3.4 Write property test for paginated response completeness
+  - [x] 3.4 Write property test for paginated response completeness
     - **Property 4: Paginated response completeness**
     - Generate random N subscriptions and random page/pageSize, assert `totalCount = N`, correct item count per page, and full iteration yields all N with no duplicates
     - **Validates: Requirements 1.1**
@@ -67,12 +67,12 @@ Implement cross-organization billing management for PlatformAdmin users. The bac
     - Generate random orgs and plans, perform override, assert `status = "Active"`, correct `planId`, and `currentPeriodStart` within delta of UTC now
     - **Validates: Requirements 3.1**
 
-  - [ ] 3.6 Write property test for override bypasses usage limits
+  - [x] 3.6 Write property test for override bypasses usage limits
     - **Property 7: Override bypasses usage limits**
     - Generate orgs with usage exceeding target plan limits, assert override succeeds (HTTP 200) and subscription is updated
     - **Validates: Requirements 3.5**
 
-  - [ ] 3.7 Write property test for admin mutation audit events
+  - [x] 3.7 Write property test for admin mutation audit events
     - **Property 8: Admin mutation audit events contain required fields**
     - For each admin mutation type, assert outbox message contains non-empty `adminId`, `entityId`, `action`, and `reason` when provided
     - **Validates: Requirements 3.2, 3.4, 4.3, 6.3**
@@ -82,7 +82,7 @@ Implement cross-organization billing management for PlatformAdmin users. The bac
     - Generate orgs with Active/Trialing subscriptions, perform admin cancel, assert `status = "Cancelled"` and `cancelledAt` within delta of UTC now
     - **Validates: Requirements 4.1**
 
-  - [ ] 3.9 Write property test for usage summary aggregation correctness
+  - [x] 3.9 Write property test for usage summary aggregation correctness
     - **Property 15: Usage summary aggregation correctness**
     - Generate random usage records across orgs, assert totals equal sums and `byPlanTier` counts match subscription counts per plan
     - **Validates: Requirements 8.1, 8.2**

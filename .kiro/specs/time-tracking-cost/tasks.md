@@ -95,7 +95,7 @@ Implements time tracking, cost rate management, approval workflows, timer sessio
     - No database calls, no side effects
     - _Requirements: 7.1, 7.2, 7.3, 7.4_
 
-  - [ ] 7.2 Write property test: Cost rate resolution follows precedence hierarchy (Property 15)
+  - [x] 7.2 Write property test: Cost rate resolution follows precedence hierarchy (Property 15)
     - **Property 15: Cost rate resolution follows precedence hierarchy**
     - **Validates: Requirements 7.1, 7.2, 7.4**
     - Create `WorkService.Tests/Properties/CostRateResolverProperties.cs`
@@ -118,14 +118,14 @@ Implements time tracking, cost rate management, approval workflows, timer sessio
     - GetSprintVelocity: sum completed story points + approved hours, compute averageHoursPerPoint
     - _Requirements: 1.1, 1.2, 1.4, 1.5, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 4.1, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 9.1, 9.2, 9.3, 9.4, 9.5, 10.1, 10.2, 10.3, 10.4, 11.1, 11.2, 11.3, 13.1, 13.3, 14.1, 14.2, 14.3_
 
-  - [ ] 9.2 Write property tests for time entry creation (Properties 1, 2)
+  - [x] 9.2 Write property tests for time entry creation (Properties 1, 2)
     - **Property 1: Time entry creation preserves all fields and applies defaults**
     - **Property 2: Non-positive duration is always rejected**
     - **Validates: Requirements 1.1, 1.3, 1.4, 13.1, 13.2**
     - Create `WorkService.Tests/Properties/TimeEntryCreationProperties.cs`
     - Create `WorkService.Tests/Generators/TimeEntryGenerators.cs`
 
-  - [ ] 9.3 Write property tests for ownership and update behavior (Properties 6, 7, 8)
+  - [x] 9.3 Write property tests for ownership and update behavior (Properties 6, 7, 8)
     - **Property 6: Time entry ownership enforcement**
     - **Property 7: Updating an approved entry resets status to Pending**
     - **Property 8: Soft-delete sets FlgStatus to D**
