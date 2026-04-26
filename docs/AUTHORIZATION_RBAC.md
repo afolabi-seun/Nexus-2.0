@@ -2,13 +2,13 @@
 
 ## Overview
 
-WEP enforces access control at three levels:
+Nexus 2.0 enforces access control at three levels:
 
 | Level | Mechanism | Where |
 |-------|-----------|-------|
-| **Role-based** | Auth attributes + middleware | Controllers (all services) + SecurityCoreService middleware |
+| **Role-based** | Auth attributes + middleware | Controllers (all services) + SecurityService middleware |
 | **Tenant-scoped** | TenantScopeMiddleware + EF Core query filters | All services |
-| **Dynamic restrictions** | Operator restriction prefixes (Redis) | SecurityCoreService middleware |
+| **Dynamic restrictions** | Operator restriction prefixes (Redis) | SecurityService middleware |
 
 ---
 
@@ -110,9 +110,9 @@ public async Task<IActionResult> GetMyProfile() => ...
 
 ---
 
-## Middleware-Level Authorization (SecurityCoreService)
+## Middleware-Level Authorization (SecurityService)
 
-SecurityCoreService has two additional middleware components that enforce authorization beyond the attribute level:
+SecurityService has two additional middleware components that enforce authorization beyond the attribute level:
 
 ### RoleAuthorizationMiddleware
 
@@ -242,7 +242,7 @@ This means:
 | `TenantId` | `TenantId` (as `Guid`) | TenantScopeMiddleware, DbContext |
 | `RoleId` | `RoleId` | — |
 | `RoleName` | `RoleName` | Auth attributes, RoleAuthorizationMiddleware |
-| `IsFirstTimeUser` | `IsFirstTimeUser` | FirstTimeUserMiddleware (SecurityCoreService only) |
+| `IsFirstTimeUser` | `IsFirstTimeUser` | FirstTimeUserMiddleware (SecurityService only) |
 
 ---
 
@@ -261,10 +261,10 @@ JwtClaimsMiddleware (extract claims → HttpContext.Items)
 TokenBlacklistMiddleware (check wep:blacklist:{jti})
   │ Blacklisted? → 401 TOKEN_REVOKED
   ▼
-FirstTimeUserMiddleware (SecurityCoreService only)
+FirstTimeUserMiddleware (SecurityService only)
   │ First-time user + not /password/forced-change? → 403
   ▼
-RoleAuthorizationMiddleware (SecurityCoreService only)
+RoleAuthorizationMiddleware (SecurityService only)
   │ Exact-path role check failed? → 403
   │ Operator + restricted path? → 403
   ▼
@@ -285,7 +285,7 @@ Action executes
 
 ## Endpoint-Role Matrix
 
-### ProfileCoreService
+### ProfileService
 
 | Endpoint | PlatformAdmin | Operator | Customer | No Auth |
 |----------|:---:|:---:|:---:|:---:|
@@ -300,7 +300,7 @@ Action executes
 | `GET /api/v1/beneficiaries` | — | — | ✅ | — |
 | `POST /api/v1/kyc/{id}/approve` | ✅ | ✅ | — | — |
 
-### SecurityCoreService
+### SecurityService
 
 | Endpoint | PlatformAdmin | Operator | Customer | No Auth |
 |----------|:---:|:---:|:---:|:---:|

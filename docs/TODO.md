@@ -372,12 +372,12 @@ All implementation done. Only optional (`*`) property test tasks remain:
 ### 5. UtilityService — DONE ✅ (spec: utility-service)
 - [x] **All tasks marked complete** — Code already existed but spec wasn't updated. All tasks marked done.
 
-### 6. Doc Alignment Audit (reference: /docs/*.md)
-After completing the above, audit the codebase against the WEP reference docs to catch any remaining gaps:
-- [ ] **Middleware pipeline order** — Verify all 5 services match the documented order (CorrelationId → GlobalExceptionHandler → ErrorResponseLogging → RateLimiter → Auth → etc.)
-- [ ] **Response code mapping consistency** — Verify `MapErrorToResponseCode` switch expressions match across all services
-- [ ] **Outbox envelope format** — Verify all services publish the same envelope structure (type, payload, timestamp)
-- [ ] **Update docs to reflect Nexus naming** — The reference docs use WEP/CoreService naming; actual code uses Nexus/Service naming. Decide whether to update docs or keep as reference spec.
+### 6. Doc Alignment Audit — DONE ✅ (reference: /docs/*.md)
+Audited codebase against WEP reference docs. Findings and fixes:
+- [x] **Middleware pipeline order** — All 5 services match the documented order. No changes needed.
+- [x] **Response code mapping consistency** — Clarified in docs that MapErrorToResponseCode fallbacks are service-specific (not identical). Each service covers its own error codes.
+- [x] **Outbox envelope format** — Envelope structure matches across all services. Added note about SecurityService string-based API vs others' object-based API.
+- [x] **Update docs to reflect Nexus naming** — Renamed all WEP/CoreService references to actual Nexus service names across 11 doc files.
 
 ### 7. Optional Property Tests (all specs)
 All implementation is complete across every spec. Only optional (`*`) property tests remain:

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Two middleware components handle exceptions and error logging in every WEP service:
+Two middleware components handle exceptions and error logging in every Nexus 2.0 service:
 
 | Middleware | Position | Responsibility |
 |------------|----------|----------------|
@@ -12,7 +12,7 @@ Two middleware components handle exceptions and error logging in every WEP servi
 Together they ensure:
 - Every error returns a structured `ApiResponse` envelope
 - No stack traces or internals are leaked to clients
-- Every error is published to UtilityCoreService's error log via Redis outbox
+- Every error is published to UtilityService's error log via Redis outbox
 - No error is double-logged
 
 ---
@@ -39,7 +39,7 @@ GlobalExceptionHandlerMiddleware catches it
   ├── Sets HTTP status from exception's StatusCode property
   ├── If RateLimitExceededException → adds Retry-After header
   ├── Writes JSON response
-  ├── Publishes error log to UtilityCoreService via Redis outbox
+  ├── Publishes error log to UtilityService via Redis outbox
   └── Sets HttpContext.Items["ErrorLogged"] = true (prevents double-logging)
 ```
 
@@ -96,14 +96,14 @@ Response:
 }
 ```
 
-The client sees a generic message. The **actual error detail** (including inner exception) is published to the error log in UtilityCoreService for developer diagnostics:
+The client sees a generic message. The **actual error detail** (including inner exception) is published to the error log in UtilityService for developer diagnostics:
 
 ```
 // Error log entry (visible in GET /api/v1/error-logs)
 {
   "errorCode": "INTERNAL_ERROR",
   "message": "An error occurred while saving changes → 23505: duplicate key value violates unique constraint 'ix_customer_phone_no'",
-  "stackTrace": "at ProfileCoreService.Api.Infrastructure.Repositories...",
+  "stackTrace": "at ProfileService.Api.Infrastructure.Repositories...",
   "correlationId": "da490d7b-73a9-4f1f-8580-e7a391607286",
   "severity": "Error"
 }
@@ -162,14 +162,14 @@ public async Task InvokeAsync(HttpContext context, IOutboxService outboxService)
     // After response is written, check if it's a 5xx that wasn't already logged
     if (context.Response.StatusCode >= 500 && !context.Items.ContainsKey("ErrorLogged"))
     {
-        // Publish error log to UtilityCoreService via Redis outbox
+        // Publish error log to UtilityService via Redis outbox
         var envelope = new
         {
             Type = "error",
             Payload = new
             {
                 TenantId = /* from HttpContext.Items */,
-                ServiceName = "ProfileCoreService",
+                ServiceName = "ProfileService",
                 ErrorCode = $"HTTP_{context.Response.StatusCode}",
                 Message = $"{context.Request.Method} {context.Request.Path} returned {context.Response.StatusCode}",
                 CorrelationId = /* from HttpContext.Items */,
@@ -272,7 +272,7 @@ This mapping applies to both `CreateAsync` and `UpdateAsync` in the base reposit
 
 ### Two Layers of Uniqueness Protection
 
-WEP enforces uniqueness at two levels:
+Nexus 2.0 enforces uniqueness at two levels:
 
 1. **Application level** — Service methods check for duplicates before insert (e.g. `FindByPhoneAsync`) and throw specific `DomainException` subclasses (e.g. `CustomerAlreadyExistsException`) with descriptive messages
 
@@ -319,17 +319,19 @@ Both use Redis sliding windows via `IRateLimiterService` and throw `RateLimitExc
 
 ## Error Publishing to Outbox
 
-Both middleware components publish errors to UtilityCoreService via the Redis outbox with the same envelope structure:
+Both middleware components publish errors to UtilityService via the Redis outbox with the same envelope structure:
+
+> **Note:** SecurityService uses a string-based OutboxService API (`PublishAsync(string key, string json)`) while the other 4 services use an object-based API (`PublishAsync(object message)`). Both produce identical JSON envelopes.
 
 ```json
 {
   "type": "error",
   "payload": {
     "tenantId": "11111111-1111-1111-1111-111111111111",
-    "serviceName": "ProfileCoreService",
+    "serviceName": "ProfileService",
     "errorCode": "INTERNAL_ERROR",
     "message": "An error occurred while saving changes → 23505: duplicate key...",
-    "stackTrace": "at ProfileCoreService.Api.Infrastructure...",
+    "stackTrace": "at ProfileService.Api.Infrastructure...",
     "correlationId": "da490d7b-73a9-4f1f-8580-e7a391607286",
     "severity": "Error"
   },

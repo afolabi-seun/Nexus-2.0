@@ -2,13 +2,13 @@
 
 ## Overview
 
-WEP services communicate synchronously via typed HTTP clients and asynchronously via Redis outbox queues. Errors propagate across service boundaries through three mechanisms:
+Nexus 2.0 services communicate synchronously via typed HTTP clients and asynchronously via Redis outbox queues. Errors propagate across service boundaries through three mechanisms:
 
 | Mechanism | Direction | Purpose |
 |-----------|-----------|---------|
 | Typed service clients | Caller ← Downstream | Deserialize downstream errors, re-throw as local DomainException |
 | Correlation ID propagation | Caller → Downstream | Same trace ID across all services in a request chain |
-| Redis outbox | All services → UtilityCoreService | Centralized error and audit log storage |
+| Redis outbox | All services → UtilityService | Centralized error and audit log storage |
 
 ---
 
@@ -90,14 +90,14 @@ Key behaviors:
 
 ### What the Client Sees
 
-When ProfileCoreService calls WalletCoreService and it fails:
+When ProfileService calls WorkService and it fails:
 
 ```json
-// Client called: POST /api/v1/customers (ProfileCoreService)
-// ProfileCoreService called: POST /api/v1/customer-wallets (WalletCoreService)
-// WalletCoreService returned 400 with WALLET_SUSPENDED
+// Client called: POST /api/v1/customers (ProfileService)
+// ProfileService called: POST /api/v1/customer-wallets (WorkService)
+// WorkService returned 400 with WALLET_SUSPENDED
 
-// Client receives from ProfileCoreService:
+// Client receives from ProfileService:
 // HTTP 400
 {
   "responseCode": "09",
@@ -110,7 +110,7 @@ When ProfileCoreService calls WalletCoreService and it fails:
 }
 ```
 
-The error code `5002` (WalletCoreService range) tells the client exactly which service produced the error, even though the response came from ProfileCoreService.
+The error code `5002` (WorkService range) tells the client exactly which service produced the error, even though the response came from ProfileService.
 
 ---
 
@@ -151,7 +151,7 @@ The downstream service's `CorrelationIdMiddleware` reads the propagated header i
 ### Full Chain Example
 
 ```
-Client → ProfileCoreService → WalletCoreService → SecurityCoreService
+Client → ProfileService → WorkService → SecurityService
          correlationId: abc-123
                                 correlationId: abc-123 (propagated)
                                                        correlationId: abc-123 (propagated)
@@ -236,13 +236,13 @@ Service-to-service JWTs are stateless identity tokens (no tenant claim). Tenant 
 
 ## Redis Outbox: Async Error Publishing
 
-All services publish errors asynchronously to UtilityCoreService via per-service Redis queues:
+All services publish errors asynchronously to UtilityService via per-service Redis queues:
 
 ```
-ProfileCoreService   → wep:outbox:profile
-SecurityCoreService  → wep:outbox:security
-TransactionCoreService → wep:outbox:transaction
-WalletCoreService    → wep:outbox:wallet
+ProfileService   → wep:outbox:profile
+SecurityService  → wep:outbox:security
+BillingService → wep:outbox:transaction
+WorkService    → wep:outbox:wallet
 ```
 
 ### Publisher Side (All Services)
@@ -256,7 +256,7 @@ var envelope = new
     Payload = new
     {
         TenantId = tenantId,
-        ServiceName = "ProfileCoreService",
+        ServiceName = "ProfileService",
         ErrorCode = "INTERNAL_ERROR",
         Message = "An error occurred → 23505: duplicate key...",
         StackTrace = ex.StackTrace,
@@ -269,7 +269,7 @@ var envelope = new
 await outboxService.PublishAsync(RedisKeys.Outbox, JsonSerializer.Serialize(envelope));
 ```
 
-### Consumer Side (UtilityCoreService)
+### Consumer Side (UtilityService)
 
 `OutboxProcessorHostedService` runs as a background service, polling all 4 outbox queues:
 
@@ -298,7 +298,7 @@ Processing uses `RPOPLPUSH` for reliability:
 
 ### Error Log Entry
 
-Once processed, the error is stored in UtilityCoreService's `error_log` table and queryable via:
+Once processed, the error is stored in UtilityService's `error_log` table and queryable via:
 
 ```
 GET /api/v1/error-logs                              (all error logs, paginated)
@@ -319,30 +319,30 @@ Each entry includes:
 ## End-to-End Tracing Example
 
 ```
-1. Client sends POST /api/v1/customers to ProfileCoreService
+1. Client sends POST /api/v1/customers to ProfileService
    → CorrelationIdMiddleware generates: abc-123
 
-2. ProfileCoreService calls WalletCoreService to create customer wallet
+2. ProfileService calls WorkService to create customer wallet
    → CorrelationIdDelegatingHandler attaches X-Correlation-Id: abc-123
    → X-Tenant-Id: 11111111-... attached
 
-3. WalletCoreService fails with INSUFFICIENT_BALANCE
+3. WorkService fails with INSUFFICIENT_BALANCE
    → Returns 400 { errorCode: "INSUFFICIENT_BALANCE", correlationId: "abc-123" }
    → Publishes error to wep:outbox:wallet with correlationId: abc-123
 
-4. ProfileCoreService's WalletServiceClient deserializes the error
+4. ProfileService's WalletServiceClient deserializes the error
    → Re-throws as DomainException(5001, "INSUFFICIENT_BALANCE", ...)
    → GlobalExceptionHandlerMiddleware catches it
    → Returns 400 to client with correlationId: abc-123
    → Publishes error to wep:outbox:profile with correlationId: abc-123
 
-5. UtilityCoreService's OutboxProcessor picks up both error events
+5. UtilityService's OutboxProcessor picks up both error events
    → Stores two error_log entries, both with correlationId: abc-123
 
 6. Developer queries: GET /api/v1/error-logs?correlationId=abc-123
    → Sees the full chain:
-     - WalletCoreService: INSUFFICIENT_BALANCE (original error)
-     - ProfileCoreService: INSUFFICIENT_BALANCE (propagated error)
+     - WorkService: INSUFFICIENT_BALANCE (original error)
+     - ProfileService: INSUFFICIENT_BALANCE (propagated error)
 ```
 
 ---

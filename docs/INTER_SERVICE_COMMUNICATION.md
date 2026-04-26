@@ -2,7 +2,7 @@
 
 ## Overview
 
-WEP services communicate through two channels:
+Nexus 2.0 services communicate through two channels:
 
 | Channel | Pattern | Use Case |
 |---------|---------|----------|
@@ -17,7 +17,7 @@ Both channels propagate `correlationId` and `tenantId` for end-to-end tracing an
 
 ```
                     ┌──────────────────┐
-                    │  UtilityCoreService │
+                    │  UtilityService    │
                     │  (error codes,     │
                     │   audit, notifs)   │
                     └────────▲───────────┘
@@ -26,13 +26,13 @@ Both channels propagate `correlationId` and `tenantId` for end-to-end tracing an
               Redis outbox (all 4 services)
                              │
 ┌──────────────┐    ┌───────┴────────┐    ┌──────────────────┐
-│  Security    │◄──►│   Profile      │───►│   Wallet         │
-│  CoreService │    │   CoreService  │    │   CoreService    │
+│  Security    │◄──►│   Profile      │───►│   Work           │
+│  Service     │    │   Service      │    │   Service        │
 └──────────────┘    └───────┬────────┘    └──────────────────┘
                             │                      ▲
                     ┌───────┴────────┐             │
-                    │  Transaction   │─────────────┘
-                    │  CoreService   │
+                    │  Billing       │─────────────┘
+                    │  Service       │
                     └────────────────┘
 ```
 
@@ -40,9 +40,9 @@ Both channels propagate `correlationId` and `tenantId` for end-to-end tracing an
 |--------|-----------|-----------|------------|
 | Profile → Security | `ISecurityServiceClient` (via HTTP) | Credential generation, password sync |
 | Security → Profile | `IProfileServiceClient` | User lookup by identity/username/ID, password update |
-| Profile → Wallet | `IWalletServiceClient` | Customer wallet creation, KYC limit updates, cascade suspend/reactivate |
-| Transaction → Wallet | `IWalletServiceClient` | Balance checks, debits, credits, hold operations |
-| Security → Wallet | `IWalletServiceClient` | Spending limit checks during PIN verification |
+| Profile → Work | `IWorkServiceClient` | Customer wallet creation, KYC limit updates, cascade suspend/reactivate |
+| Billing → Work | `IWorkServiceClient` | Balance checks, debits, credits, hold operations |
+| Security → Work | `IWorkServiceClient` | Spending limit checks during PIN verification |
 | All → Utility | `IUtilityServiceClient` | Error code registry fetch |
 | All → Utility | Redis outbox | Audit logs, error logs, notifications |
 
@@ -104,7 +104,7 @@ Every service client follows the same structure:
 ```csharp
 public class WalletServiceClient : IWalletServiceClient
 {
-    private const string DownstreamServiceName = "WalletCoreService";
+    private const string DownstreamServiceName = "WorkService";
 
     public async Task<CreateCustomerWalletResponse> CreateCustomerWalletAsync(
         CreateCustomerWalletRequest request, CancellationToken cancellationToken = default)
@@ -151,10 +151,10 @@ Services authenticate to each other using stateless JWTs issued by `IServiceAuth
 
 ```json
 {
-  "sub": "ProfileCoreService",
+  "sub": "ProfileService",
   "jti": "a1b2c3d4-...",
-  "serviceId": "ProfileCoreService",
-  "serviceName": "ProfileCoreService",
+  "serviceId": "ProfileService",
+  "serviceName": "ProfileService",
   "tokenType": "service",
   "exp": 1718500000,
   "iss": "WEP",
@@ -185,11 +185,11 @@ Key differences from user JWTs:
 ```csharp
 private static readonly Dictionary<string, string[]> ServiceAcl = new()
 {
-    ["ProfileCoreService"]     = ["*"],
-    ["WalletCoreService"]      = ["*"],
-    ["TransactionCoreService"] = ["*"],
-    ["UtilityCoreService"]     = ["*"],
-    ["SecurityCoreService"]    = ["*"]
+    ["ProfileService"]     = ["*"],
+    ["WorkService"]        = ["*"],
+    ["BillingService"]     = ["*"],
+    ["UtilityService"]     = ["*"],
+    ["SecurityService"]    = ["*"]
 };
 ```
 
@@ -291,7 +291,7 @@ After 5 consecutive failures:
 
 ## Redis Outbox (Asynchronous)
 
-Fire-and-forget events are published to Redis lists and consumed by UtilityCoreService.
+Fire-and-forget events are published to Redis lists and consumed by UtilityService.
 
 ### Publisher Side
 
@@ -312,10 +312,10 @@ public class OutboxService : IOutboxService
 
 | Service | Queue Key |
 |---------|-----------|
-| ProfileCoreService | `wep:outbox:profile` |
-| SecurityCoreService | `wep:outbox:security` |
-| TransactionCoreService | `wep:outbox:transaction` |
-| WalletCoreService | `wep:outbox:wallet` |
+| ProfileService | `wep:outbox:profile` |
+| SecurityService | `wep:outbox:security` |
+| BillingService | `wep:outbox:transaction` |
+| WorkService | `wep:outbox:wallet` |
 
 ### Envelope Format
 
@@ -324,7 +324,7 @@ public class OutboxService : IOutboxService
   "type": "audit",
   "payload": {
     "tenantId": "11111111-...",
-    "serviceName": "ProfileCoreService",
+    "serviceName": "ProfileService",
     "action": "CustomerCreated",
     "entityType": "Customer",
     "entityId": "a1b2c3d4-...",
@@ -343,9 +343,9 @@ Event types:
 | `audit` | Action, entity type/ID, user ID | `audit_log` table |
 | `error` | Error code, message, stack trace | `error_log` table |
 | `notification` | Notification type, recipient, channels | Notification dispatch → `notification_log` table |
-| `device_registration` | Device name, user ID, IP | Forwarded to ProfileCoreService |
+| `device_registration` | Device name, user ID, IP | Forwarded to ProfileService |
 
-### Consumer Side (UtilityCoreService)
+### Consumer Side (UtilityService)
 
 `OutboxProcessorHostedService` runs as a background service, polling all 4 queues:
 
@@ -357,7 +357,7 @@ Poll interval → for each queue:
      - "audit"        → IAuditLogService.AddAsync()
      - "error"        → IErrorLogService.AddAsync()
      - "notification" → INotificationDispatchService.DispatchAsync()
-     - "device_registration" → Forward to ProfileCoreService
+     - "device_registration" → Forward to ProfileService
   4. Success → LREM queue:processing (remove)
   5. Failure → Move back to original queue for retry
 ```

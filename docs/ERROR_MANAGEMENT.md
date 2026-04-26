@@ -1,6 +1,6 @@
-# WEP Error Management
+# Nexus 2.0 Error Management
 
-Comprehensive guide to error handling, error codes, validation, middleware, inter-service propagation, and observability across all WEP services.
+Comprehensive guide to error handling, error codes, validation, middleware, inter-service propagation, and observability across all Nexus 2.0 services.
 
 ## Table of Contents
 
@@ -19,7 +19,7 @@ Individual files are available in the [`docs/`](./INDEX.md) folder for focused r
 
 ## Overview
 
-WEP uses a layered error handling strategy where **no service method throws exceptions for expected business failures**. Instead, errors flow through three distinct layers, each with a clear responsibility:
+Nexus 2.0 uses a layered error handling strategy where **no service method throws exceptions for expected business failures**. Instead, errors flow through three distinct layers, each with a clear responsibility:
 
 | Layer | Handles | Returns |
 |-------|---------|---------|
@@ -151,7 +151,7 @@ The `responseCode` field groups error codes into two-digit categories for client
 | `98` | Internal error | `INTERNAL_ERROR`, `NOTIFICATION_DISPATCH_FAILED` |
 | `99` | Unknown | Unmapped error codes |
 
-This mapping lives in `ApiResponse.MapErrorToResponseCode()` and is identical across all 5 services.
+Each service has its own `MapErrorToResponseCode` fallback that covers its service-specific error codes. The fallback is only used when all higher-priority tiers (in-memory cache, Redis, UtilityService HTTP) are unavailable. SecurityService covers auth-specific codes (INVALID_CREDENTIALS, ACCOUNT_LOCKED, OTP/password patterns), while ProfileService and WorkService cover entity-specific codes (DUPLICATE, NOT_FOUND, IMMUTABLE patterns). BillingService has a billing-specific fallback. All services share common mappings for VALIDATION_ERROR (96), INTERNAL_ERROR (98), and unknown codes (99).
 
 ---
 
@@ -239,12 +239,12 @@ CorrelationIdMiddleware
   │  → Stores in HttpContext.Items["CorrelationId"]
   │  → Echoes back in response header
   ▼
-Service A (e.g. ProfileCoreService)
+Service A (e.g. ProfileService)
   │
   │  Calls Service B via typed service client
   │  CorrelationIdDelegatingHandler attaches X-Correlation-Id header
   ▼
-Service B (e.g. WalletCoreService)
+Service B (e.g. WorkService)
   │  → CorrelationIdMiddleware reads the propagated header
   │  → Same correlationId used in logs, error responses, audit events
   ▼
@@ -253,7 +253,7 @@ Response flows back with same correlationId
 
 The `correlationId` appears in:
 - Every API response (`ApiResponse.CorrelationId`)
-- Every error log published to UtilityCoreService
+- Every error log published to UtilityService
 - Every audit log entry
 - Response headers (`X-Correlation-Id`)
 
@@ -274,7 +274,7 @@ DomainException (base)
   ├── StatusCode: HttpStatusCode
   └── CorrelationId: string    (set by GlobalExceptionHandlerMiddleware)
 
-Subclasses (ProfileCoreService example):
+Subclasses (ProfileService example):
   ├── CustomerAlreadyExistsException      → 409
   ├── CustomerAlreadyAttachedException    → 409
   ├── PhoneAlreadyExistsException         → 409
@@ -330,14 +330,14 @@ A request flows through the system like this:
     → GlobalExceptionHandlerMiddleware catches it
     → Resolves error code via IErrorCodeResolverService
     → Returns structured ApiResponse with correlationId
-    → Publishes error log to UtilityCoreService via Redis outbox
+    → Publishes error log to UtilityService via Redis outbox
 
 2d. UNEXPECTED ERROR:
     Any layer throws unhandled Exception
     → GlobalExceptionHandlerMiddleware catches it
     → Returns generic 500 ApiResponse (no internals leaked)
     → Logs inner exception message for diagnostics
-    → Publishes error log to UtilityCoreService via Redis outbox
+    → Publishes error log to UtilityService via Redis outbox
 
 3. ErrorResponseLoggingMiddleware checks:
    → If status >= 500 AND not already logged → publishes error log
@@ -353,15 +353,15 @@ A request flows through the system like this:
 
 ## Overview
 
-Error codes are **centrally managed** in UtilityCoreService's `error_code_entry` table and **consumed at runtime** by all 5 services via a multi-tier cache. This means:
+Error codes are **centrally managed** in UtilityService's `error_code_entry` table and **consumed at runtime** by all 5 services via a multi-tier cache. This means:
 
 - One source of truth for all error codes, descriptions, HTTP status codes, and response codes
 - Error code metadata can be updated at runtime without redeploying services
-- Services degrade gracefully if UtilityCoreService is unavailable (local fallback)
+- Services degrade gracefully if UtilityService is unavailable (local fallback)
 
 ---
 
-## UtilityCoreService: The Source of Truth
+## UtilityService: The Source of Truth
 
 ### Error Code Entry Model
 
@@ -417,11 +417,11 @@ Each service owns a dedicated numeric range to avoid collisions:
 | Service | Range | Count | Examples |
 |---------|-------|-------|----------|
 | Shared | 1000 | 1 | `VALIDATION_ERROR` (1000) |
-| SecurityCoreService | 2001–2022 | 22 | `INVALID_CREDENTIALS` (2001), `ACCOUNT_LOCKED` (2002), `OTP_EXPIRED` (2007) |
-| ProfileCoreService | 3001–3024 | 24 | `CUSTOMER_ALREADY_EXISTS` (3001), `MAX_DEVICES_REACHED` (3006), `PHONE_ALREADY_REGISTERED` (3010) |
-| TransactionCoreService | 4001–4023 | 23 | `PAYMENT_LINK_EXPIRED` (4001), `IDEMPOTENCY_KEY_REQUIRED` (4006), `BILL_PROVIDER_ERROR` (4012) |
-| WalletCoreService | 5001–5026 | 26 | `INSUFFICIENT_BALANCE` (5001), `WALLET_SUSPENDED` (5002), `SPENDING_LIMIT_EXCEEDED` (5010) |
-| UtilityCoreService | 6001–6010 | 10 | `AUDIT_LOG_IMMUTABLE` (6001), `ERROR_CODE_DUPLICATE` (6002), `NOTIFICATION_DISPATCH_FAILED` (6004) |
+| SecurityService | 2001–2022 | 22 | `INVALID_CREDENTIALS` (2001), `ACCOUNT_LOCKED` (2002), `OTP_EXPIRED` (2007) |
+| ProfileService | 3001–3024 | 24 | `CUSTOMER_ALREADY_EXISTS` (3001), `MAX_DEVICES_REACHED` (3006), `PHONE_ALREADY_REGISTERED` (3010) |
+| BillingService | 4001–4023 | 23 | `PAYMENT_LINK_EXPIRED` (4001), `IDEMPOTENCY_KEY_REQUIRED` (4006), `BILL_PROVIDER_ERROR` (4012) |
+| WorkService | 5001–5026 | 26 | `INSUFFICIENT_BALANCE` (5001), `WALLET_SUSPENDED` (5002), `SPENDING_LIMIT_EXCEEDED` (5010) |
+| UtilityService | 6001–6010 | 10 | `AUDIT_LOG_IMMUTABLE` (6001), `ERROR_CODE_DUPLICATE` (6002), `NOTIFICATION_DISPATCH_FAILED` (6004) |
 
 Each service also defines three **common error codes** at the end of its range with the same string names but service-specific numeric values:
 
@@ -485,7 +485,7 @@ When `GlobalExceptionHandlerMiddleware` catches a `DomainException`, it needs to
 │  │ Miss or Redis down? ↓                       │                │
 │  └─────────────────────────────────────────────┘                │
 │                                                                  │
-│  Tier 3: HTTP call to UtilityCoreService                        │
+│  Tier 3: HTTP call to UtilityService                        │
 │  ┌─────────────────────────────────────────────┐                │
 │  │ GET /api/v1/error-codes (service-to-service │                │
 │  │ JWT auth via IUtilityServiceClient)         │                │
@@ -519,7 +519,7 @@ public async Task<ErrorCodeInfo> ResolveAsync(string errorCode)
     }
     catch { /* Redis down — continue */ }
 
-    // Tier 3: HTTP refresh from UtilityCoreService
+    // Tier 3: HTTP refresh from UtilityService
     try
     {
         await RefreshCacheAsync();  // fetches ALL codes, populates memory + Redis
@@ -550,14 +550,14 @@ protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 This means:
 - On startup, the background service pre-warms the cache
 - During normal operation, Tier 1 (in-memory) handles most lookups with zero latency
-- If Redis and UtilityCoreService are both down, the local fallback ensures error responses are still properly formatted
+- If Redis and UtilityService are both down, the local fallback ensures error responses are still properly formatted
 
 ### Local Fallback
 
 Each service has its own `FallbackResolve()` method that maps its known error codes to defaults. This is the last resort — it ensures the service can still return structured error responses even if all external dependencies are down:
 
 ```csharp
-// ProfileCoreService fallback (excerpt)
+// ProfileService fallback (excerpt)
 private static ErrorCodeInfo FallbackResolve(string errorCode) => errorCode switch
 {
     "VALIDATION_ERROR"          => new("96", "Validation error", 422),
@@ -597,7 +597,7 @@ HGET wep:error_codes_registry CUSTOMER_ALREADY_EXISTS
 ## How It All Fits Together
 
 ```
-1. PlatformAdmin seeds/manages error codes via UtilityCoreService CRUD endpoints
+1. PlatformAdmin seeds/manages error codes via UtilityService CRUD endpoints
 
 2. On startup, each consuming service's BackgroundService calls:
    GET /api/v1/error-codes → populates in-memory + Redis cache
@@ -607,7 +607,7 @@ HGET wep:error_codes_registry CUSTOMER_ALREADY_EXISTS
    → Gets responseCode + description from cache (usually Tier 1)
    → Builds ApiResponse with resolved metadata
 
-4. If UtilityCoreService is down:
+4. If UtilityService is down:
    → Tier 1/2 serve from cache (up to 24h stale)
    → Tier 4 fallback ensures responses are always structured
 
@@ -625,7 +625,7 @@ HGET wep:error_codes_registry CUSTOMER_ALREADY_EXISTS
 
 ## Overview
 
-Validation errors are the **most common error type** in WEP. They are handled entirely at the controller layer — before any service or repository code runs — via a three-stage pipeline:
+Validation errors are the **most common error type** in Nexus 2.0. They are handled entirely at the controller layer — before any service or repository code runs — via a three-stage pipeline:
 
 ```
 Request Body
@@ -883,7 +883,7 @@ All 5 services use the same validation setup:
 
 ## Overview
 
-Two middleware components handle exceptions and error logging in every WEP service:
+Two middleware components handle exceptions and error logging in every Nexus 2.0 service:
 
 | Middleware | Position | Responsibility |
 |------------|----------|----------------|
@@ -893,7 +893,7 @@ Two middleware components handle exceptions and error logging in every WEP servi
 Together they ensure:
 - Every error returns a structured `ApiResponse` envelope
 - No stack traces or internals are leaked to clients
-- Every error is published to UtilityCoreService's error log via Redis outbox
+- Every error is published to UtilityService's error log via Redis outbox
 - No error is double-logged
 
 ---
@@ -920,7 +920,7 @@ GlobalExceptionHandlerMiddleware catches it
   ├── Sets HTTP status from exception's StatusCode property
   ├── If RateLimitExceededException → adds Retry-After header
   ├── Writes JSON response
-  ├── Publishes error log to UtilityCoreService via Redis outbox
+  ├── Publishes error log to UtilityService via Redis outbox
   └── Sets HttpContext.Items["ErrorLogged"] = true (prevents double-logging)
 ```
 
@@ -977,14 +977,14 @@ Response:
 }
 ```
 
-The client sees a generic message. The **actual error detail** (including inner exception) is published to the error log in UtilityCoreService for developer diagnostics:
+The client sees a generic message. The **actual error detail** (including inner exception) is published to the error log in UtilityService for developer diagnostics:
 
 ```
 // Error log entry (visible in GET /api/v1/error-logs)
 {
   "errorCode": "INTERNAL_ERROR",
   "message": "An error occurred while saving changes → 23505: duplicate key value violates unique constraint 'ix_customer_phone_no'",
-  "stackTrace": "at ProfileCoreService.Api.Infrastructure.Repositories...",
+  "stackTrace": "at ProfileService.Api.Infrastructure.Repositories...",
   "correlationId": "da490d7b-73a9-4f1f-8580-e7a391607286",
   "severity": "Error"
 }
@@ -1043,14 +1043,14 @@ public async Task InvokeAsync(HttpContext context, IOutboxService outboxService)
     // After response is written, check if it's a 5xx that wasn't already logged
     if (context.Response.StatusCode >= 500 && !context.Items.ContainsKey("ErrorLogged"))
     {
-        // Publish error log to UtilityCoreService via Redis outbox
+        // Publish error log to UtilityService via Redis outbox
         var envelope = new
         {
             Type = "error",
             Payload = new
             {
                 TenantId = /* from HttpContext.Items */,
-                ServiceName = "ProfileCoreService",
+                ServiceName = "ProfileService",
                 ErrorCode = $"HTTP_{context.Response.StatusCode}",
                 Message = $"{context.Request.Method} {context.Request.Path} returned {context.Response.StatusCode}",
                 CorrelationId = /* from HttpContext.Items */,
@@ -1153,7 +1153,7 @@ This mapping applies to both `CreateAsync` and `UpdateAsync` in the base reposit
 
 ### Two Layers of Uniqueness Protection
 
-WEP enforces uniqueness at two levels:
+Nexus 2.0 enforces uniqueness at two levels:
 
 1. **Application level** — Service methods check for duplicates before insert (e.g. `FindByPhoneAsync`) and throw specific `DomainException` subclasses (e.g. `CustomerAlreadyExistsException`) with descriptive messages
 
@@ -1200,17 +1200,17 @@ Both use Redis sliding windows via `IRateLimiterService` and throw `RateLimitExc
 
 ## Error Publishing to Outbox
 
-Both middleware components publish errors to UtilityCoreService via the Redis outbox with the same envelope structure:
+Both middleware components publish errors to UtilityService via the Redis outbox with the same envelope structure:
 
 ```json
 {
   "type": "error",
   "payload": {
     "tenantId": "11111111-1111-1111-1111-111111111111",
-    "serviceName": "ProfileCoreService",
+    "serviceName": "ProfileService",
     "errorCode": "INTERNAL_ERROR",
     "message": "An error occurred while saving changes → 23505: duplicate key...",
-    "stackTrace": "at ProfileCoreService.Api.Infrastructure...",
+    "stackTrace": "at ProfileService.Api.Infrastructure...",
     "correlationId": "da490d7b-73a9-4f1f-8580-e7a391607286",
     "severity": "Error"
   },
@@ -1240,13 +1240,13 @@ The outbox publish is wrapped in a try/catch — if Redis is down, the error is 
 
 ## Overview
 
-WEP services communicate synchronously via typed HTTP clients and asynchronously via Redis outbox queues. Errors propagate across service boundaries through three mechanisms:
+Nexus 2.0 services communicate synchronously via typed HTTP clients and asynchronously via Redis outbox queues. Errors propagate across service boundaries through three mechanisms:
 
 | Mechanism | Direction | Purpose |
 |-----------|-----------|---------|
 | Typed service clients | Caller ← Downstream | Deserialize downstream errors, re-throw as local DomainException |
 | Correlation ID propagation | Caller → Downstream | Same trace ID across all services in a request chain |
-| Redis outbox | All services → UtilityCoreService | Centralized error and audit log storage |
+| Redis outbox | All services → UtilityService | Centralized error and audit log storage |
 
 ---
 
@@ -1328,14 +1328,14 @@ Key behaviors:
 
 ### What the Client Sees
 
-When ProfileCoreService calls WalletCoreService and it fails:
+When ProfileService calls WorkService and it fails:
 
 ```json
-// Client called: POST /api/v1/customers (ProfileCoreService)
-// ProfileCoreService called: POST /api/v1/customer-wallets (WalletCoreService)
-// WalletCoreService returned 400 with WALLET_SUSPENDED
+// Client called: POST /api/v1/customers (ProfileService)
+// ProfileService called: POST /api/v1/customer-wallets (WorkService)
+// WorkService returned 400 with WALLET_SUSPENDED
 
-// Client receives from ProfileCoreService:
+// Client receives from ProfileService:
 // HTTP 400
 {
   "responseCode": "09",
@@ -1348,7 +1348,7 @@ When ProfileCoreService calls WalletCoreService and it fails:
 }
 ```
 
-The error code `5002` (WalletCoreService range) tells the client exactly which service produced the error, even though the response came from ProfileCoreService.
+The error code `5002` (WorkService range) tells the client exactly which service produced the error, even though the response came from ProfileService.
 
 ---
 
@@ -1389,7 +1389,7 @@ The downstream service's `CorrelationIdMiddleware` reads the propagated header i
 ### Full Chain Example
 
 ```
-Client → ProfileCoreService → WalletCoreService → SecurityCoreService
+Client → ProfileService → WorkService → SecurityService
          correlationId: abc-123
                                 correlationId: abc-123 (propagated)
                                                        correlationId: abc-123 (propagated)
@@ -1474,13 +1474,13 @@ Service-to-service JWTs are stateless identity tokens (no tenant claim). Tenant 
 
 ## Redis Outbox: Async Error Publishing
 
-All services publish errors asynchronously to UtilityCoreService via per-service Redis queues:
+All services publish errors asynchronously to UtilityService via per-service Redis queues:
 
 ```
-ProfileCoreService   → wep:outbox:profile
-SecurityCoreService  → wep:outbox:security
-TransactionCoreService → wep:outbox:transaction
-WalletCoreService    → wep:outbox:wallet
+ProfileService   → wep:outbox:profile
+SecurityService  → wep:outbox:security
+BillingService → wep:outbox:transaction
+WorkService    → wep:outbox:wallet
 ```
 
 ### Publisher Side (All Services)
@@ -1494,7 +1494,7 @@ var envelope = new
     Payload = new
     {
         TenantId = tenantId,
-        ServiceName = "ProfileCoreService",
+        ServiceName = "ProfileService",
         ErrorCode = "INTERNAL_ERROR",
         Message = "An error occurred → 23505: duplicate key...",
         StackTrace = ex.StackTrace,
@@ -1507,7 +1507,7 @@ var envelope = new
 await outboxService.PublishAsync(RedisKeys.Outbox, JsonSerializer.Serialize(envelope));
 ```
 
-### Consumer Side (UtilityCoreService)
+### Consumer Side (UtilityService)
 
 `OutboxProcessorHostedService` runs as a background service, polling all 4 outbox queues:
 
@@ -1536,7 +1536,7 @@ Processing uses `RPOPLPUSH` for reliability:
 
 ### Error Log Entry
 
-Once processed, the error is stored in UtilityCoreService's `error_log` table and queryable via:
+Once processed, the error is stored in UtilityService's `error_log` table and queryable via:
 
 ```
 GET /api/v1/error-logs                              (all error logs, paginated)
@@ -1557,30 +1557,30 @@ Each entry includes:
 ## End-to-End Tracing Example
 
 ```
-1. Client sends POST /api/v1/customers to ProfileCoreService
+1. Client sends POST /api/v1/customers to ProfileService
    → CorrelationIdMiddleware generates: abc-123
 
-2. ProfileCoreService calls WalletCoreService to create customer wallet
+2. ProfileService calls WorkService to create customer wallet
    → CorrelationIdDelegatingHandler attaches X-Correlation-Id: abc-123
    → X-Tenant-Id: 11111111-... attached
 
-3. WalletCoreService fails with INSUFFICIENT_BALANCE
+3. WorkService fails with INSUFFICIENT_BALANCE
    → Returns 400 { errorCode: "INSUFFICIENT_BALANCE", correlationId: "abc-123" }
    → Publishes error to wep:outbox:wallet with correlationId: abc-123
 
-4. ProfileCoreService's WalletServiceClient deserializes the error
+4. ProfileService's WalletServiceClient deserializes the error
    → Re-throws as DomainException(5001, "INSUFFICIENT_BALANCE", ...)
    → GlobalExceptionHandlerMiddleware catches it
    → Returns 400 to client with correlationId: abc-123
    → Publishes error to wep:outbox:profile with correlationId: abc-123
 
-5. UtilityCoreService's OutboxProcessor picks up both error events
+5. UtilityService's OutboxProcessor picks up both error events
    → Stores two error_log entries, both with correlationId: abc-123
 
 6. Developer queries: GET /api/v1/error-logs?correlationId=abc-123
    → Sees the full chain:
-     - WalletCoreService: INSUFFICIENT_BALANCE (original error)
-     - ProfileCoreService: INSUFFICIENT_BALANCE (propagated error)
+     - WorkService: INSUFFICIENT_BALANCE (original error)
+     - ProfileService: INSUFFICIENT_BALANCE (propagated error)
 ```
 
 ---
@@ -1769,7 +1769,7 @@ Response (HTTP 409):
 - Application-level uniqueness check threw `PhoneAlreadyExistsException`
 - `GlobalExceptionHandlerMiddleware` caught it, resolved the error code from the registry
 - `responseCode: "06"` and `responseDescription` came from the error code registry, not the exception
-- `errorValue: 3010` is in the ProfileCoreService range (3001–3024)
+- `errorValue: 3010` is in the ProfileService range (3001–3024)
 
 ### 3b. Database Constraint Violation (409)
 
@@ -1886,15 +1886,15 @@ Response (HTTP 200):
 
 **Talking point:** This is the source of truth. When `GlobalExceptionHandlerMiddleware` catches a `DomainException`, it calls `IErrorCodeResolverService.ResolveAsync(errorCode)` which looks up the `responseCode` and `description` from this registry (via multi-tier cache).
 
-### 4b. Resilience Demo — Stop UtilityCoreService
+### 4b. Resilience Demo — Stop UtilityService
 
-1. Stop UtilityCoreService (`Ctrl+C`)
-2. Trigger an error in ProfileCoreService (e.g. duplicate customer)
+1. Stop UtilityService (`Ctrl+C`)
+2. Trigger an error in ProfileService (e.g. duplicate customer)
 3. Observe: the error response still has correct `responseCode` and `responseDescription`
 
-**Talking point:** The multi-tier cache (in-memory → Redis → HTTP → local fallback) means error responses are properly formatted even when UtilityCoreService is down. The local fallback is the last resort — hardcoded in each service.
+**Talking point:** The multi-tier cache (in-memory → Redis → HTTP → local fallback) means error responses are properly formatted even when UtilityService is down. The local fallback is the last resort — hardcoded in each service.
 
-4. Restart UtilityCoreService
+4. Restart UtilityService
 5. Wait for the background refresh (or trigger a cache miss)
 6. Observe: cache is repopulated from the registry
 
@@ -1918,10 +1918,10 @@ Response (HTTP 200):
   "data": {
     "items": [
       {
-        "serviceName": "ProfileCoreService",
+        "serviceName": "ProfileService",
         "errorCode": "PHONE_ALREADY_REGISTERED",
         "message": "Phone number +2348012345678 is already registered.",
-        "stackTrace": "at ProfileCoreService.Api.Infrastructure.Services...",
+        "stackTrace": "at ProfileService.Api.Infrastructure.Services...",
         "correlationId": "abc-123",
         "severity": "Warning",
         "dateCreated": "2025-06-15T10:30:00Z",
@@ -1968,7 +1968,7 @@ Authorization: Bearer {{accessToken}}
 
 ### 6a. Downstream Error Passthrough
 
-Create a customer (which triggers wallet creation in WalletCoreService). If WalletCoreService is down:
+Create a customer (which triggers wallet creation in WorkService). If WorkService is down:
 
 ```
 POST /api/v1/customers
@@ -1993,21 +1993,21 @@ Response (HTTP 503):
   "data": null,
   "errorCode": "SERVICE_UNAVAILABLE",
   "errorValue": 3019,
-  "message": "WalletCoreService returned HTTP 503 for /api/v1/customer-wallets.",
+  "message": "WorkService returned HTTP 503 for /api/v1/customer-wallets.",
   "correlationId": "..."
 }
 ```
 
 **Talking points:**
-- ProfileCoreService's `WalletServiceClient` caught the failure
+- ProfileService's `WalletServiceClient` caught the failure
 - Polly retried 3 times with exponential backoff before giving up
 - The error was re-thrown as a local `DomainException(SERVICE_UNAVAILABLE)`
-- `errorValue: 3019` tells you ProfileCoreService produced this (its SERVICE_UNAVAILABLE range)
+- `errorValue: 3019` tells you ProfileService produced this (its SERVICE_UNAVAILABLE range)
 - The `correlationId` can be used to find error logs from both services
 
 ### 6b. Downstream Business Error Passthrough
 
-If WalletCoreService is running but returns a business error (e.g. duplicate wallet):
+If WorkService is running but returns a business error (e.g. duplicate wallet):
 
 Response (HTTP 409):
 ```json
@@ -2018,7 +2018,7 @@ Response (HTTP 409):
 }
 ```
 
-**Talking point:** `errorValue: 5013` is in the WalletCoreService range — the client can tell exactly which service produced the error even though the response came from ProfileCoreService.
+**Talking point:** `errorValue: 5013` is in the WorkService range — the client can tell exactly which service produced the error even though the response came from ProfileService.
 
 ---
 
@@ -2044,7 +2044,7 @@ Response (HTTP 409):
 - Keep a terminal with `dotnet run` logs visible — colleagues can see the middleware pipeline and Polly retries in real time
 - Use the Postman collection's "Tests" tab to highlight the `correlationId` in responses
 - The device `SetPrimaryAsync` bug we fixed is a great "before/after" example — show the error log entry with the stack trace pointing to the root cause, then show the fix
-- Stop/start UtilityCoreService mid-demo to show the error code cache fallback in action
+- Stop/start UtilityService mid-demo to show the error code cache fallback in action
 
 ---
 
