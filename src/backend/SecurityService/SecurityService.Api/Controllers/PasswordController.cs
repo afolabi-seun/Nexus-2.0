@@ -68,7 +68,7 @@ public class PasswordController : ControllerBase
             await _profileServiceClient.SetIsFirstTimeUserAsync(userId, false, ct);
         }
 
-        return ApiResponse<object>.Ok(null!, "Password changed successfully.").ToActionResult(HttpContext);
+        return ApiResponse<object>.Ok(new { }, "Password changed successfully.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -95,7 +95,7 @@ public class PasswordController : ControllerBase
     {
         await _passwordService.ResetRequestAsync(request.Email, ct);
 
-        return ApiResponse<object>.Ok(null!, "Password reset OTP sent.").ToActionResult(HttpContext);
+        return ApiResponse<object>.Ok(new { }, "Password reset OTP sent.").ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -126,6 +126,6 @@ public class PasswordController : ControllerBase
     {
         await _passwordService.ResetConfirmAsync(request.Email, request.OtpCode, request.NewPassword, ct);
 
-        return ApiResponse<object>.Ok(null!, "Password reset successful.").ToActionResult(HttpContext);
+        return ApiResponse<object>.Ok(new { }, "Password reset successful.").ToActionResult(HttpContext);
     }
 }
