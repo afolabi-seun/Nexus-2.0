@@ -2,17 +2,17 @@
 
 ## Overview
 
-SecurityCoreService handles all authentication for the platform. It doesn't store user data — it fetches profiles from ProfileCoreService at login time and manages sessions, tokens, and credentials via Redis.
+SecurityService handles all authentication for the platform. It doesn't store user data — it fetches profiles from ProfileService at login time and manages sessions, tokens, and credentials via Redis.
 
 ```
 Client
   │
   ▼
-SecurityCoreService (port 5001)
-  ├── Login → fetch user from ProfileCoreService → issue JWT + session
+SecurityService (port 5001)
+  ├── Login → fetch user from ProfileService → issue JWT + session
   ├── Refresh → validate refresh token → issue new token pair
   ├── Logout → blacklist JWT + revoke session
-  ├── Password → forced change / reset via OTP → sync hash to ProfileCoreService
+  ├── Password → forced change / reset via OTP → sync hash to ProfileService
   ├── OTP → generate / verify via Redis
   ├── Transaction PIN → create / verify / reset via Redis
   └── Service tokens → issue service-to-service JWTs
@@ -33,7 +33,7 @@ POST /api/v1/auth/login   [AllowAnonymous]
 1. Check account lockout (Redis: wep:lockout:locked:{identity})
    └── Locked? → 423 ACCOUNT_LOCKED
 
-2. Fetch user from ProfileCoreService
+2. Fetch user from ProfileService
    ├── Check Redis cache (wep:user_cache:{identity}, 2 min TTL)
    ├── Cache miss → GET /api/v1/sme-users/by-identity/{identity}
    │                 (falls back to /api/v1/customers/by-identity/{identity})
@@ -97,7 +97,7 @@ Users can log in with any of:
 - Email (`adebayo@example.com`)
 - Phone (`+2348012345678`)
 
-The `by-identity` endpoint in ProfileCoreService searches across all three fields using `IgnoreQueryFilters()` (cross-tenant, since the user's tenant is unknown before authentication).
+The `by-identity` endpoint in ProfileService searches across all three fields using `IgnoreQueryFilters()` (cross-tenant, since the user's tenant is unknown before authentication).
 
 ---
 
@@ -241,12 +241,12 @@ POST /api/v1/password/forced-change   [Authorize]
 ```
 
 ```
-1. Verify current password against stored hash (via ProfileCoreService)
+1. Verify current password against stored hash (via ProfileService)
 2. Check user.IsFirstTimeUser == true
    └── Already changed? → 400 PASSWORD_REUSE_NOT_ALLOWED
 3. Validate against password history (last 5, via PasswordHistoryService)
 4. BCrypt hash new password
-5. Sync to ProfileCoreService: PATCH /api/v1/sme-users/{id}/password
+5. Sync to ProfileService: PATCH /api/v1/sme-users/{id}/password
 6. Invalidate user cache in Redis
 7. Blacklist current JWT + revoke session (force re-login)
 8. Audit log: FORCED_PASSWORD_CHANGE
@@ -273,7 +273,7 @@ POST /api/v1/password/reset/confirm   [AllowAnonymous]
 2. Lookup user by phone (unscoped by-identity endpoint)
 3. Validate against password history (last 5)
 4. BCrypt hash new password
-5. Sync to ProfileCoreService
+5. Sync to ProfileService
 6. Invalidate user cache
 7. Audit log: PASSWORD_RESET
 ```
@@ -332,7 +332,7 @@ POST /api/v1/transaction-pin/reset    { "otp": "123456", "newPin": "5678" }
 
 ```
 POST /api/v1/service-tokens/issue   [AllowAnonymous, hidden from Swagger]
-{ "serviceId": "ProfileCoreService", "serviceName": "ProfileCoreService" }
+{ "serviceId": "ProfileService", "serviceName": "ProfileService" }
 ```
 
 See [Inter-Service Communication](./INTER_SERVICE_COMMUNICATION.md#service-to-service-jwt-authentication) for full details on service JWT issuance, caching, and ACL.
@@ -345,13 +345,13 @@ See [Inter-Service Communication](./INTER_SERVICE_COMMUNICATION.md#service-to-se
 POST /api/v1/auth/credentials/generate   [ServiceAuth, hidden from Swagger]
 ```
 
-Called by ProfileCoreService during SME onboarding:
+Called by ProfileService during SME onboarding:
 
 ```
 1. Generate username (caller-provided or auto: firstname.lastname{random4})
 2. Generate temporary password (12 chars, meets complexity policy)
 3. BCrypt hash the password
-4. Create SmeUser in ProfileCoreService (POST /api/v1/sme-users)
+4. Create SmeUser in ProfileService (POST /api/v1/sme-users)
 5. Publish CredentialGenerated notification (SMS + Email with username + temp password)
 6. Audit log: CREDENTIALS_GENERATED
 7. Return username (password never in response — only via notification)
@@ -396,5 +396,5 @@ Called by ProfileCoreService during SME onboarding:
 ## Related Documentation
 
 - [Inter-Service Communication](./INTER_SERVICE_COMMUNICATION.md) — Service JWT, Polly, header propagation
-- [Error Management](./ERROR_MANAGEMENT.md) — Error codes 2001–2022 (SecurityCoreService range)
+- [Error Management](./ERROR_MANAGEMENT.md) — Error codes 2001–2022 (SecurityService range)
 - [Authorization & RBAC](./AUTHORIZATION_RBAC.md) — Roles, attributes, operator restrictions

@@ -2,11 +2,11 @@
 
 ## Overview
 
-WEP uses a consistent set of patterns across all 5 services for data access, multi-tenancy, soft deletion, reference codes, and pagination. Understanding these patterns is essential — every service builds on them.
+Nexus 2.0 uses a consistent set of patterns across all 5 services for data access, multi-tenancy, soft deletion, reference codes, and pagination. Understanding these patterns is essential — every service builds on them.
 
 | Pattern | Purpose | Used By |
 |---------|---------|---------|
-| `TenantScopedRepository<T>` | CRUD with tenant isolation | Profile, Security, Transaction, Wallet |
+| `TenantScopedRepository<T>` | CRUD with tenant isolation | Profile, Security, Billing, Work |
 | `GenericRepository<T>` | CRUD without tenant isolation | Utility (reference data, error codes) |
 | `ITenantEntity` | Marks entities for tenant filtering | All tenant-scoped entities |
 | `ISoftDeletable` | Marks entities for soft delete | Most entities |
@@ -135,15 +135,15 @@ public static class ReferenceCodeGenerator
 | `ERL` | ErrorLog | Utility |
 | `NTF` | NotificationLog | Utility |
 | `ERC` | ErrorCodeEntry | Utility |
-| `WHK` | WebhookRegistration | Transaction |
-| `SWL` | SmeWallet | Wallet |
-| `SUB` | SmeSubWallet | Wallet |
-| `CWL` | CustomerWallet | Wallet |
-| `CSW` | CustomerSubWallet | Wallet |
-| `VAC` | VirtualAccount | Wallet |
-| `HLD` | Hold | Wallet |
-| `RWD` | Reward | Wallet |
-| `LYC` | SmeLoyaltyConfig | Wallet |
+| `WHK` | WebhookRegistration | Billing |
+| `SWL` | SmeWallet | Work |
+| `SUB` | SmeSubWallet | Work |
+| `CWL` | CustomerWallet | Work |
+| `CSW` | CustomerSubWallet | Work |
+| `VAC` | VirtualAccount | Work |
+| `HLD` | Hold | Work |
+| `RWD` | Reward | Work |
+| `LYC` | SmeLoyaltyConfig | Work |
 
 ### Lookup by Reference Code
 
@@ -271,7 +271,7 @@ public class CustomerRepository : TenantScopedRepository<Customer>, ICustomerRep
 
 ## GenericRepository\<T\>
 
-Used by UtilityCoreService for non-tenant-scoped entities (audit logs, error logs, error codes, notification logs). Same expression-based PK pattern and PostgreSQL constraint handling, but without tenant isolation:
+Used by UtilityService for non-tenant-scoped entities (audit logs, error logs, error codes, notification logs). Same expression-based PK pattern and PostgreSQL constraint handling, but without tenant isolation:
 
 ```csharp
 public interface IGenericRepository<T> where T : class
@@ -441,11 +441,11 @@ All 5 services connect to a single PostgreSQL database (`uba_wep`) with schema-b
 
 | Service | Schema | DbContext |
 |---------|--------|-----------|
-| UtilityCoreService | `uba_wep_utility` | `UtilityDbContext` |
-| SecurityCoreService | `uba_wep_security` | `SecurityDbContext` |
-| ProfileCoreService | `uba_wep_profile` | `ProfileDbContext` |
-| TransactionCoreService | `uba_wep_transaction` | `TransactionDbContext` |
-| WalletCoreService | `uba_wep_wallet` | `WalletDbContext` |
+| UtilityService | `uba_wep_utility` | `UtilityDbContext` |
+| SecurityService | `uba_wep_security` | `SecurityDbContext` |
+| ProfileService | `uba_wep_profile` | `ProfileDbContext` |
+| BillingService | `uba_wep_transaction` | `BillingDbContext` |
+| WorkService | `uba_wep_wallet` | `WorkDbContext` |
 
 Schema is set via the `SearchPath` parameter in the connection string:
 

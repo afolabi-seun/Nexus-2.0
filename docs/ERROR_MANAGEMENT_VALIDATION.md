@@ -2,7 +2,7 @@
 
 ## Overview
 
-Validation errors are the **most common error type** in WEP. They are handled entirely at the controller layer — before any service or repository code runs — via a three-stage pipeline:
+Validation errors are the **most common error type** in Nexus 2.0. They are handled entirely at the controller layer — before any service or repository code runs — via a three-stage pipeline:
 
 ```
 Request Body

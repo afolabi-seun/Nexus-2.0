@@ -2,7 +2,7 @@
 
 ## Overview
 
-WEP uses a layered error handling strategy where **no service method throws exceptions for expected business failures**. Instead, errors flow through three distinct layers, each with a clear responsibility:
+Nexus 2.0 uses a layered error handling strategy where **no service method throws exceptions for expected business failures**. Instead, errors flow through three distinct layers, each with a clear responsibility:
 
 | Layer | Handles | Returns |
 |-------|---------|---------|
@@ -134,7 +134,7 @@ The `responseCode` field groups error codes into two-digit categories for client
 | `98` | Internal error | `INTERNAL_ERROR`, `NOTIFICATION_DISPATCH_FAILED` |
 | `99` | Unknown | Unmapped error codes |
 
-This mapping lives in `ApiResponse.MapErrorToResponseCode()` and is identical across all 5 services.
+Each service has its own `MapErrorToResponseCode` fallback that covers its service-specific error codes. The fallback is only used when all higher-priority tiers (in-memory cache, Redis, UtilityService HTTP) are unavailable. SecurityService covers auth-specific codes (INVALID_CREDENTIALS, ACCOUNT_LOCKED, OTP/password patterns), while ProfileService and WorkService cover entity-specific codes (DUPLICATE, NOT_FOUND, IMMUTABLE patterns). BillingService has a billing-specific fallback. All services share common mappings for VALIDATION_ERROR (96), INTERNAL_ERROR (98), and unknown codes (99).
 
 ---
 
@@ -196,12 +196,12 @@ CorrelationIdMiddleware
   │  → Stores in HttpContext.Items["CorrelationId"]
   │  → Echoes back in response header
   ▼
-Service A (e.g. ProfileCoreService)
+Service A (e.g. ProfileService)
   │
   │  Calls Service B via typed service client
   │  CorrelationIdDelegatingHandler attaches X-Correlation-Id header
   ▼
-Service B (e.g. WalletCoreService)
+Service B (e.g. WorkService)
   │  → CorrelationIdMiddleware reads the propagated header
   │  → Same correlationId used in logs, error responses, audit events
   ▼
@@ -210,7 +210,7 @@ Response flows back with same correlationId
 
 The `correlationId` appears in:
 - Every API response (`ApiResponse.CorrelationId`)
-- Every error log published to UtilityCoreService
+- Every error log published to UtilityService
 - Every audit log entry
 - Response headers (`X-Correlation-Id`)
 
@@ -231,7 +231,7 @@ DomainException (base)
   ├── StatusCode: HttpStatusCode
   └── CorrelationId: string    (set by GlobalExceptionHandlerMiddleware)
 
-Subclasses (ProfileCoreService example):
+Subclasses (ProfileService example):
   ├── CustomerAlreadyExistsException      → 409
   ├── CustomerAlreadyAttachedException    → 409
   ├── PhoneAlreadyExistsException         → 409
@@ -287,14 +287,14 @@ A request flows through the system like this:
     → GlobalExceptionHandlerMiddleware catches it
     → Resolves error code via IErrorCodeResolverService
     → Returns structured ApiResponse with correlationId
-    → Publishes error log to UtilityCoreService via Redis outbox
+    → Publishes error log to UtilityService via Redis outbox
 
 2d. UNEXPECTED ERROR:
     Any layer throws unhandled Exception
     → GlobalExceptionHandlerMiddleware catches it
     → Returns generic 500 ApiResponse (no internals leaked)
     → Logs inner exception message for diagnostics
-    → Publishes error log to UtilityCoreService via Redis outbox
+    → Publishes error log to UtilityService via Redis outbox
 
 3. ErrorResponseLoggingMiddleware checks:
    → If status >= 500 AND not already logged → publishes error log

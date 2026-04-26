@@ -2,15 +2,15 @@
 
 ## Overview
 
-Error codes are **centrally managed** in UtilityCoreService's `error_code_entry` table and **consumed at runtime** by all 5 services via a multi-tier cache. This means:
+Error codes are **centrally managed** in UtilityService's `error_code_entry` table and **consumed at runtime** by all 5 services via a multi-tier cache. This means:
 
 - One source of truth for all error codes, descriptions, HTTP status codes, and response codes
 - Error code metadata can be updated at runtime without redeploying services
-- Services degrade gracefully if UtilityCoreService is unavailable (local fallback)
+- Services degrade gracefully if UtilityService is unavailable (local fallback)
 
 ---
 
-## UtilityCoreService: The Source of Truth
+## UtilityService: The Source of Truth
 
 ### Error Code Entry Model
 
@@ -66,11 +66,11 @@ Each service owns a dedicated numeric range to avoid collisions:
 | Service | Range | Count | Examples |
 |---------|-------|-------|----------|
 | Shared | 1000–1003 | 4 | `VALIDATION_ERROR` (1000), `TOKEN_EXPIRED` (1001), `INVALID_TOKEN` (1002), `UNAUTHORIZED` (1003) |
-| SecurityCoreService | 2001–2022 | 22 | `INVALID_CREDENTIALS` (2001), `ACCOUNT_LOCKED` (2002), `OTP_EXPIRED` (2007) |
-| ProfileCoreService | 3001–3024 | 24 | `CUSTOMER_ALREADY_EXISTS` (3001), `MAX_DEVICES_REACHED` (3006), `PHONE_ALREADY_REGISTERED` (3010) |
-| TransactionCoreService | 4001–4023 | 23 | `PAYMENT_LINK_EXPIRED` (4001), `IDEMPOTENCY_KEY_REQUIRED` (4006), `BILL_PROVIDER_ERROR` (4012) |
-| WalletCoreService | 5001–5026 | 26 | `INSUFFICIENT_BALANCE` (5001), `WALLET_SUSPENDED` (5002), `SPENDING_LIMIT_EXCEEDED` (5010) |
-| UtilityCoreService | 6001–6010 | 10 | `AUDIT_LOG_IMMUTABLE` (6001), `ERROR_CODE_DUPLICATE` (6002), `NOTIFICATION_DISPATCH_FAILED` (6004) |
+| SecurityService | 2001–2022 | 22 | `INVALID_CREDENTIALS` (2001), `ACCOUNT_LOCKED` (2002), `OTP_EXPIRED` (2007) |
+| ProfileService | 3001–3024 | 24 | `CUSTOMER_ALREADY_EXISTS` (3001), `MAX_DEVICES_REACHED` (3006), `PHONE_ALREADY_REGISTERED` (3010) |
+| BillingService | 4001–4023 | 23 | `PAYMENT_LINK_EXPIRED` (4001), `IDEMPOTENCY_KEY_REQUIRED` (4006), `BILL_PROVIDER_ERROR` (4012) |
+| WorkService | 5001–5026 | 26 | `INSUFFICIENT_BALANCE` (5001), `WALLET_SUSPENDED` (5002), `SPENDING_LIMIT_EXCEEDED` (5010) |
+| UtilityService | 6001–6010 | 10 | `AUDIT_LOG_IMMUTABLE` (6001), `ERROR_CODE_DUPLICATE` (6002), `NOTIFICATION_DISPATCH_FAILED` (6004) |
 
 Each service also defines three **common error codes** at the end of its range with the same string names but service-specific numeric values:
 
@@ -144,7 +144,7 @@ When `GlobalExceptionHandlerMiddleware` catches a `DomainException`, it needs to
 │  │ Miss or Redis down? ↓                       │                │
 │  └─────────────────────────────────────────────┘                │
 │                                                                  │
-│  Tier 3: HTTP call to UtilityCoreService                        │
+│  Tier 3: HTTP call to UtilityService                        │
 │  ┌─────────────────────────────────────────────┐                │
 │  │ GET /api/v1/error-codes (service-to-service │                │
 │  │ JWT auth via IUtilityServiceClient)         │                │
@@ -178,7 +178,7 @@ public async Task<ErrorCodeInfo> ResolveAsync(string errorCode)
     }
     catch { /* Redis down — continue */ }
 
-    // Tier 3: HTTP refresh from UtilityCoreService
+    // Tier 3: HTTP refresh from UtilityService
     try
     {
         await RefreshCacheAsync();  // fetches ALL codes, populates memory + Redis
@@ -209,14 +209,14 @@ protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 This means:
 - On startup, the background service pre-warms the cache
 - During normal operation, Tier 1 (in-memory) handles most lookups with zero latency
-- If Redis and UtilityCoreService are both down, the local fallback ensures error responses are still properly formatted
+- If Redis and UtilityService are both down, the local fallback ensures error responses are still properly formatted
 
 ### Local Fallback
 
 Each service has its own `FallbackResolve()` method that maps its known error codes to defaults. This is the last resort — it ensures the service can still return structured error responses even if all external dependencies are down:
 
 ```csharp
-// ProfileCoreService fallback (excerpt)
+// ProfileService fallback (excerpt)
 private static ErrorCodeInfo FallbackResolve(string errorCode) => errorCode switch
 {
     "VALIDATION_ERROR"          => new("96", "Validation error", 422),
@@ -256,7 +256,7 @@ HGET wep:error_codes_registry CUSTOMER_ALREADY_EXISTS
 ## How It All Fits Together
 
 ```
-1. PlatformAdmin seeds/manages error codes via UtilityCoreService CRUD endpoints
+1. PlatformAdmin seeds/manages error codes via UtilityService CRUD endpoints
 
 2. On startup, each consuming service's BackgroundService calls:
    GET /api/v1/error-codes → populates in-memory + Redis cache
@@ -266,7 +266,7 @@ HGET wep:error_codes_registry CUSTOMER_ALREADY_EXISTS
    → Gets responseCode + description from cache (usually Tier 1)
    → Builds ApiResponse with resolved metadata
 
-4. If UtilityCoreService is down:
+4. If UtilityService is down:
    → Tier 1/2 serve from cache (up to 24h stale)
    → Tier 4 fallback ensures responses are always structured
 

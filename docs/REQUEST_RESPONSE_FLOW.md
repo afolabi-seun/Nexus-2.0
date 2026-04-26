@@ -1,4 +1,4 @@
-# WEP Request-Response Flow Patterns
+# Nexus 2.0 Request-Response Flow Patterns
 
 How requests flow through the platform layers, how each layer handles success and failure, and what the caller receives.
 
