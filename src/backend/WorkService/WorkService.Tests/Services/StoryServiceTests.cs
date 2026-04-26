@@ -87,21 +87,25 @@ public class StoryServiceTests
 
         var result = await _sut.CreateAsync(_orgId, _reporterId, request);
 
-        Assert.NotNull(result);
-        // The story ID generator was called with the correct project ID
+        Assert.True(result.IsSuccess);
+        Assert.Equal(201, result.StatusCode);
+        Assert.NotNull(result.Data);
         _storyIdGen.Verify(g => g.GenerateNextIdAsync(_projectId, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task CreateAsync_InvalidFibonacciPoints_Throws()
+    public async Task CreateAsync_InvalidFibonacciPoints_ReturnsFailure()
     {
         var request = new CreateStoryRequest
         {
             ProjectId = _projectId, Title = "Test", Priority = "Medium", StoryPoints = 4
         };
 
-        await Assert.ThrowsAsync<InvalidStoryPointsException>(
-            () => _sut.CreateAsync(_orgId, _reporterId, request));
+        var result = await _sut.CreateAsync(_orgId, _reporterId, request);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(400, result.StatusCode);
+        Assert.Equal("INVALID_STORY_POINTS", result.ErrorCode);
     }
 
     [Fact]
@@ -119,12 +123,14 @@ public class StoryServiceTests
 
         var result = await _sut.TransitionStatusAsync(storyId, _reporterId, "Ready");
 
-        Assert.NotNull(result);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(200, result.StatusCode);
+        Assert.NotNull(result.Data);
         _storyRepo.Verify(r => r.UpdateAsync(It.Is<Story>(s => s.Status == "Ready"), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task TransitionStatusAsync_InvalidTransition_Throws()
+    public async Task TransitionStatusAsync_InvalidTransition_ReturnsFailure()
     {
         var storyId = Guid.NewGuid();
         var story = new Story
@@ -135,12 +141,15 @@ public class StoryServiceTests
         _storyRepo.Setup(r => r.GetByIdAsync(storyId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(story);
 
-        await Assert.ThrowsAsync<InvalidStoryTransitionException>(
-            () => _sut.TransitionStatusAsync(storyId, _reporterId, "Done"));
+        var result = await _sut.TransitionStatusAsync(storyId, _reporterId, "Done");
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(400, result.StatusCode);
+        Assert.Equal("INVALID_STORY_TRANSITION", result.ErrorCode);
     }
 
     [Fact]
-    public async Task TransitionToReady_WithoutDescription_Throws()
+    public async Task TransitionToReady_WithoutDescription_ReturnsFailure()
     {
         var storyId = Guid.NewGuid();
         var story = new Story
@@ -152,12 +161,15 @@ public class StoryServiceTests
         _storyRepo.Setup(r => r.GetByIdAsync(storyId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(story);
 
-        await Assert.ThrowsAsync<StoryDescriptionRequiredException>(
-            () => _sut.TransitionStatusAsync(storyId, _reporterId, "Ready"));
+        var result = await _sut.TransitionStatusAsync(storyId, _reporterId, "Ready");
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(400, result.StatusCode);
+        Assert.Equal("STORY_DESCRIPTION_REQUIRED", result.ErrorCode);
     }
 
     [Fact]
-    public async Task TransitionToInProgress_WithoutAssignee_Throws()
+    public async Task TransitionToInProgress_WithoutAssignee_ReturnsFailure()
     {
         var storyId = Guid.NewGuid();
         var story = new Story
@@ -169,7 +181,10 @@ public class StoryServiceTests
         _storyRepo.Setup(r => r.GetByIdAsync(storyId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(story);
 
-        await Assert.ThrowsAsync<StoryRequiresAssigneeException>(
-            () => _sut.TransitionStatusAsync(storyId, _reporterId, "InProgress"));
+        var result = await _sut.TransitionStatusAsync(storyId, _reporterId, "InProgress");
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(400, result.StatusCode);
+        Assert.Equal("STORY_REQUIRES_ASSIGNEE", result.ErrorCode);
     }
 }

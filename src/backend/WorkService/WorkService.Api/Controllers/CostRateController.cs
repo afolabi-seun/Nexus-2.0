@@ -38,8 +38,7 @@ public class CostRateController : ControllerBase
         var orgId = GetOrganizationId();
         var userId = GetUserId();
         var userRole = GetRole();
-        var result = await _costRateService.CreateAsync(orgId, userId, userRole, request, ct);
-        return ApiResponse<object>.Ok(result, "Cost rate created successfully.").ToActionResult(HttpContext, 201);
+        return (await _costRateService.CreateAsync(orgId, userId, userRole, request, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -55,9 +54,8 @@ public class CostRateController : ControllerBase
     {
         PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = GetOrganizationId();
-        var result = await _costRateService.ListAsync(orgId, rateType, memberId,
-            departmentId, roleName, page, pageSize, ct);
-        return ApiResponse<object>.Ok(result, "Cost rates retrieved.").ToActionResult(HttpContext);
+        return (await _costRateService.ListAsync(orgId, rateType, memberId,
+            departmentId, roleName, page, pageSize, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -72,8 +70,7 @@ public class CostRateController : ControllerBase
     {
         var userId = GetUserId();
         var userRole = GetRole();
-        var result = await _costRateService.UpdateAsync(costRateId, userId, userRole, request, ct);
-        return ApiResponse<object>.Ok(result, "Cost rate updated.").ToActionResult(HttpContext);
+        return (await _costRateService.UpdateAsync(costRateId, userId, userRole, request, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -87,8 +84,7 @@ public class CostRateController : ControllerBase
     {
         var userId = GetUserId();
         var userRole = GetRole();
-        await _costRateService.DeleteAsync(costRateId, userId, userRole, ct);
-        return ApiResponse<object>.Ok(null!, "Cost rate deleted.").ToActionResult(HttpContext);
+        return (await _costRateService.DeleteAsync(costRateId, userId, userRole, ct)).ToActionResult(HttpContext);
     }
 
     private Guid GetOrganizationId() => Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);

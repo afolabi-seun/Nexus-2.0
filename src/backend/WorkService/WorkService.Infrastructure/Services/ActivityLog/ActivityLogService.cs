@@ -3,6 +3,7 @@ using WorkService.Application.DTOs.Activity;
 using WorkService.Domain.Entities;
 using WorkService.Domain.Interfaces.Repositories.ActivityLogs;
 using WorkService.Domain.Interfaces.Services.ActivityLog;
+using WorkService.Domain.Results;
 using WorkService.Infrastructure.Data;
 
 namespace WorkService.Infrastructure.Services.ActivityLog;
@@ -32,23 +33,23 @@ public class ActivityLogService : IActivityLogService
         await _dbContext.SaveChangesAsync(ct);
     }
 
-    public async Task<object> GetByEntityAsync(string entityType, Guid entityId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetByEntityAsync(string entityType, Guid entityId, CancellationToken ct = default)
     {
         var logs = await _activityLogRepo.ListByEntityAsync(entityType, entityId, ct);
-        return logs.Select(MapToResponse).ToList();
+        return ServiceResult<object>.Ok(logs.Select(MapToResponse).ToList(), "Activity log retrieved.");
     }
 
-    public async Task<object> GetOrganizationFeedAsync(Guid organizationId, int page, int pageSize, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetOrganizationFeedAsync(Guid organizationId, int page, int pageSize, CancellationToken ct = default)
     {
         var (items, totalCount) = await _activityLogRepo.ListByOrganizationAsync(organizationId, page, pageSize, ct);
-        return new PaginatedResponse<ActivityLogResponse>
+        return ServiceResult<object>.Ok(new PaginatedResponse<ActivityLogResponse>
         {
             Data = items.Select(MapToResponse).ToList(),
             Page = page,
             PageSize = pageSize,
             TotalCount = totalCount,
             TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
-        };
+        }, "Activity feed retrieved.");
     }
 
     private static ActivityLogResponse MapToResponse(Domain.Entities.ActivityLog l) => new()

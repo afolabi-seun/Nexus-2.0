@@ -7,6 +7,7 @@ using WorkService.Domain.Exceptions;
 using WorkService.Domain.Interfaces.Repositories.Stories;
 using WorkService.Domain.Interfaces.Services.TimeEntries;
 using WorkService.Domain.Interfaces.Services.TimerSessions;
+using WorkService.Domain.Results;
 using WorkService.Infrastructure.Redis;
 
 namespace WorkService.Infrastructure.Services.TimerSessions;
@@ -32,7 +33,7 @@ public class TimerSessionService : ITimerSessionService
         _logger = logger;
     }
 
-    public async Task<object> StartAsync(Guid userId, Guid storyId, Guid orgId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> StartAsync(Guid userId, Guid storyId, Guid orgId, CancellationToken ct = default)
     {
         IDatabase db;
         try
@@ -46,12 +47,10 @@ public class TimerSessionService : ITimerSessionService
                 "Timer service is temporarily unavailable.", HttpStatusCode.ServiceUnavailable);
         }
 
-        // Check for existing active timer
         var existingKey = await ScanForActiveTimerKey(db, userId);
         if (existingKey != null)
-            throw new TimerAlreadyActiveException(userId);
+            return ServiceResult<object>.Fail(4050, "TIMER_ALREADY_ACTIVE", $"User '{userId}' already has an active timer.", 400);
 
-        // Validate story exists
         var story = await _storyRepo.GetByIdAsync(storyId, ct)
             ?? throw new StoryNotFoundException(storyId);
 
@@ -65,15 +64,15 @@ public class TimerSessionService : ITimerSessionService
 
         await db.StringSetAsync(key, payload, TimerTtl);
 
-        return new TimerStatusResponse
+        return ServiceResult<object>.Ok(new TimerStatusResponse
         {
             StoryId = storyId,
             StartTime = DateTime.UtcNow,
             ElapsedSeconds = 0
-        };
+        }, "Timer started.");
     }
 
-    public async Task<object> StopAsync(Guid userId, Guid orgId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> StopAsync(Guid userId, Guid orgId, CancellationToken ct = default)
     {
         IDatabase db;
         try
@@ -89,17 +88,17 @@ public class TimerSessionService : ITimerSessionService
 
         var activeKey = await ScanForActiveTimerKey(db, userId);
         if (activeKey == null)
-            throw new NoActiveTimerException(userId);
+            return ServiceResult<object>.Fail(4051, "NO_ACTIVE_TIMER", $"No active timer found for user '{userId}'.", 404);
 
         var value = await db.StringGetAsync(activeKey);
         await db.KeyDeleteAsync(activeKey);
 
         if (value.IsNullOrEmpty)
-            throw new NoActiveTimerException(userId);
+            return ServiceResult<object>.Fail(4051, "NO_ACTIVE_TIMER", $"No active timer found for user '{userId}'.", 404);
 
         var session = JsonSerializer.Deserialize<TimerSessionData>(value!);
         if (session == null)
-            throw new NoActiveTimerException(userId);
+            return ServiceResult<object>.Fail(4051, "NO_ACTIVE_TIMER", $"No active timer found for user '{userId}'.", 404);
 
         var elapsed = DateTime.UtcNow - session.startTime;
         var durationMinutes = (int)Math.Max(1, Math.Round(elapsed.TotalMinutes));
@@ -115,7 +114,7 @@ public class TimerSessionService : ITimerSessionService
         return await _timeEntryService.CreateAsync(orgId, userId, createRequest, ct);
     }
 
-    public async Task<object?> GetStatusAsync(Guid userId, CancellationToken ct = default)
+    public async Task<ServiceResult<object?>> GetStatusAsync(Guid userId, CancellationToken ct = default)
     {
         IDatabase db;
         try
@@ -131,24 +130,24 @@ public class TimerSessionService : ITimerSessionService
 
         var activeKey = await ScanForActiveTimerKey(db, userId);
         if (activeKey == null)
-            return null;
+            return ServiceResult<object?>.Ok(null, "No active timer.");
 
         var value = await db.StringGetAsync(activeKey);
         if (value.IsNullOrEmpty)
-            return null;
+            return ServiceResult<object?>.Ok(null, "No active timer.");
 
         var session = JsonSerializer.Deserialize<TimerSessionData>(value!);
         if (session == null)
-            return null;
+            return ServiceResult<object?>.Ok(null, "No active timer.");
 
         var elapsed = DateTime.UtcNow - session.startTime;
 
-        return new TimerStatusResponse
+        return ServiceResult<object?>.Ok(new TimerStatusResponse
         {
             StoryId = session.storyId,
             StartTime = session.startTime,
             ElapsedSeconds = (long)elapsed.TotalSeconds
-        };
+        }, "Timer status retrieved.");
     }
 
     private static async Task<string?> ScanForActiveTimerKey(IDatabase db, Guid userId)

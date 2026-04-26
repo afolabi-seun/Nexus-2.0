@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using WorkService.Domain.Interfaces.Services.Export;
+using WorkService.Domain.Results;
 using WorkService.Infrastructure.Data;
 
 namespace WorkService.Infrastructure.Services.Export;
@@ -11,7 +12,7 @@ public class ExportService : IExportService
 
     public ExportService(WorkDbContext db) => _db = db;
 
-    public async Task<byte[]> ExportStoriesCsvAsync(Guid organizationId, Guid? projectId, Guid? sprintId, CancellationToken ct = default)
+    public async Task<ServiceResult<byte[]>> ExportStoriesCsvAsync(Guid organizationId, Guid? projectId, Guid? sprintId, CancellationToken ct = default)
     {
         var query = _db.Stories
             .Where(s => s.OrganizationId == organizationId);
@@ -37,10 +38,10 @@ public class ExportService : IExportService
             sb.AppendLine($"{Escape(s.StoryKey)},{Escape(s.Title)},{s.Status},{s.Priority},{s.StoryPoints},{s.AssigneeId},{s.DateCreated:yyyy-MM-dd}");
         }
 
-        return Encoding.UTF8.GetBytes(sb.ToString());
+        return ServiceResult<byte[]>.Ok(Encoding.UTF8.GetBytes(sb.ToString()), "Export generated.");
     }
 
-    public async Task<byte[]> ExportTimeEntriesCsvAsync(Guid organizationId, Guid? projectId, DateTime? dateFrom, DateTime? dateTo, CancellationToken ct = default)
+    public async Task<ServiceResult<byte[]>> ExportTimeEntriesCsvAsync(Guid organizationId, Guid? projectId, DateTime? dateFrom, DateTime? dateTo, CancellationToken ct = default)
     {
         var query = _db.TimeEntries
             .Where(t => t.OrganizationId == organizationId);
@@ -66,7 +67,7 @@ public class ExportService : IExportService
             sb.AppendLine($"{t.Date:yyyy-MM-dd},{t.DurationMinutes},{hours},{Escape(t.Notes)},{t.IsBillable},{t.Status},{t.MemberId},{t.StoryId},{t.DateCreated:yyyy-MM-dd}");
         }
 
-        return Encoding.UTF8.GetBytes(sb.ToString());
+        return ServiceResult<byte[]>.Ok(Encoding.UTF8.GetBytes(sb.ToString()), "Export generated.");
     }
 
     private static string Escape(string? value)

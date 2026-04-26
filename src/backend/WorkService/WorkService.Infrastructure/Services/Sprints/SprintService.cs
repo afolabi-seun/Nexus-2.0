@@ -13,6 +13,7 @@ using WorkService.Domain.Interfaces.Repositories.Tasks;
 using WorkService.Domain.Interfaces.Services.Analytics;
 using WorkService.Domain.Interfaces.Services.Outbox;
 using WorkService.Domain.Interfaces.Services.Sprints;
+using WorkService.Domain.Results;
 using WorkService.Infrastructure.Data;
 using WorkService.Infrastructure.Services.ServiceClients;
 using StackExchange.Redis;
@@ -47,13 +48,19 @@ public class SprintService : ISprintService
         _analyticsSnapshotService = analyticsSnapshotService;
     }
 
-    public async Task<object> CreateAsync(Guid organizationId, Guid projectId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> CreateAsync(Guid organizationId, Guid projectId, object request, CancellationToken ct = default)
     {
         var req = (CreateSprintRequest)request;
-        var project = await _projectRepo.GetByIdAsync(projectId, ct)
-            ?? throw new ProjectNotFoundException(projectId);
+        var project = await _projectRepo.GetByIdAsync(projectId, ct);
+        if (project == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.ProjectNotFoundValue, ErrorCodes.ProjectNotFound,
+                $"Project with ID '{projectId}' was not found.", 404);
 
-        if (req.EndDate <= req.StartDate) throw new SprintEndBeforeStartException();
+        if (req.EndDate <= req.StartDate)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.SprintEndBeforeStartValue, ErrorCodes.SprintEndBeforeStart,
+                "Sprint end date must be after start date.", 400);
 
         var sprint = new Sprint
         {
@@ -64,17 +71,20 @@ public class SprintService : ISprintService
 
         await _sprintRepo.AddAsync(sprint, ct);
         await _dbContext.SaveChangesAsync(ct);
-        return await BuildDetailResponse(sprint, ct);
+        return ServiceResult<object>.Created(await BuildDetailResponse(sprint, ct), "Sprint created successfully.");
     }
 
-    public async Task<object> GetByIdAsync(Guid sprintId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetByIdAsync(Guid sprintId, CancellationToken ct = default)
     {
-        var sprint = await _sprintRepo.GetByIdAsync(sprintId, ct)
-            ?? throw new SprintNotFoundException(sprintId);
-        return await BuildDetailResponse(sprint, ct);
+        var sprint = await _sprintRepo.GetByIdAsync(sprintId, ct);
+        if (sprint == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.SprintNotFoundValue, ErrorCodes.SprintNotFound,
+                $"Sprint with ID '{sprintId}' was not found.", 404);
+        return ServiceResult<object>.Ok(await BuildDetailResponse(sprint, ct));
     }
 
-    public async Task<object> ListAsync(Guid organizationId, int page, int pageSize, string? status, Guid? projectId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> ListAsync(Guid organizationId, int page, int pageSize, string? status, Guid? projectId, CancellationToken ct = default)
     {
         var (items, totalCount) = await _sprintRepo.ListAsync(organizationId, page, pageSize, status, projectId, ct);
         var responses = items.Select(s => new SprintListResponse
@@ -84,19 +94,25 @@ public class SprintService : ISprintService
             Velocity = s.Velocity
         }).ToList();
 
-        return new PaginatedResponse<SprintListResponse>
+        return ServiceResult<object>.Ok(new PaginatedResponse<SprintListResponse>
         {
             Data = responses, TotalCount = totalCount, Page = page, PageSize = pageSize,
             TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-        };
+        }, "Sprints retrieved.");
     }
 
-    public async Task<object> UpdateAsync(Guid sprintId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> UpdateAsync(Guid sprintId, object request, CancellationToken ct = default)
     {
         var req = (UpdateSprintRequest)request;
-        var sprint = await _sprintRepo.GetByIdAsync(sprintId, ct)
-            ?? throw new SprintNotFoundException(sprintId);
-        if (sprint.Status != "Planning") throw new SprintNotInPlanningException(sprint.SprintId);
+        var sprint = await _sprintRepo.GetByIdAsync(sprintId, ct);
+        if (sprint == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.SprintNotFoundValue, ErrorCodes.SprintNotFound,
+                $"Sprint with ID '{sprintId}' was not found.", 404);
+        if (sprint.Status != "Planning")
+            return ServiceResult<object>.Fail(
+                ErrorCodes.SprintNotInPlanningValue, ErrorCodes.SprintNotInPlanning,
+                $"Sprint '{sprintId}' is not in Planning status.", 400);
 
         if (req.SprintName != null) sprint.SprintName = req.SprintName;
         if (req.Goal != null) sprint.Goal = req.Goal;
@@ -106,17 +122,26 @@ public class SprintService : ISprintService
 
         await _sprintRepo.UpdateAsync(sprint, ct);
         await _dbContext.SaveChangesAsync(ct);
-        return await BuildDetailResponse(sprint, ct);
+        return ServiceResult<object>.Ok(await BuildDetailResponse(sprint, ct), "Sprint updated.");
     }
 
-    public async Task<object> StartAsync(Guid sprintId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> StartAsync(Guid sprintId, CancellationToken ct = default)
     {
-        var sprint = await _sprintRepo.GetByIdAsync(sprintId, ct)
-            ?? throw new SprintNotFoundException(sprintId);
-        if (sprint.Status != "Planning") throw new SprintNotInPlanningException(sprintId);
+        var sprint = await _sprintRepo.GetByIdAsync(sprintId, ct);
+        if (sprint == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.SprintNotFoundValue, ErrorCodes.SprintNotFound,
+                $"Sprint with ID '{sprintId}' was not found.", 404);
+        if (sprint.Status != "Planning")
+            return ServiceResult<object>.Fail(
+                ErrorCodes.SprintNotInPlanningValue, ErrorCodes.SprintNotInPlanning,
+                $"Sprint '{sprintId}' is not in Planning status.", 400);
 
         var activeSprint = await _sprintRepo.GetActiveByProjectAsync(sprint.ProjectId, ct);
-        if (activeSprint != null) throw new OnlyOneActiveSprintException(sprint.ProjectId);
+        if (activeSprint != null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.OnlyOneActiveSprintValue, ErrorCodes.OnlyOneActiveSprint,
+                $"Project '{sprint.ProjectId}' already has an active sprint.", 400);
 
         sprint.Status = "Active";
         sprint.DateUpdated = DateTime.UtcNow;
@@ -128,14 +153,20 @@ public class SprintService : ISprintService
 
         await _outbox.PublishAsync(new { MessageType = "NotificationRequest", Action = "SprintStarted", EntityType = "Sprint", EntityId = sprintId.ToString(), NotificationType = "SprintStarted" }, ct);
 
-        return await BuildDetailResponse(sprint, ct);
+        return ServiceResult<object>.Ok(await BuildDetailResponse(sprint, ct), "Sprint started.");
     }
 
-    public async Task<object> CompleteAsync(Guid sprintId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> CompleteAsync(Guid sprintId, CancellationToken ct = default)
     {
-        var sprint = await _sprintRepo.GetByIdAsync(sprintId, ct)
-            ?? throw new SprintNotFoundException(sprintId);
-        if (sprint.Status != "Active") throw new SprintAlreadyCompletedException(sprintId);
+        var sprint = await _sprintRepo.GetByIdAsync(sprintId, ct);
+        if (sprint == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.SprintNotFoundValue, ErrorCodes.SprintNotFound,
+                $"Sprint with ID '{sprintId}' was not found.", 404);
+        if (sprint.Status != "Active")
+            return ServiceResult<object>.Fail(
+                ErrorCodes.SprintAlreadyCompletedValue, ErrorCodes.SprintAlreadyCompleted,
+                $"Sprint '{sprintId}' is not active and cannot be completed.", 400);
 
         var sprintStories = await _sprintStoryRepo.ListBySprintAsync(sprintId, ct);
         var velocity = 0;
@@ -191,13 +222,16 @@ public class SprintService : ISprintService
             });
         }
 
-        return await BuildDetailResponse(sprint, ct);
+        return ServiceResult<object>.Ok(await BuildDetailResponse(sprint, ct), "Sprint completed.");
     }
 
-    public async Task<object> CancelAsync(Guid sprintId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> CancelAsync(Guid sprintId, CancellationToken ct = default)
     {
-        var sprint = await _sprintRepo.GetByIdAsync(sprintId, ct)
-            ?? throw new SprintNotFoundException(sprintId);
+        var sprint = await _sprintRepo.GetByIdAsync(sprintId, ct);
+        if (sprint == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.SprintNotFoundValue, ErrorCodes.SprintNotFound,
+                $"Sprint with ID '{sprintId}' was not found.", 404);
 
         var sprintStories = await _sprintStoryRepo.ListBySprintAsync(sprintId, ct);
         foreach (var ss in sprintStories)
@@ -218,33 +252,52 @@ public class SprintService : ISprintService
         var db = _redis.GetDatabase();
         await db.KeyDeleteAsync(RedisKeys.SprintActive(sprint.ProjectId));
 
-        return await BuildDetailResponse(sprint, ct);
+        return ServiceResult<object>.Ok(await BuildDetailResponse(sprint, ct), "Sprint cancelled.");
     }
 
-    public async System.Threading.Tasks.Task AddStoryAsync(Guid sprintId, Guid storyId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> AddStoryAsync(Guid sprintId, Guid storyId, CancellationToken ct = default)
     {
-        var sprint = await _sprintRepo.GetByIdAsync(sprintId, ct)
-            ?? throw new SprintNotFoundException(sprintId);
-        if (sprint.Status != "Planning") throw new SprintNotInPlanningException(sprintId);
+        var sprint = await _sprintRepo.GetByIdAsync(sprintId, ct);
+        if (sprint == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.SprintNotFoundValue, ErrorCodes.SprintNotFound,
+                $"Sprint with ID '{sprintId}' was not found.", 404);
+        if (sprint.Status != "Planning")
+            return ServiceResult<object>.Fail(
+                ErrorCodes.SprintNotInPlanningValue, ErrorCodes.SprintNotInPlanning,
+                $"Sprint '{sprintId}' is not in Planning status.", 400);
 
-        var story = await _storyRepo.GetByIdAsync(storyId, ct)
-            ?? throw new StoryNotFoundException(storyId);
-        if (story.ProjectId != sprint.ProjectId) throw new StoryProjectMismatchException(storyId, sprint.ProjectId);
+        var story = await _storyRepo.GetByIdAsync(storyId, ct);
+        if (story == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.StoryNotFoundValue, ErrorCodes.StoryNotFound,
+                $"Story with ID '{storyId}' was not found.", 404);
+        if (story.ProjectId != sprint.ProjectId)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.StoryProjectMismatchValue, ErrorCodes.StoryProjectMismatch,
+                $"Story '{storyId}' does not belong to the same project as sprint '{sprintId}'.", 400);
 
         var existing = await _sprintStoryRepo.GetAsync(sprintId, storyId, ct);
-        if (existing != null) throw new StoryAlreadyInSprintException(storyId, sprintId);
+        if (existing != null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.StoryAlreadyInSprintValue, ErrorCodes.StoryAlreadyInSprint,
+                $"Story '{storyId}' is already in sprint '{sprintId}'.", 409);
 
         await _sprintStoryRepo.AddAsync(new SprintStory { SprintId = sprintId, StoryId = storyId }, ct);
         story.SprintId = sprintId;
         story.DateUpdated = DateTime.UtcNow;
         await _storyRepo.UpdateAsync(story, ct);
         await _dbContext.SaveChangesAsync(ct);
+        return ServiceResult<object>.NoContent("Story added to sprint.");
     }
 
-    public async System.Threading.Tasks.Task RemoveStoryAsync(Guid sprintId, Guid storyId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> RemoveStoryAsync(Guid sprintId, Guid storyId, CancellationToken ct = default)
     {
-        var sprintStory = await _sprintStoryRepo.GetAsync(sprintId, storyId, ct)
-            ?? throw new StoryNotInSprintException(storyId, sprintId);
+        var sprintStory = await _sprintStoryRepo.GetAsync(sprintId, storyId, ct);
+        if (sprintStory == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.StoryNotInSprintValue, ErrorCodes.StoryNotInSprint,
+                $"Story '{storyId}' is not in sprint '{sprintId}'.", 400);
 
         sprintStory.RemovedDate = DateTime.UtcNow;
         await _sprintStoryRepo.UpdateAsync(sprintStory, ct);
@@ -257,9 +310,10 @@ public class SprintService : ISprintService
             await _storyRepo.UpdateAsync(story, ct);
         }
         await _dbContext.SaveChangesAsync(ct);
+        return ServiceResult<object>.NoContent("Story removed from sprint.");
     }
 
-    public async Task<object> GetMetricsAsync(Guid sprintId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetMetricsAsync(Guid sprintId, CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
         var cacheKey = RedisKeys.SprintMetrics(sprintId);
@@ -267,11 +321,14 @@ public class SprintService : ISprintService
         if (cached.HasValue)
         {
             var cachedMetrics = JsonSerializer.Deserialize<SprintMetricsResponse>(cached!);
-            if (cachedMetrics != null) return cachedMetrics;
+            if (cachedMetrics != null) return ServiceResult<object>.Ok(cachedMetrics);
         }
 
-        var sprint = await _sprintRepo.GetByIdAsync(sprintId, ct)
-            ?? throw new SprintNotFoundException(sprintId);
+        var sprint = await _sprintRepo.GetByIdAsync(sprintId, ct);
+        if (sprint == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.SprintNotFoundValue, ErrorCodes.SprintNotFound,
+                $"Sprint with ID '{sprintId}' was not found.", 404);
 
         var sprintStories = await _sprintStoryRepo.ListBySprintAsync(sprintId, ct);
         var stories = new List<Story>();
@@ -305,27 +362,28 @@ public class SprintService : ISprintService
         var json = JsonSerializer.Serialize(metrics);
         await db.StringSetAsync(cacheKey, json, TimeSpan.FromMinutes(3));
 
-        return metrics;
+        return ServiceResult<object>.Ok(metrics);
     }
 
-    public async Task<object> GetVelocityHistoryAsync(Guid organizationId, int count, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetVelocityHistoryAsync(Guid organizationId, int count, CancellationToken ct = default)
     {
         var sprints = await _sprintRepo.GetCompletedAsync(organizationId, count, ct);
-        return sprints.Select(s => new VelocityResponse
+        return ServiceResult<object>.Ok(sprints.Select(s => new VelocityResponse
         {
             SprintName = s.SprintName,
             Velocity = s.Velocity ?? 0, StartDate = s.StartDate, EndDate = s.EndDate
-        }).ToList();
+        }).ToList(), "Velocity history retrieved.");
     }
 
-    public async Task<object?> GetActiveSprintAsync(Guid organizationId, Guid? projectId, CancellationToken ct = default)
+    public async Task<ServiceResult<object?>> GetActiveSprintAsync(Guid organizationId, Guid? projectId, CancellationToken ct = default)
     {
         if (projectId.HasValue)
         {
             var sprint = await _sprintRepo.GetActiveByProjectAsync(projectId.Value, ct);
-            return sprint != null ? await BuildDetailResponse(sprint, ct) : null;
+            if (sprint != null)
+                return ServiceResult<object?>.Ok(await BuildDetailResponse(sprint, ct));
         }
-        return null;
+        return ServiceResult<object?>.Ok(null);
     }
 
     private static List<BurndownDataPoint> CalculateBurndown(Sprint sprint, int totalPoints, List<Story> stories)

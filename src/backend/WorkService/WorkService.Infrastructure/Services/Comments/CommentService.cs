@@ -2,11 +2,11 @@ using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using WorkService.Application.DTOs.Comments;
 using WorkService.Domain.Entities;
-using WorkService.Domain.Exceptions;
 using WorkService.Domain.Interfaces.Repositories.ActivityLogs;
 using WorkService.Domain.Interfaces.Repositories.Comments;
 using WorkService.Domain.Interfaces.Services.Comments;
 using WorkService.Domain.Interfaces.Services.Outbox;
+using WorkService.Domain.Results;
 using WorkService.Infrastructure.Data;
 using WorkService.Infrastructure.Services.ServiceClients;
 
@@ -33,7 +33,7 @@ public partial class CommentService : ICommentService
         _outbox = outbox; _dbContext = dbContext; _logger = logger; _profileClient = profileClient;
     }
 
-    public async Task<object> CreateAsync(Guid organizationId, Guid authorId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> CreateAsync(Guid organizationId, Guid authorId, object request, CancellationToken ct = default)
     {
         var req = (CreateCommentRequest)request;
 
@@ -47,7 +47,6 @@ public partial class CommentService : ICommentService
         await _commentRepo.AddAsync(comment, ct);
 
         await _activityLogRepo.AddAsync(new Domain.Entities.ActivityLog
-
         {
             OrganizationId = organizationId, EntityType = req.EntityType, EntityId = req.EntityId,
             Action = "CommentAdded", ActorId = authorId, ActorName = "System",
@@ -91,14 +90,16 @@ public partial class CommentService : ICommentService
             }
         }
 
-        return BuildResponse(comment);
+        return ServiceResult<object>.Created(BuildResponse(comment), "Comment created successfully.");
     }
 
-    public async Task<object> UpdateAsync(Guid commentId, Guid userId, string content, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> UpdateAsync(Guid commentId, Guid userId, string content, CancellationToken ct = default)
     {
-        var comment = await _commentRepo.GetByIdAsync(commentId, ct)
-            ?? throw new CommentNotFoundException(commentId);
-        if (comment.AuthorId != userId) throw new CommentNotAuthorException();
+        var comment = await _commentRepo.GetByIdAsync(commentId, ct);
+        if (comment == null)
+            return ServiceResult<object>.Fail(4012, "COMMENT_NOT_FOUND", $"Comment {commentId} not found.", 404);
+        if (comment.AuthorId != userId)
+            return ServiceResult<object>.Fail(4017, "COMMENT_NOT_AUTHOR", "You are not the author of this comment.", 403);
 
         comment.Content = content;
         comment.IsEdited = true;
@@ -106,26 +107,29 @@ public partial class CommentService : ICommentService
         await _commentRepo.UpdateAsync(comment, ct);
         await _dbContext.SaveChangesAsync(ct);
 
-        return BuildResponse(comment);
+        return ServiceResult<object>.Ok(BuildResponse(comment), "Comment updated.");
     }
 
-    public async System.Threading.Tasks.Task DeleteAsync(Guid commentId, Guid userId, string userRole, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> DeleteAsync(Guid commentId, Guid userId, string userRole, CancellationToken ct = default)
     {
-        var comment = await _commentRepo.GetByIdAsync(commentId, ct)
-            ?? throw new CommentNotFoundException(commentId);
+        var comment = await _commentRepo.GetByIdAsync(commentId, ct);
+        if (comment == null)
+            return ServiceResult<object>.Fail(4012, "COMMENT_NOT_FOUND", $"Comment {commentId} not found.", 404);
         if (comment.AuthorId != userId && userRole != "OrgAdmin")
-            throw new CommentNotAuthorException();
+            return ServiceResult<object>.Fail(4017, "COMMENT_NOT_AUTHOR", "You are not the author of this comment.", 403);
 
         comment.FlgStatus = "D";
         comment.DateUpdated = DateTime.UtcNow;
         await _commentRepo.UpdateAsync(comment, ct);
         await _dbContext.SaveChangesAsync(ct);
+
+        return ServiceResult<object>.NoContent("Comment deleted.");
     }
 
-    public async Task<object> ListByEntityAsync(string entityType, Guid entityId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> ListByEntityAsync(string entityType, Guid entityId, CancellationToken ct = default)
     {
         var comments = await _commentRepo.ListByEntityAsync(entityType, entityId, ct);
-        return comments.Select(BuildResponse).ToList();
+        return ServiceResult<object>.Ok(comments.Select(BuildResponse).ToList(), "Comments retrieved.");
     }
 
     private static CommentResponse BuildResponse(Comment c) => new()

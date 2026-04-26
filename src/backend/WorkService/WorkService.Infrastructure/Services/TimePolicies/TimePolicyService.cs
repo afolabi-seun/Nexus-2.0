@@ -4,6 +4,7 @@ using WorkService.Domain.Entities;
 using WorkService.Domain.Exceptions;
 using WorkService.Domain.Interfaces.Repositories.TimePolicies;
 using WorkService.Domain.Interfaces.Services.TimePolicies;
+using WorkService.Domain.Results;
 using WorkService.Infrastructure.Data;
 
 namespace WorkService.Infrastructure.Services.TimePolicies;
@@ -21,14 +22,13 @@ public class TimePolicyService : ITimePolicyService
         _logger = logger;
     }
 
-    public async Task<object> GetPolicyAsync(Guid orgId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetPolicyAsync(Guid orgId, CancellationToken ct = default)
     {
         var policy = await _policyRepo.GetByOrganizationAsync(orgId, ct);
 
         if (policy == null)
         {
-            // Return default values
-            return new TimePolicyResponse
+            return ServiceResult<object>.Ok(new TimePolicyResponse
             {
                 TimePolicyId = Guid.Empty,
                 OrganizationId = orgId,
@@ -40,20 +40,19 @@ public class TimePolicyService : ITimePolicyService
                 FlgStatus = "A",
                 DateCreated = DateTime.UtcNow,
                 DateUpdated = DateTime.UtcNow
-            };
+            }, "Time policy retrieved.");
         }
 
-        return MapToResponse(policy);
+        return ServiceResult<object>.Ok(MapToResponse(policy), "Time policy retrieved.");
     }
 
-    public async Task<object> UpsertAsync(Guid orgId, Guid userId, string userRole, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> UpsertAsync(Guid orgId, Guid userId, string userRole, object request, CancellationToken ct = default)
     {
         if (userRole != "OrgAdmin")
             throw new InsufficientPermissionsException();
 
         var req = (UpdateTimePolicyRequest)request;
 
-        // Validate fields
         if (req.RequiredHoursPerDay <= 0 || req.RequiredHoursPerDay > 24)
             throw new InvalidTimePolicyException("RequiredHoursPerDay must be greater than 0 and at most 24.");
 
@@ -76,7 +75,7 @@ public class TimePolicyService : ITimePolicyService
 
             await _policyRepo.AddAsync(policy, ct);
             await _dbContext.SaveChangesAsync(ct);
-            return MapToResponse(policy);
+            return ServiceResult<object>.Ok(MapToResponse(policy), "Time policy updated.");
         }
 
         existing.RequiredHoursPerDay = req.RequiredHoursPerDay;
@@ -88,7 +87,7 @@ public class TimePolicyService : ITimePolicyService
 
         await _policyRepo.UpdateAsync(existing, ct);
         await _dbContext.SaveChangesAsync(ct);
-        return MapToResponse(existing);
+        return ServiceResult<object>.Ok(MapToResponse(existing), "Time policy updated.");
     }
 
     private static TimePolicyResponse MapToResponse(TimePolicy policy)

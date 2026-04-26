@@ -39,8 +39,7 @@ public class AnalyticsController : ControllerBase
     public async Task<IActionResult> GetVelocityTrends(
         [FromQuery] Guid projectId, [FromQuery] int sprintCount = 10, CancellationToken ct = default)
     {
-        var result = await _analyticsService.GetVelocityTrendsAsync(projectId, sprintCount, ct);
-        return ApiResponse<object>.Ok(result, "Velocity trends retrieved.").ToActionResult(HttpContext);
+        return (await _analyticsService.GetVelocityTrendsAsync(projectId, sprintCount, ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("resource-management")]
@@ -50,8 +49,7 @@ public class AnalyticsController : ControllerBase
         [FromQuery] Guid? departmentId = null, CancellationToken ct = default)
     {
         var orgId = GetOrganizationId();
-        var result = await _analyticsService.GetResourceManagementAsync(orgId, dateFrom, dateTo, departmentId, ct);
-        return ApiResponse<object>.Ok(result, "Resource management data retrieved.").ToActionResult(HttpContext);
+        return (await _analyticsService.GetResourceManagementAsync(orgId, dateFrom, dateTo, departmentId, ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("resource-utilization")]
@@ -60,8 +58,7 @@ public class AnalyticsController : ControllerBase
         [FromQuery] Guid projectId, [FromQuery] DateTime? dateFrom = null,
         [FromQuery] DateTime? dateTo = null, CancellationToken ct = default)
     {
-        var result = await _analyticsService.GetResourceUtilizationAsync(projectId, dateFrom, dateTo, ct);
-        return ApiResponse<object>.Ok(result, "Resource utilization data retrieved.").ToActionResult(HttpContext);
+        return (await _analyticsService.GetResourceUtilizationAsync(projectId, dateFrom, dateTo, ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("project-cost")]
@@ -70,8 +67,7 @@ public class AnalyticsController : ControllerBase
         [FromQuery] Guid projectId, [FromQuery] DateTime? dateFrom = null,
         [FromQuery] DateTime? dateTo = null, CancellationToken ct = default)
     {
-        var result = await _analyticsService.GetProjectCostAnalyticsAsync(projectId, dateFrom, dateTo, ct);
-        return ApiResponse<object>.Ok(result, "Project cost analytics retrieved.").ToActionResult(HttpContext);
+        return (await _analyticsService.GetProjectCostAnalyticsAsync(projectId, dateFrom, dateTo, ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("project-health")]
@@ -79,8 +75,7 @@ public class AnalyticsController : ControllerBase
     public async Task<IActionResult> GetProjectHealth(
         [FromQuery] Guid projectId, [FromQuery] bool history = false, CancellationToken ct = default)
     {
-        var result = await _analyticsService.GetProjectHealthAsync(projectId, history, ct);
-        return ApiResponse<object>.Ok(result, "Project health data retrieved.").ToActionResult(HttpContext);
+        return (await _analyticsService.GetProjectHealthAsync(projectId, history, ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("dependencies")]
@@ -90,12 +85,10 @@ public class AnalyticsController : ControllerBase
     {
         var orgId = GetOrganizationId();
 
-        // Fetch all stories for the project
         var (stories, _) = await _storyRepo.ListAsync(orgId, 1, int.MaxValue, projectId,
             null, null, null, null, null, null, null, null, null, ct);
         var storyList = stories.ToList();
 
-        // Fetch all links for those stories
         var allLinks = new List<Domain.Entities.StoryLink>();
         foreach (var story in storyList)
         {
@@ -103,7 +96,6 @@ public class AnalyticsController : ControllerBase
             allLinks.AddRange(links);
         }
 
-        // Deduplicate links by StoryLinkId
         var uniqueLinks = allLinks.DistinctBy(l => l.StoryLinkId).ToList();
 
         var result = _dependencyAnalyzer.Analyze(uniqueLinks, storyList, sprintId);
@@ -115,8 +107,7 @@ public class AnalyticsController : ControllerBase
     public async Task<IActionResult> GetBugMetrics(
         [FromQuery] Guid projectId, [FromQuery] Guid? sprintId = null, CancellationToken ct = default)
     {
-        var result = await _analyticsService.GetBugMetricsAsync(projectId, sprintId, ct);
-        return ApiResponse<object>.Ok(result, "Bug metrics retrieved.").ToActionResult(HttpContext);
+        return (await _analyticsService.GetBugMetricsAsync(projectId, sprintId, ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("dashboard")]
@@ -124,8 +115,7 @@ public class AnalyticsController : ControllerBase
     public async Task<IActionResult> GetDashboard(
         [FromQuery] Guid projectId, CancellationToken ct = default)
     {
-        var result = await _analyticsService.GetDashboardAsync(projectId, ct);
-        return ApiResponse<object>.Ok(result, "Dashboard summary retrieved.").ToActionResult(HttpContext);
+        return (await _analyticsService.GetDashboardAsync(projectId, ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("snapshot-status")]
@@ -133,8 +123,7 @@ public class AnalyticsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetSnapshotStatus(CancellationToken ct = default)
     {
-        var result = await _analyticsService.GetSnapshotStatusAsync(ct);
-        return ApiResponse<object>.Ok(result, "Snapshot status retrieved.").ToActionResult(HttpContext);
+        return (await _analyticsService.GetSnapshotStatusAsync(ct)).ToActionResult(HttpContext);
     }
 
     private Guid GetOrganizationId() => Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);

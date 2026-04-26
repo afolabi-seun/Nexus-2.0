@@ -9,6 +9,7 @@ using WorkService.Domain.Interfaces.Repositories.CostSnapshots;
 using WorkService.Domain.Interfaces.Repositories.Projects;
 using WorkService.Domain.Interfaces.Services.CostSnapshots;
 using WorkService.Domain.Interfaces.Services.TimeEntries;
+using WorkService.Domain.Results;
 using WorkService.Infrastructure.Data;
 
 namespace WorkService.Infrastructure.Services.CostSnapshots;
@@ -27,7 +28,7 @@ public class CostSnapshotHostedService : BackgroundService, ICostSnapshotService
         _logger = logger;
     }
 
-    public async Task<object> ListByProjectAsync(Guid projectId, DateTime? dateFrom, DateTime? dateTo,
+    public async Task<ServiceResult<object>> ListByProjectAsync(Guid projectId, DateTime? dateFrom, DateTime? dateTo,
         int page, int pageSize, CancellationToken ct = default)
     {
         using var scope = _scopeFactory.CreateScope();
@@ -38,14 +39,14 @@ public class CostSnapshotHostedService : BackgroundService, ICostSnapshotService
 
         var responses = items.Select(MapToResponse).ToList();
 
-        return new PaginatedResponse<CostSnapshotResponse>
+        return ServiceResult<object>.Ok(new PaginatedResponse<CostSnapshotResponse>
         {
             Data = responses,
             TotalCount = totalCount,
             Page = page,
             PageSize = pageSize,
             TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-        };
+        }, "Cost snapshots retrieved.");
     }
 
     protected override async System.Threading.Tasks.Task ExecuteAsync(CancellationToken stoppingToken)
@@ -101,10 +102,10 @@ public class CostSnapshotHostedService : BackgroundService, ICostSnapshotService
         {
             try
             {
-                var costSummary = await timeEntryService.GetProjectCostSummaryAsync(
+                var costSummaryResult = await timeEntryService.GetProjectCostSummaryAsync(
                     project.ProjectId, null, null, ct);
 
-                var summary = (ProjectCostSummaryResponse)costSummary;
+                var summary = (ProjectCostSummaryResponse)costSummaryResult.Data!;
 
                 var snapshot = new CostSnapshot
                 {

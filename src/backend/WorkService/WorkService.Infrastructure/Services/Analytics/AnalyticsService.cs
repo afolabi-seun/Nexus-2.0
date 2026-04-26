@@ -21,6 +21,7 @@ using WorkService.Domain.Interfaces.Repositories.TimePolicies;
 using WorkService.Domain.Interfaces.Repositories.VelocitySnapshots;
 using WorkService.Domain.Interfaces.Services.Analytics;
 using WorkService.Domain.Interfaces.Services.CostRates;
+using WorkService.Domain.Results;
 using WorkService.Infrastructure.Data;
 using WorkService.Infrastructure.Services.ServiceClients;
 using WorkService.Infrastructure.Redis;
@@ -93,14 +94,14 @@ public class AnalyticsService : IAnalyticsService
 
     // ── Velocity ──────────────────────────────────────────────────────────
 
-    public async Task<object> GetVelocityTrendsAsync(Guid projectId, int sprintCount, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetVelocityTrendsAsync(Guid projectId, int sprintCount, CancellationToken ct = default)
     {
         if (sprintCount < 1 || sprintCount > 50)
-            throw new InvalidAnalyticsParameterException("sprintCount must be between 1 and 50.");
+            return ServiceResult<object>.Fail(4060, "INVALID_ANALYTICS_PARAMETER", "sprintCount must be between 1 and 50.", 400);
 
         var snapshots = await _velocitySnapshotRepo.GetByProjectAsync(projectId, sprintCount, ct);
 
-        return snapshots.Select(s => new VelocitySnapshotResponse
+        return ServiceResult<object>.Ok(snapshots.Select(s => new VelocitySnapshotResponse
         {
             SprintId = s.SprintId,
             SprintName = s.SprintName,
@@ -111,7 +112,7 @@ public class AnalyticsService : IAnalyticsService
             TotalLoggedHours = s.TotalLoggedHours,
             AverageHoursPerPoint = s.AverageHoursPerPoint,
             CompletedStoryCount = s.CompletedStoryCount
-        }).ToList();
+        }).ToList(), "Velocity trends retrieved.");
     }
 
     public async System.Threading.Tasks.Task GenerateVelocitySnapshotAsync(Guid sprintId, CancellationToken ct = default)
@@ -171,7 +172,7 @@ public class AnalyticsService : IAnalyticsService
 
     // ── Resource Management ──────────────────────────────────────────────
 
-    public async Task<object> GetResourceManagementAsync(Guid orgId, DateTime? dateFrom, DateTime? dateTo,
+    public async Task<ServiceResult<object>> GetResourceManagementAsync(Guid orgId, DateTime? dateFrom, DateTime? dateTo,
         Guid? departmentId, CancellationToken ct = default)
     {
         var policy = await _timePolicyRepo.GetByOrganizationAsync(orgId, ct) ?? new TimePolicy();
@@ -258,12 +259,12 @@ public class AnalyticsService : IAnalyticsService
             });
         }
 
-        return results;
+        return ServiceResult<object>.Ok(results, "Resource management data retrieved.");
     }
 
     // ── Resource Utilization ─────────────────────────────────────────────
 
-    public async Task<object> GetResourceUtilizationAsync(Guid projectId, DateTime? dateFrom, DateTime? dateTo,
+    public async Task<ServiceResult<object>> GetResourceUtilizationAsync(Guid projectId, DateTime? dateFrom, DateTime? dateTo,
         CancellationToken ct = default)
     {
         // Try to serve from snapshot first
@@ -273,7 +274,7 @@ public class AnalyticsService : IAnalyticsService
             var snapshotList = snapshots.ToList();
             if (snapshotList.Count > 0)
             {
-                return snapshotList.Select(s => new ResourceUtilizationDetailResponse
+                return ServiceResult<object>.Ok(snapshotList.Select(s => new ResourceUtilizationDetailResponse
                 {
                     MemberId = s.MemberId,
                     TotalLoggedHours = s.TotalLoggedHours,
@@ -282,7 +283,7 @@ public class AnalyticsService : IAnalyticsService
                     BillableHours = s.BillableHours,
                     NonBillableHours = s.NonBillableHours,
                     OvertimeHours = s.OvertimeHours
-                }).ToList();
+                }).ToList(), "Resource utilization data retrieved.");
             }
         }
 
@@ -327,7 +328,7 @@ public class AnalyticsService : IAnalyticsService
             });
         }
 
-        return results;
+        return ServiceResult<object>.Ok(results, "Resource utilization data retrieved.");
     }
 
     public async System.Threading.Tasks.Task GenerateResourceAllocationSnapshotAsync(
@@ -382,7 +383,7 @@ public class AnalyticsService : IAnalyticsService
 
     // ── Project Cost ─────────────────────────────────────────────────────
 
-    public async Task<object> GetProjectCostAnalyticsAsync(Guid projectId, DateTime? dateFrom, DateTime? dateTo,
+    public async Task<ServiceResult<object>> GetProjectCostAnalyticsAsync(Guid projectId, DateTime? dateFrom, DateTime? dateTo,
         CancellationToken ct = default)
     {
         var project = await _projectRepo.GetByIdAsync(projectId, ct);
@@ -449,7 +450,7 @@ public class AnalyticsService : IAnalyticsService
             TotalCost = cs.TotalCost
         }).ToList();
 
-        return new ProjectCostAnalyticsResponse
+        return ServiceResult<object>.Ok(new ProjectCostAnalyticsResponse
         {
             TotalCost = totalCost,
             TotalBillableHours = totalBillableHours,
@@ -458,18 +459,18 @@ public class AnalyticsService : IAnalyticsService
             CostByMember = memberCosts.Values.ToList(),
             CostByDepartment = deptCosts.Values.ToList(),
             CostTrend = costTrend
-        };
+        }, "Project cost analytics retrieved.");
     }
 
     // ── Project Health ───────────────────────────────────────────────────
 
-    public async Task<object> GetProjectHealthAsync(Guid projectId, bool includeHistory, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetProjectHealthAsync(Guid projectId, bool includeHistory, CancellationToken ct = default)
     {
         var latest = await _healthSnapshotRepo.GetLatestByProjectAsync(projectId, ct);
 
         if (latest == null)
         {
-            return new ProjectHealthResponse
+            return ServiceResult<object>.Ok(new ProjectHealthResponse
             {
                 OverallScore = 50,
                 VelocityScore = 50,
@@ -478,7 +479,7 @@ public class AnalyticsService : IAnalyticsService
                 RiskScore = 100,
                 Trend = "stable",
                 SnapshotDate = DateTime.UtcNow
-            };
+            }, "Project health data retrieved.");
         }
 
         var response = MapHealthSnapshotToResponse(latest);
@@ -489,7 +490,7 @@ public class AnalyticsService : IAnalyticsService
             response.History = history.Select(MapHealthSnapshotToResponse).ToList();
         }
 
-        return response;
+        return ServiceResult<object>.Ok(response, "Project health data retrieved.");
     }
 
     public async System.Threading.Tasks.Task GenerateHealthSnapshotAsync(Guid projectId, CancellationToken ct = default)
@@ -545,7 +546,7 @@ public class AnalyticsService : IAnalyticsService
 
     // ── Bug Metrics ──────────────────────────────────────────────────────
 
-    public async Task<object> GetBugMetricsAsync(Guid projectId, Guid? sprintId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetBugMetricsAsync(Guid projectId, Guid? sprintId, CancellationToken ct = default)
     {
         var project = await _projectRepo.GetByIdAsync(projectId, ct);
         var orgId = project?.OrganizationId ?? Guid.Empty;
@@ -612,7 +613,7 @@ public class AnalyticsService : IAnalyticsService
             });
         }
 
-        return new BugMetricsResponse
+        return ServiceResult<object>.Ok(new BugMetricsResponse
         {
             TotalBugs = totalBugs,
             OpenBugs = openBugs,
@@ -621,12 +622,12 @@ public class AnalyticsService : IAnalyticsService
             BugRate = bugRate,
             BugsBySeverity = bugsBySeverity,
             BugTrend = bugTrend
-        };
+        }, "Bug metrics retrieved.");
     }
 
     // ── Dashboard ────────────────────────────────────────────────────────
 
-    public async Task<object> GetDashboardAsync(Guid projectId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetDashboardAsync(Guid projectId, CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
         var cacheKey = RedisKeys.AnalyticsDashboard(projectId);
@@ -635,7 +636,7 @@ public class AnalyticsService : IAnalyticsService
         if (cached.HasValue)
         {
             var cachedDashboard = JsonSerializer.Deserialize<DashboardSummaryResponse>(cached!);
-            if (cachedDashboard != null) return cachedDashboard;
+            if (cachedDashboard != null) return ServiceResult<object>.Ok(cachedDashboard, "Dashboard summary retrieved.");
         }
 
         // Health
@@ -713,9 +714,12 @@ public class AnalyticsService : IAnalyticsService
         decimal burnRatePerDay = 0;
         try
         {
-            var costResult = (ProjectCostAnalyticsResponse)await GetProjectCostAnalyticsAsync(projectId, null, null, ct);
-            totalProjectCost = costResult.TotalCost;
-            burnRatePerDay = costResult.BurnRatePerDay;
+            var costServiceResult = await GetProjectCostAnalyticsAsync(projectId, null, null, ct);
+            if (costServiceResult.IsSuccess && costServiceResult.Data is ProjectCostAnalyticsResponse costResult)
+            {
+                totalProjectCost = costResult.TotalCost;
+                burnRatePerDay = costResult.BurnRatePerDay;
+            }
         }
         catch { /* cost data may not be available */ }
 
@@ -734,12 +738,12 @@ public class AnalyticsService : IAnalyticsService
         var json = JsonSerializer.Serialize(dashboard);
         await db.StringSetAsync(cacheKey, json, TimeSpan.FromMinutes(3));
 
-        return dashboard;
+        return ServiceResult<object>.Ok(dashboard, "Dashboard summary retrieved.");
     }
 
     // ── Snapshot Status ──────────────────────────────────────────────────
 
-    public async Task<object> GetSnapshotStatusAsync(CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetSnapshotStatusAsync(CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
         var cached = await db.StringGetAsync(RedisKeys.AnalyticsSnapshotStatus);
@@ -747,16 +751,16 @@ public class AnalyticsService : IAnalyticsService
         if (cached.HasValue)
         {
             var status = JsonSerializer.Deserialize<SnapshotStatusResponse>(cached!);
-            if (status != null) return status;
+            if (status != null) return ServiceResult<object>.Ok(status, "Snapshot status retrieved.");
         }
 
-        return new SnapshotStatusResponse
+        return ServiceResult<object>.Ok(new SnapshotStatusResponse
         {
             LastRunTime = null,
             ProjectsProcessed = 0,
             ErrorsEncountered = 0,
             NextScheduledRun = null
-        };
+        }, "Snapshot status retrieved.");
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────

@@ -66,12 +66,14 @@ public class SprintServiceTests
 
         var result = await _sut.CreateAsync(_orgId, _projectId, request);
 
-        Assert.NotNull(result);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(201, result.StatusCode);
+        Assert.NotNull(result.Data);
         _sprintRepo.Verify(r => r.AddAsync(It.Is<Sprint>(s => s.Status == "Planning"), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task CreateAsync_EndDateBeforeStartDate_Throws()
+    public async Task CreateAsync_EndDateBeforeStartDate_ReturnsFailure()
     {
         var now = DateTime.UtcNow;
         var request = new CreateSprintRequest
@@ -81,12 +83,15 @@ public class SprintServiceTests
             EndDate = now.AddDays(-1)
         };
 
-        await Assert.ThrowsAsync<SprintEndBeforeStartException>(
-            () => _sut.CreateAsync(_orgId, _projectId, request));
+        var result = await _sut.CreateAsync(_orgId, _projectId, request);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(400, result.StatusCode);
+        Assert.Equal("SPRINT_END_BEFORE_START", result.ErrorCode);
     }
 
     [Fact]
-    public async Task StartAsync_OneActiveSprintPerProject_Throws()
+    public async Task StartAsync_OneActiveSprintPerProject_ReturnsFailure()
     {
         var sprintId = Guid.NewGuid();
         var sprint = new Sprint
@@ -98,12 +103,15 @@ public class SprintServiceTests
         _sprintRepo.Setup(r => r.GetActiveByProjectAsync(_projectId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Sprint { Status = "Active" });
 
-        await Assert.ThrowsAsync<OnlyOneActiveSprintException>(
-            () => _sut.StartAsync(sprintId));
+        var result = await _sut.StartAsync(sprintId);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(400, result.StatusCode);
+        Assert.Equal("ONLY_ONE_ACTIVE_SPRINT", result.ErrorCode);
     }
 
     [Fact]
-    public async Task AddStoryAsync_ProjectMismatch_Throws()
+    public async Task AddStoryAsync_ProjectMismatch_ReturnsFailure()
     {
         var sprintId = Guid.NewGuid();
         var storyId = Guid.NewGuid();
@@ -117,8 +125,11 @@ public class SprintServiceTests
         _storyRepo.Setup(r => r.GetByIdAsync(storyId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(story);
 
-        await Assert.ThrowsAsync<StoryProjectMismatchException>(
-            () => _sut.AddStoryAsync(sprintId, storyId));
+        var result = await _sut.AddStoryAsync(sprintId, storyId);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(400, result.StatusCode);
+        Assert.Equal("STORY_PROJECT_MISMATCH", result.ErrorCode);
     }
 
     [Fact]
@@ -146,8 +157,10 @@ public class SprintServiceTests
         _projectRepo.Setup(r => r.GetByIdAsync(_projectId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Project { ProjectId = _projectId, ProjectKey = "PROJ" });
 
-        await _sut.CompleteAsync(sprintId);
+        var result = await _sut.CompleteAsync(sprintId);
 
+        Assert.True(result.IsSuccess);
+        Assert.Equal(200, result.StatusCode);
         // Velocity should be 5 (only the Done story's points)
         _sprintRepo.Verify(r => r.UpdateAsync(
             It.Is<Sprint>(s => s.Velocity == 5 && s.Status == "Completed"),

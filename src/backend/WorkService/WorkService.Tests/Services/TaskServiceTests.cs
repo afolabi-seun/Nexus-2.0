@@ -55,21 +55,23 @@ public class TaskServiceTests
 
         var result = await _sut.CreateAsync(_orgId, _creatorId, request);
 
-        Assert.NotNull(result);
-        // Without a profile client, departmentId will be null, but the task type mapping was exercised
+        Assert.True(result.IsSuccess);
+        Assert.Equal(201, result.StatusCode);
+        Assert.NotNull(result.Data);
         _taskRepo.Verify(r => r.AddAsync(
             It.Is<Domain.Entities.Task>(t => t.TaskType == "Development" && t.Status == "ToDo"),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task CreateAsync_InvalidTaskType_Throws()
+    public async Task CreateAsync_InvalidTaskType_ReturnsFailure()
     {
         var request = new CreateTaskRequest
         {
             StoryId = _storyId, Title = "Bad task", TaskType = "InvalidType", Priority = "Medium"
         };
 
+        // InvalidTaskTypeException is thrown from TaskTypeDepartmentMap (deep code), so it still throws
         await Assert.ThrowsAsync<InvalidTaskTypeException>(
             () => _sut.CreateAsync(_orgId, _creatorId, request));
     }
@@ -86,26 +88,34 @@ public class TaskServiceTests
         _taskRepo.Setup(r => r.GetByIdAsync(taskId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(task);
 
-        await _sut.LogHoursAsync(taskId, _creatorId, 3m, null);
+        var result = await _sut.LogHoursAsync(taskId, _creatorId, 3m, null);
 
+        Assert.True(result.IsSuccess);
+        Assert.Equal(204, result.StatusCode);
         _taskRepo.Verify(r => r.UpdateAsync(
             It.Is<Domain.Entities.Task>(t => t.ActualHours == 5m),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task LogHoursAsync_NegativeHours_Throws()
+    public async Task LogHoursAsync_NegativeHours_ReturnsFailure()
     {
         var taskId = Guid.NewGuid();
-        await Assert.ThrowsAsync<HoursMustBePositiveException>(
-            () => _sut.LogHoursAsync(taskId, _creatorId, -1m, null));
+        var result = await _sut.LogHoursAsync(taskId, _creatorId, -1m, null);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(400, result.StatusCode);
+        Assert.Equal("HOURS_MUST_BE_POSITIVE", result.ErrorCode);
     }
 
     [Fact]
-    public async Task LogHoursAsync_ZeroHours_Throws()
+    public async Task LogHoursAsync_ZeroHours_ReturnsFailure()
     {
         var taskId = Guid.NewGuid();
-        await Assert.ThrowsAsync<HoursMustBePositiveException>(
-            () => _sut.LogHoursAsync(taskId, _creatorId, 0m, null));
+        var result = await _sut.LogHoursAsync(taskId, _creatorId, 0m, null);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(400, result.StatusCode);
+        Assert.Equal("HOURS_MUST_BE_POSITIVE", result.ErrorCode);
     }
 }

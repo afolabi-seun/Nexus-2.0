@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkService.Api.Extensions;
-using WorkService.Application.DTOs;
 using WorkService.Domain.Interfaces.Services.Boards;
 
 namespace WorkService.Api.Controllers;
@@ -26,8 +25,7 @@ public class BoardController : ControllerBase
         CancellationToken ct = default)
     {
         var orgId = GetOrganizationId();
-        var result = await _boardService.GetKanbanBoardAsync(orgId, projectId, sprintId, departmentId, assigneeId, priority, labels, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _boardService.GetKanbanBoardAsync(orgId, projectId, sprintId, departmentId, assigneeId, priority, labels, ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("sprint")]
@@ -35,8 +33,7 @@ public class BoardController : ControllerBase
         [FromQuery] Guid? projectId = null, CancellationToken ct = default)
     {
         var orgId = GetOrganizationId();
-        var result = await _boardService.GetSprintBoardAsync(orgId, projectId, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _boardService.GetSprintBoardAsync(orgId, projectId, ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("backlog")]
@@ -44,8 +41,7 @@ public class BoardController : ControllerBase
         [FromQuery] Guid? projectId = null, CancellationToken ct = default)
     {
         var orgId = GetOrganizationId();
-        var result = await _boardService.GetBacklogAsync(orgId, projectId, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _boardService.GetBacklogAsync(orgId, projectId, ct)).ToActionResult(HttpContext);
     }
 
     [HttpGet("department")]
@@ -54,8 +50,7 @@ public class BoardController : ControllerBase
         CancellationToken ct = default)
     {
         var orgId = GetOrganizationId();
-        var result = await _boardService.GetDepartmentBoardAsync(orgId, projectId, sprintId, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _boardService.GetDepartmentBoardAsync(orgId, projectId, sprintId, ct)).ToActionResult(HttpContext);
     }
 
     private Guid GetOrganizationId() => Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);

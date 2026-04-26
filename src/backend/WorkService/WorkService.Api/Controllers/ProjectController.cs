@@ -64,8 +64,7 @@ public class ProjectController : ControllerBase
     {
         var orgId = GetOrganizationId();
         var userId = GetUserId();
-        var result = await _projectService.CreateAsync(orgId, userId, request, ct);
-        return ApiResponse<object>.Ok(result, "Project created successfully.").ToActionResult(HttpContext, 201);
+        return (await _projectService.CreateAsync(orgId, userId, request, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -85,8 +84,7 @@ public class ProjectController : ControllerBase
     {
         PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = GetOrganizationId();
-        var result = await _projectService.ListAsync(orgId, page, pageSize, status, ct);
-        return ApiResponse<object>.Ok(result, "Projects retrieved.").ToActionResult(HttpContext);
+        return (await _projectService.ListAsync(orgId, page, pageSize, status, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -102,8 +100,7 @@ public class ProjectController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
-        var result = await _projectService.GetByIdAsync(id, ct);
-        return ApiResponse<object>.Ok(result).ToActionResult(HttpContext);
+        return (await _projectService.GetByIdAsync(id, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -122,8 +119,7 @@ public class ProjectController : ControllerBase
     public async Task<IActionResult> Update(
         Guid id, [FromBody] UpdateProjectRequest request, CancellationToken ct)
     {
-        var result = await _projectService.UpdateAsync(id, request, ct);
-        return ApiResponse<object>.Ok(result, "Project updated.").ToActionResult(HttpContext);
+        return (await _projectService.UpdateAsync(id, request, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -142,8 +138,7 @@ public class ProjectController : ControllerBase
     public async Task<IActionResult> UpdateStatus(
         Guid id, [FromBody] ProjectStatusRequest request, CancellationToken ct)
     {
-        await _projectService.UpdateStatusAsync(id, request.Status, ct);
-        return ApiResponse<object>.Ok(null!, "Project status updated.").ToActionResult(HttpContext);
+        return (await _projectService.UpdateStatusAsync(id, request.Status, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -155,8 +150,7 @@ public class ProjectController : ControllerBase
         Guid projectId, [FromQuery] DateTime? dateFrom = null,
         [FromQuery] DateTime? dateTo = null, CancellationToken ct = default)
     {
-        var result = await _timeEntryService.GetProjectCostSummaryAsync(projectId, dateFrom, dateTo, ct);
-        return ApiResponse<object>.Ok(result, "Project cost summary retrieved.").ToActionResult(HttpContext);
+        return (await _timeEntryService.GetProjectCostSummaryAsync(projectId, dateFrom, dateTo, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -168,8 +162,7 @@ public class ProjectController : ControllerBase
         Guid projectId, [FromQuery] DateTime? dateFrom = null,
         [FromQuery] DateTime? dateTo = null, CancellationToken ct = default)
     {
-        var result = await _timeEntryService.GetProjectUtilizationAsync(projectId, dateFrom, dateTo, ct);
-        return ApiResponse<object>.Ok(result, "Resource utilization retrieved.").ToActionResult(HttpContext);
+        return (await _timeEntryService.GetProjectUtilizationAsync(projectId, dateFrom, dateTo, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -183,8 +176,7 @@ public class ProjectController : ControllerBase
         [FromQuery] int pageSize = 20, CancellationToken ct = default)
     {
         PaginationHelper.Normalize(ref page, ref pageSize);
-        var result = await _costSnapshotService.ListByProjectAsync(projectId, dateFrom, dateTo, page, pageSize, ct);
-        return ApiResponse<object>.Ok(result, "Cost snapshots retrieved.").ToActionResult(HttpContext);
+        return (await _costSnapshotService.ListByProjectAsync(projectId, dateFrom, dateTo, page, pageSize, ct)).ToActionResult(HttpContext);
     }
 
     private Guid GetOrganizationId() => Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);
@@ -200,8 +192,10 @@ public class ProjectController : ControllerBase
         CancellationToken ct = default)
     {
         var orgId = GetOrganizationId();
-        var csv = await _exportService.ExportStoriesCsvAsync(orgId, projectId, sprintId, ct);
-        return File(csv, "text/csv", "stories-export.csv");
+        var result = await _exportService.ExportStoriesCsvAsync(orgId, projectId, sprintId, ct);
+        if (!result.IsSuccess)
+            return result.ToActionResult(HttpContext);
+        return File(result.Data!, "text/csv", "stories-export.csv");
     }
 
     /// <summary>
@@ -214,7 +208,9 @@ public class ProjectController : ControllerBase
         [FromQuery] DateTime? dateTo = null, CancellationToken ct = default)
     {
         var orgId = GetOrganizationId();
-        var csv = await _exportService.ExportTimeEntriesCsvAsync(orgId, projectId, dateFrom, dateTo, ct);
-        return File(csv, "text/csv", "time-entries-export.csv");
+        var result = await _exportService.ExportTimeEntriesCsvAsync(orgId, projectId, dateFrom, dateTo, ct);
+        if (!result.IsSuccess)
+            return result.ToActionResult(HttpContext);
+        return File(result.Data!, "text/csv", "time-entries-export.csv");
     }
 }

@@ -2,11 +2,11 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using WorkService.Application.DTOs.Search;
-using WorkService.Domain.Exceptions;
 using WorkService.Domain.Interfaces.Repositories.Projects;
 using WorkService.Domain.Interfaces.Repositories.Stories;
 using WorkService.Domain.Interfaces.Repositories.Tasks;
 using WorkService.Domain.Interfaces.Services.Search;
+using WorkService.Domain.Results;
 using StackExchange.Redis;
 using WorkService.Infrastructure.Redis;
 
@@ -28,12 +28,12 @@ public class SearchService : ISearchService
         _redis = redis;
     }
 
-    public async Task<object> SearchAsync(Guid organizationId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> SearchAsync(Guid organizationId, object request, CancellationToken ct = default)
     {
         var req = (SearchRequest)request;
 
         if (string.IsNullOrWhiteSpace(req.Query) || req.Query.Length < 2)
-            throw new SearchQueryTooShortException();
+            return ServiceResult<object>.Fail(4028, "SEARCH_QUERY_TOO_SHORT", "Search query must be at least 2 characters.", 400);
 
         var db = _redis.GetDatabase();
         var cacheKey = RedisKeys.SearchResults(ComputeHash(organizationId, req));
@@ -41,7 +41,7 @@ public class SearchService : ISearchService
         if (cached.HasValue)
         {
             var cachedResult = JsonSerializer.Deserialize<SearchResponse>(cached!);
-            if (cachedResult != null) return cachedResult;
+            if (cachedResult != null) return ServiceResult<object>.Ok(cachedResult);
         }
 
         var items = new List<SearchResultItem>();
@@ -93,7 +93,7 @@ public class SearchService : ISearchService
         var json = JsonSerializer.Serialize(response);
         await db.StringSetAsync(cacheKey, json, TimeSpan.FromMinutes(1));
 
-        return response;
+        return ServiceResult<object>.Ok(response);
     }
 
     private static string ComputeHash(Guid orgId, SearchRequest req)

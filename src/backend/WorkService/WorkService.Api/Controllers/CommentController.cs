@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WorkService.Api.Extensions;
-using WorkService.Application.DTOs;
 using WorkService.Application.DTOs.Comments;
 using WorkService.Domain.Interfaces.Services.Comments;
 
@@ -25,8 +24,7 @@ public class CommentController : ControllerBase
     {
         var orgId = GetOrganizationId();
         var userId = GetUserId();
-        var result = await _commentService.CreateAsync(orgId, userId, request, ct);
-        return ApiResponse<object>.Ok(result, "Comment created successfully.").ToActionResult(HttpContext, 201);
+        return (await _commentService.CreateAsync(orgId, userId, request, ct)).ToActionResult(HttpContext);
     }
 
     [HttpPut("{id:guid}")]
@@ -34,8 +32,7 @@ public class CommentController : ControllerBase
         Guid id, [FromBody] UpdateCommentRequest request, CancellationToken ct)
     {
         var userId = GetUserId();
-        var result = await _commentService.UpdateAsync(id, userId, request.Content, ct);
-        return ApiResponse<object>.Ok(result, "Comment updated.").ToActionResult(HttpContext);
+        return (await _commentService.UpdateAsync(id, userId, request.Content, ct)).ToActionResult(HttpContext);
     }
 
     [HttpDelete("{id:guid}")]
@@ -43,8 +40,7 @@ public class CommentController : ControllerBase
     {
         var userId = GetUserId();
         var role = GetRole();
-        await _commentService.DeleteAsync(id, userId, role, ct);
-        return ApiResponse<object>.Ok(null!, "Comment deleted.").ToActionResult(HttpContext);
+        return (await _commentService.DeleteAsync(id, userId, role, ct)).ToActionResult(HttpContext);
     }
 
     private Guid GetOrganizationId() => Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);

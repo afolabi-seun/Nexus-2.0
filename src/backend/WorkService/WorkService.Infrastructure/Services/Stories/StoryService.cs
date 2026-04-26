@@ -17,6 +17,7 @@ using WorkService.Domain.Interfaces.Repositories.StoryLinks;
 using WorkService.Domain.Interfaces.Repositories.Tasks;
 using WorkService.Domain.Interfaces.Services.Outbox;
 using WorkService.Domain.Interfaces.Services.Stories;
+using WorkService.Domain.Results;
 using WorkService.Infrastructure.Data;
 
 namespace WorkService.Infrastructure.Services.Stories;
@@ -55,21 +56,30 @@ public class StoryService : IStoryService
         _outbox = outbox; _dbContext = dbContext; _logger = logger;
     }
 
-    public async Task<object> CreateAsync(Guid organizationId, Guid reporterId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> CreateAsync(Guid organizationId, Guid reporterId, object request, CancellationToken ct = default)
     {
         var req = (CreateStoryRequest)request;
 
-        var project = await _projectRepo.GetByIdAsync(req.ProjectId, ct)
-            ?? throw new ProjectNotFoundException(req.ProjectId);
+        var project = await _projectRepo.GetByIdAsync(req.ProjectId, ct);
+        if (project == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.ProjectNotFoundValue, ErrorCodes.ProjectNotFound,
+                $"Project with ID '{req.ProjectId}' was not found.", 404);
         if (project.OrganizationId != organizationId)
             throw new OrganizationMismatchException();
 
         if (req.StoryPoints.HasValue && !FibonacciSet.Contains(req.StoryPoints.Value))
-            throw new InvalidStoryPointsException(req.StoryPoints.Value);
+            return ServiceResult<object>.Fail(
+                ErrorCodes.InvalidStoryPointsValue, ErrorCodes.InvalidStoryPoints,
+                $"Story points value '{req.StoryPoints.Value}' is not a valid Fibonacci number.", 400);
         if (!ValidPriorities.Contains(req.Priority))
-            throw new InvalidPriorityException(req.Priority);
+            return ServiceResult<object>.Fail(
+                ErrorCodes.InvalidPriorityValue, ErrorCodes.InvalidPriority,
+                $"Priority '{req.Priority}' is not valid.", 400);
         if (!ValidStoryTypes.Contains(req.StoryType))
-            throw new InvalidStoryTypeException(req.StoryType);
+            return ServiceResult<object>.Fail(
+                ErrorCodes.InvalidStoryTypeValue, ErrorCodes.InvalidStoryType,
+                $"Story type '{req.StoryType}' is not valid.", 400);
 
         var (storyKey, seqNum) = await _storyIdGenerator.GenerateNextIdAsync(req.ProjectId, ct);
 
@@ -103,25 +113,33 @@ public class StoryService : IStoryService
 
         await _outbox.PublishAsync(new { MessageType = "AuditEvent", Action = "StoryCreated", EntityType = "Story", EntityId = story.StoryId.ToString(), OrganizationId = organizationId, UserId = reporterId }, ct);
 
-        return await BuildDetailResponse(story, ct);
+        var detail = await BuildDetailResponse(story, ct);
+        return ServiceResult<object>.Created(detail, "Story created successfully.");
     }
 
-    public async Task<object> GetByIdAsync(Guid storyId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetByIdAsync(Guid storyId, CancellationToken ct = default)
     {
-        var story = await _storyRepo.GetByIdAsync(storyId, ct)
-            ?? throw new StoryNotFoundException(storyId);
-        return await BuildDetailResponse(story, ct);
+        var story = await _storyRepo.GetByIdAsync(storyId, ct);
+        if (story == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.StoryNotFoundValue, ErrorCodes.StoryNotFound,
+                $"Story with ID '{storyId}' was not found.", 404);
+        var detail = await BuildDetailResponse(story, ct);
+        return ServiceResult<object>.Ok(detail);
     }
 
-    public async Task<object> GetByKeyAsync(string storyKey, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetByKeyAsync(string storyKey, CancellationToken ct = default)
     {
-        // StoryKey lookup needs org context — use Guid.Empty as placeholder since query filter handles org scoping
         var story = await _storyRepo.GetByKeyAsync(Guid.Empty, storyKey, ct);
-        if (story == null) throw new StoryKeyNotFoundException(storyKey);
-        return await BuildDetailResponse(story, ct);
+        if (story == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.StoryKeyNotFoundValue, ErrorCodes.StoryKeyNotFound,
+                $"Story with key '{storyKey}' was not found.", 404);
+        var detail = await BuildDetailResponse(story, ct);
+        return ServiceResult<object>.Ok(detail);
     }
 
-    public async Task<object> ListAsync(Guid organizationId, int page, int pageSize, Guid? projectId,
+    public async Task<ServiceResult<object>> ListAsync(Guid organizationId, int page, int pageSize, Guid? projectId,
         string? status, string? priority, string? storyType, Guid? departmentId, Guid? assigneeId, Guid? sprintId,
         List<string>? labels, DateTime? dateFrom, DateTime? dateTo, CancellationToken ct = default)
     {
@@ -135,23 +153,32 @@ public class StoryService : IStoryService
             DueDate = s.DueDate, DateCreated = s.DateCreated
         }).ToList();
 
-        return new PaginatedResponse<StoryListResponse>
+        var paginated = new PaginatedResponse<StoryListResponse>
         {
             Data = responses, TotalCount = totalCount, Page = page, PageSize = pageSize,
             TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
         };
+
+        return ServiceResult<object>.Ok(paginated, "Stories retrieved.");
     }
 
-    public async Task<object> UpdateAsync(Guid storyId, Guid actorId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> UpdateAsync(Guid storyId, Guid actorId, object request, CancellationToken ct = default)
     {
         var req = (UpdateStoryRequest)request;
-        var story = await _storyRepo.GetByIdAsync(storyId, ct)
-            ?? throw new StoryNotFoundException(storyId);
+        var story = await _storyRepo.GetByIdAsync(storyId, ct);
+        if (story == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.StoryNotFoundValue, ErrorCodes.StoryNotFound,
+                $"Story with ID '{storyId}' was not found.", 404);
 
         if (req.StoryPoints.HasValue && !FibonacciSet.Contains(req.StoryPoints.Value))
-            throw new InvalidStoryPointsException(req.StoryPoints.Value);
+            return ServiceResult<object>.Fail(
+                ErrorCodes.InvalidStoryPointsValue, ErrorCodes.InvalidStoryPoints,
+                $"Story points value '{req.StoryPoints.Value}' is not a valid Fibonacci number.", 400);
         if (req.Priority != null && !ValidPriorities.Contains(req.Priority))
-            throw new InvalidPriorityException(req.Priority);
+            return ServiceResult<object>.Fail(
+                ErrorCodes.InvalidPriorityValue, ErrorCodes.InvalidPriority,
+                $"Priority '{req.Priority}' is not valid.", 400);
 
         if (req.Title != null) story.Title = req.Title;
         if (req.Description != null)
@@ -176,7 +203,9 @@ public class StoryService : IStoryService
         if (req.StoryType != null && req.StoryType != story.StoryType)
         {
             if (!ValidStoryTypes.Contains(req.StoryType))
-                throw new InvalidStoryTypeException(req.StoryType);
+                return ServiceResult<object>.Fail(
+                    ErrorCodes.InvalidStoryTypeValue, ErrorCodes.InvalidStoryType,
+                    $"Story type '{req.StoryType}' is not valid.", 400);
             var old = story.StoryType;
             story.StoryType = req.StoryType;
             await LogActivity(story, "TypeChanged", actorId, old, req.StoryType, "Story type changed", ct);
@@ -192,53 +221,84 @@ public class StoryService : IStoryService
         story.DateUpdated = DateTime.UtcNow;
         await _storyRepo.UpdateAsync(story, ct);
         await _dbContext.SaveChangesAsync(ct);
-        return await BuildDetailResponse(story, ct);
+        var detail = await BuildDetailResponse(story, ct);
+        return ServiceResult<object>.Ok(detail, "Story updated.");
     }
 
-    public async System.Threading.Tasks.Task DeleteAsync(Guid storyId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> DeleteAsync(Guid storyId, CancellationToken ct = default)
     {
-        var story = await _storyRepo.GetByIdAsync(storyId, ct)
-            ?? throw new StoryNotFoundException(storyId);
+        var story = await _storyRepo.GetByIdAsync(storyId, ct);
+        if (story == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.StoryNotFoundValue, ErrorCodes.StoryNotFound,
+                $"Story with ID '{storyId}' was not found.", 404);
 
         if (story.SprintId.HasValue)
         {
             var sprint = await _sprintRepo.GetByIdAsync(story.SprintId.Value, ct);
-            if (sprint?.Status == "Active") throw new StoryInActiveSprintException(storyId);
+            if (sprint?.Status == "Active")
+                return ServiceResult<object>.Fail(
+                    ErrorCodes.StoryInActiveSprintValue, ErrorCodes.StoryInActiveSprint,
+                    $"Story '{storyId}' cannot be deleted because it is in an active sprint.", 400);
         }
 
         story.FlgStatus = "D";
         story.DateUpdated = DateTime.UtcNow;
         await _storyRepo.UpdateAsync(story, ct);
         await _dbContext.SaveChangesAsync(ct);
+
+        return ServiceResult<object>.NoContent("Story deleted.");
     }
 
-    public async Task<object> TransitionStatusAsync(Guid storyId, Guid actorId, string newStatus, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> TransitionStatusAsync(Guid storyId, Guid actorId, string newStatus, CancellationToken ct = default)
     {
-        var story = await _storyRepo.GetByIdAsync(storyId, ct)
-            ?? throw new StoryNotFoundException(storyId);
+        var story = await _storyRepo.GetByIdAsync(storyId, ct);
+        if (story == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.StoryNotFoundValue, ErrorCodes.StoryNotFound,
+                $"Story with ID '{storyId}' was not found.", 404);
 
         if (!WorkflowStateMachine.IsValidStoryTransition(story.Status, newStatus))
-            throw new InvalidStoryTransitionException(story.Status, newStatus);
+            return ServiceResult<object>.Fail(
+                ErrorCodes.InvalidStoryTransitionValue, ErrorCodes.InvalidStoryTransition,
+                $"Cannot transition story from '{story.Status}' to '{newStatus}'.", 400);
 
         // Preconditions
         if (newStatus == "Ready")
         {
-            if (string.IsNullOrWhiteSpace(story.Description)) throw new StoryDescriptionRequiredException();
-            if (!story.StoryPoints.HasValue || story.StoryPoints.Value <= 0) throw new StoryRequiresPointsException();
+            if (string.IsNullOrWhiteSpace(story.Description))
+                return ServiceResult<object>.Fail(
+                    ErrorCodes.StoryDescriptionRequiredValue, ErrorCodes.StoryDescriptionRequired,
+                    "Story must have a description before moving to Ready.", 400);
+            if (!story.StoryPoints.HasValue || story.StoryPoints.Value <= 0)
+                return ServiceResult<object>.Fail(
+                    ErrorCodes.StoryRequiresPointsValue, ErrorCodes.StoryRequiresPoints,
+                    "Story must have story points before moving to Ready.", 400);
         }
         if (newStatus == "InProgress" && !story.AssigneeId.HasValue)
-            throw new StoryRequiresAssigneeException();
+            return ServiceResult<object>.Fail(
+                ErrorCodes.StoryRequiresAssigneeValue, ErrorCodes.StoryRequiresAssignee,
+                "Story must have an assignee before moving to InProgress.", 400);
         if (newStatus == "InReview")
         {
             var taskCount = await _storyRepo.CountTasksAsync(storyId, ct);
-            if (taskCount == 0) throw new StoryRequiresTasksException();
+            if (taskCount == 0)
+                return ServiceResult<object>.Fail(
+                    ErrorCodes.StoryRequiresTasksValue, ErrorCodes.StoryRequiresTasks,
+                    "Story must have tasks before moving to InReview.", 400);
             var allDevDone = await _storyRepo.AllDevTasksDoneAsync(storyId, ct);
-            if (!allDevDone) throw new StoryRequiresTasksException();
+            if (!allDevDone)
+                return ServiceResult<object>.Fail(
+                    ErrorCodes.StoryRequiresTasksValue, ErrorCodes.StoryRequiresTasks,
+                    "All dev tasks must be done before moving to InReview.", 400);
         }
         if (newStatus == "Done")
         {
             var allDone = await _storyRepo.AllTasksDoneAsync(storyId, ct);
-            if (!allDone) throw new StoryRequiresTasksException();
+            if (!allDone)
+                return ServiceResult<object>.Fail(
+                    ErrorCodes.StoryRequiresTasksValue, ErrorCodes.StoryRequiresTasks,
+                    "All tasks must be done before moving to Done.", 400);
         }
 
         var oldStatus = story.Status;
@@ -251,13 +311,17 @@ public class StoryService : IStoryService
         await _dbContext.SaveChangesAsync(ct);
         await _outbox.PublishAsync(new { MessageType = "NotificationRequest", Action = "StoryStatusChanged", EntityType = "Story", EntityId = storyId.ToString(), NotificationType = "StoryStatusChanged" }, ct);
 
-        return await BuildDetailResponse(story, ct);
+        var detail = await BuildDetailResponse(story, ct);
+        return ServiceResult<object>.Ok(detail, "Story status updated.");
     }
 
-    public async Task<object> AssignAsync(Guid storyId, Guid actorId, Guid assigneeId, string actorRole, Guid actorDepartmentId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> AssignAsync(Guid storyId, Guid actorId, Guid assigneeId, string actorRole, Guid actorDepartmentId, CancellationToken ct = default)
     {
-        var story = await _storyRepo.GetByIdAsync(storyId, ct)
-            ?? throw new StoryNotFoundException(storyId);
+        var story = await _storyRepo.GetByIdAsync(storyId, ct);
+        if (story == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.StoryNotFoundValue, ErrorCodes.StoryNotFound,
+                $"Story with ID '{storyId}' was not found.", 404);
 
         story.AssigneeId = assigneeId;
         story.DateUpdated = DateTime.UtcNow;
@@ -267,13 +331,17 @@ public class StoryService : IStoryService
         await _dbContext.SaveChangesAsync(ct);
         await _outbox.PublishAsync(new { MessageType = "NotificationRequest", Action = "StoryAssigned", EntityType = "Story", EntityId = storyId.ToString(), NotificationType = "StoryAssigned" }, ct);
 
-        return await BuildDetailResponse(story, ct);
+        var detail = await BuildDetailResponse(story, ct);
+        return ServiceResult<object>.Ok(detail, "Story assigned.");
     }
 
-    public async System.Threading.Tasks.Task UnassignAsync(Guid storyId, Guid actorId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> UnassignAsync(Guid storyId, Guid actorId, CancellationToken ct = default)
     {
-        var story = await _storyRepo.GetByIdAsync(storyId, ct)
-            ?? throw new StoryNotFoundException(storyId);
+        var story = await _storyRepo.GetByIdAsync(storyId, ct);
+        if (story == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.StoryNotFoundValue, ErrorCodes.StoryNotFound,
+                $"Story with ID '{storyId}' was not found.", 404);
 
         var oldAssignee = story.AssigneeId?.ToString();
         story.AssigneeId = null;
@@ -281,12 +349,22 @@ public class StoryService : IStoryService
         await _storyRepo.UpdateAsync(story, ct);
         await LogActivity(story, "Unassigned", actorId, oldAssignee, null, "Story unassigned", ct);
         await _dbContext.SaveChangesAsync(ct);
+
+        return ServiceResult<object>.NoContent("Story unassigned.");
     }
 
-    public async System.Threading.Tasks.Task CreateLinkAsync(Guid storyId, Guid targetStoryId, string linkType, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> CreateLinkAsync(Guid storyId, Guid targetStoryId, string linkType, CancellationToken ct = default)
     {
-        var story = await _storyRepo.GetByIdAsync(storyId, ct) ?? throw new StoryNotFoundException(storyId);
-        var target = await _storyRepo.GetByIdAsync(targetStoryId, ct) ?? throw new StoryNotFoundException(targetStoryId);
+        var story = await _storyRepo.GetByIdAsync(storyId, ct);
+        if (story == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.StoryNotFoundValue, ErrorCodes.StoryNotFound,
+                $"Story with ID '{storyId}' was not found.", 404);
+        var target = await _storyRepo.GetByIdAsync(targetStoryId, ct);
+        if (target == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.StoryNotFoundValue, ErrorCodes.StoryNotFound,
+                $"Story with ID '{targetStoryId}' was not found.", 404);
 
         var inverseLinkType = linkType switch
         {
@@ -300,31 +378,45 @@ public class StoryService : IStoryService
         await _storyLinkRepo.AddAsync(new StoryLink { OrganizationId = story.OrganizationId, SourceStoryId = storyId, TargetStoryId = targetStoryId, LinkType = linkType }, ct);
         await _storyLinkRepo.AddAsync(new StoryLink { OrganizationId = story.OrganizationId, SourceStoryId = targetStoryId, TargetStoryId = storyId, LinkType = inverseLinkType }, ct);
         await _dbContext.SaveChangesAsync(ct);
+
+        return ServiceResult<object>.NoContent("Story link created.");
     }
 
-    public async System.Threading.Tasks.Task DeleteLinkAsync(Guid storyId, Guid linkId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> DeleteLinkAsync(Guid storyId, Guid linkId, CancellationToken ct = default)
     {
-        var link = await _storyLinkRepo.GetByIdAsync(linkId, ct) ?? throw new NotFoundException("Link", linkId);
+        var link = await _storyLinkRepo.GetByIdAsync(linkId, ct);
+        if (link == null)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.NotFoundValue, ErrorCodes.NotFound,
+                $"Link with ID '{linkId}' was not found.", 404);
         var inverse = await _storyLinkRepo.FindInverseAsync(link.TargetStoryId, link.SourceStoryId, GetInverseLinkType(link.LinkType), ct);
 
         await _storyLinkRepo.DeleteAsync(link, ct);
         if (inverse != null) await _storyLinkRepo.DeleteAsync(inverse, ct);
         await _dbContext.SaveChangesAsync(ct);
+
+        return ServiceResult<object>.NoContent("Story link deleted.");
     }
 
-    public async System.Threading.Tasks.Task ApplyLabelAsync(Guid storyId, Guid labelId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> ApplyLabelAsync(Guid storyId, Guid labelId, CancellationToken ct = default)
     {
         var count = await _storyLabelRepo.CountByStoryAsync(storyId, ct);
-        if (count >= 10) throw new MaxLabelsPerStoryException(storyId);
+        if (count >= 10)
+            return ServiceResult<object>.Fail(
+                ErrorCodes.MaxLabelsPerStoryValue, ErrorCodes.MaxLabelsPerStory,
+                $"Story '{storyId}' already has the maximum of 10 labels.", 400);
 
         var existing = await _storyLabelRepo.GetAsync(storyId, labelId, ct);
-        if (existing != null) return;
+        if (existing != null)
+            return ServiceResult<object>.NoContent("Label already applied.");
 
         await _storyLabelRepo.AddAsync(new StoryLabel { StoryId = storyId, LabelId = labelId }, ct);
         await _dbContext.SaveChangesAsync(ct);
+
+        return ServiceResult<object>.NoContent("Label applied.");
     }
 
-    public async System.Threading.Tasks.Task RemoveLabelAsync(Guid storyId, Guid labelId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> RemoveLabelAsync(Guid storyId, Guid labelId, CancellationToken ct = default)
     {
         var existing = await _storyLabelRepo.GetAsync(storyId, labelId, ct);
         if (existing != null)
@@ -332,6 +424,8 @@ public class StoryService : IStoryService
             await _storyLabelRepo.DeleteAsync(existing, ct);
             await _dbContext.SaveChangesAsync(ct);
         }
+
+        return ServiceResult<object>.NoContent("Label removed.");
     }
 
     private static string GetInverseLinkType(string linkType) => linkType switch
@@ -410,39 +504,33 @@ public class StoryService : IStoryService
         };
     }
 
-    public async Task<object> BulkUpdateStatusAsync(Guid organizationId, Guid actorId, List<Guid> storyIds, string newStatus, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> BulkUpdateStatusAsync(Guid organizationId, Guid actorId, List<Guid> storyIds, string newStatus, CancellationToken ct = default)
     {
         var results = new List<object>();
         foreach (var storyId in storyIds)
         {
-            try
-            {
-                var result = await TransitionStatusAsync(storyId, actorId, newStatus, ct);
+            var result = await TransitionStatusAsync(storyId, actorId, newStatus, ct);
+            if (result.IsSuccess)
                 results.Add(new { StoryId = storyId, Success = true });
-            }
-            catch (Exception ex)
-            {
-                results.Add(new { StoryId = storyId, Success = false, Error = ex.Message });
-            }
+            else
+                results.Add(new { StoryId = storyId, Success = false, Error = result.Message });
         }
-        return new { Updated = results.Count(r => ((dynamic)r).Success), Total = storyIds.Count, Results = results };
+        var response = new { Updated = results.Count(r => ((dynamic)r).Success), Total = storyIds.Count, Results = results };
+        return ServiceResult<object>.Ok(response, "Bulk status update completed.");
     }
 
-    public async Task<object> BulkAssignAsync(Guid organizationId, Guid actorId, List<Guid> storyIds, Guid assigneeId, string actorRole, Guid actorDepartmentId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> BulkAssignAsync(Guid organizationId, Guid actorId, List<Guid> storyIds, Guid assigneeId, string actorRole, Guid actorDepartmentId, CancellationToken ct = default)
     {
         var results = new List<object>();
         foreach (var storyId in storyIds)
         {
-            try
-            {
-                await AssignAsync(storyId, actorId, assigneeId, actorRole, actorDepartmentId, ct);
+            var result = await AssignAsync(storyId, actorId, assigneeId, actorRole, actorDepartmentId, ct);
+            if (result.IsSuccess)
                 results.Add(new { StoryId = storyId, Success = true });
-            }
-            catch (Exception ex)
-            {
-                results.Add(new { StoryId = storyId, Success = false, Error = ex.Message });
-            }
+            else
+                results.Add(new { StoryId = storyId, Success = false, Error = result.Message });
         }
-        return new { Assigned = results.Count(r => ((dynamic)r).Success), Total = storyIds.Count, Results = results };
+        var response = new { Assigned = results.Count(r => ((dynamic)r).Success), Total = storyIds.Count, Results = results };
+        return ServiceResult<object>.Ok(response, "Bulk assign completed.");
     }
 }

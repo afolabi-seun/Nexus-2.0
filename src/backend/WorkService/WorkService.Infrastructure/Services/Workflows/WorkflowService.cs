@@ -2,6 +2,7 @@ using System.Text.Json;
 using WorkService.Application.DTOs.Workflows;
 using WorkService.Domain.Helpers;
 using WorkService.Domain.Interfaces.Services.Workflows;
+using WorkService.Domain.Results;
 using StackExchange.Redis;
 using WorkService.Infrastructure.Redis;
 
@@ -13,7 +14,7 @@ public class WorkflowService : IWorkflowService
 
     public WorkflowService(IConnectionMultiplexer redis) => _redis = redis;
 
-    public async Task<object> GetWorkflowsAsync(Guid organizationId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetWorkflowsAsync(Guid organizationId, CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
 
@@ -22,7 +23,7 @@ public class WorkflowService : IWorkflowService
         if (orgOverride.HasValue)
         {
             var overrideResult = JsonSerializer.Deserialize<WorkflowDefinitionResponse>(orgOverride!);
-            if (overrideResult != null) return overrideResult;
+            if (overrideResult != null) return ServiceResult<object>.Ok(overrideResult);
         }
 
         // Return defaults from WorkflowStateMachine
@@ -31,14 +32,14 @@ public class WorkflowService : IWorkflowService
         var taskTransitions = WorkflowStateMachine.GetTaskTransitions()
             .ToDictionary(kv => kv.Key, kv => kv.Value.ToList());
 
-        return new WorkflowDefinitionResponse
+        return ServiceResult<object>.Ok(new WorkflowDefinitionResponse
         {
             StoryTransitions = storyTransitions,
             TaskTransitions = taskTransitions
-        };
+        });
     }
 
-    public async System.Threading.Tasks.Task SaveOrganizationOverrideAsync(
+    public async Task<ServiceResult<object>> SaveOrganizationOverrideAsync(
         Guid organizationId, object request, CancellationToken ct = default)
     {
         var req = (WorkflowOverrideRequest)request;
@@ -50,9 +51,10 @@ public class WorkflowService : IWorkflowService
         };
         var json = JsonSerializer.Serialize(response);
         await db.StringSetAsync(RedisKeys.WorkflowOrg(organizationId), json);
+        return ServiceResult<object>.NoContent("Organization workflow override saved.");
     }
 
-    public async System.Threading.Tasks.Task SaveDepartmentOverrideAsync(
+    public async Task<ServiceResult<object>> SaveDepartmentOverrideAsync(
         Guid organizationId, Guid departmentId, object request, CancellationToken ct = default)
     {
         var req = (WorkflowOverrideRequest)request;
@@ -64,5 +66,6 @@ public class WorkflowService : IWorkflowService
         };
         var json = JsonSerializer.Serialize(response);
         await db.StringSetAsync(RedisKeys.WorkflowDept(organizationId, departmentId), json);
+        return ServiceResult<object>.NoContent("Department workflow override saved.");
     }
 }

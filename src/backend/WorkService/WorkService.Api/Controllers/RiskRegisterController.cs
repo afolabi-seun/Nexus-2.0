@@ -36,8 +36,7 @@ public class RiskRegisterController : ControllerBase
     {
         var orgId = GetOrganizationId();
         var userId = GetUserId();
-        var result = await _riskService.CreateAsync(orgId, userId, request, ct);
-        return ApiResponse<object>.Ok(result, "Risk register entry created.").ToActionResult(HttpContext, 201);
+        return (await _riskService.CreateAsync(orgId, userId, request, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -50,8 +49,7 @@ public class RiskRegisterController : ControllerBase
     public async Task<IActionResult> Update(
         Guid riskId, [FromBody] UpdateRiskRequest request, CancellationToken ct)
     {
-        var result = await _riskService.UpdateAsync(riskId, request, ct);
-        return ApiResponse<object>.Ok(result, "Risk register entry updated.").ToActionResult(HttpContext);
+        return (await _riskService.UpdateAsync(riskId, request, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -63,8 +61,7 @@ public class RiskRegisterController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(Guid riskId, CancellationToken ct)
     {
-        await _riskService.DeleteAsync(riskId, ct);
-        return ApiResponse<object>.Ok(null!, "Risk register entry deleted.").ToActionResult(HttpContext);
+        return (await _riskService.DeleteAsync(riskId, ct)).ToActionResult(HttpContext);
     }
 
     /// <summary>
@@ -83,8 +80,7 @@ public class RiskRegisterController : ControllerBase
     {
         PaginationHelper.Normalize(ref page, ref pageSize);
         var orgId = GetOrganizationId();
-        var result = await _riskService.ListAsync(orgId, projectId, sprintId, severity, mitigationStatus, page, pageSize, ct);
-        return ApiResponse<object>.Ok(result, "Risk register entries retrieved.").ToActionResult(HttpContext);
+        return (await _riskService.ListAsync(orgId, projectId, sprintId, severity, mitigationStatus, page, pageSize, ct)).ToActionResult(HttpContext);
     }
 
     private Guid GetOrganizationId() => Guid.Parse(HttpContext.Items["organizationId"]?.ToString()!);

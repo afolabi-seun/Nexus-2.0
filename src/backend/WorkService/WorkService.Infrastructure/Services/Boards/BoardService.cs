@@ -6,6 +6,7 @@ using WorkService.Domain.Interfaces.Repositories.Sprints;
 using WorkService.Domain.Interfaces.Repositories.Stories;
 using WorkService.Domain.Interfaces.Repositories.Tasks;
 using WorkService.Domain.Interfaces.Services.Boards;
+using WorkService.Domain.Results;
 using StackExchange.Redis;
 using WorkService.Infrastructure.Redis;
 
@@ -33,7 +34,7 @@ public class BoardService : IBoardService
         _projectRepo = projectRepo; _redis = redis;
     }
 
-    public async Task<object> GetKanbanBoardAsync(Guid organizationId, Guid? projectId, Guid? sprintId,
+    public async Task<ServiceResult<object>> GetKanbanBoardAsync(Guid organizationId, Guid? projectId, Guid? sprintId,
         Guid? departmentId, Guid? assigneeId, string? priority, List<string>? labels, CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
@@ -42,7 +43,7 @@ public class BoardService : IBoardService
         if (cached.HasValue)
         {
             var cachedBoard = JsonSerializer.Deserialize<KanbanBoardResponse>(cached!);
-            if (cachedBoard != null) return cachedBoard;
+            if (cachedBoard != null) return ServiceResult<object>.Ok(cachedBoard);
         }
 
         var (stories, _) = await _storyRepo.ListAsync(organizationId, 1, 1000, projectId,
@@ -67,10 +68,10 @@ public class BoardService : IBoardService
         var json = JsonSerializer.Serialize(response);
         await db.StringSetAsync(cacheKey, json, TimeSpan.FromMinutes(2));
 
-        return response;
+        return ServiceResult<object>.Ok(response);
     }
 
-    public async Task<object> GetSprintBoardAsync(Guid organizationId, Guid? projectId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetSprintBoardAsync(Guid organizationId, Guid? projectId, CancellationToken ct = default)
     {
         Domain.Entities.Sprint? activeSprint = null;
         if (projectId.HasValue)
@@ -78,11 +79,11 @@ public class BoardService : IBoardService
 
         if (activeSprint == null)
         {
-            return new SprintBoardResponse
+            return ServiceResult<object>.Ok(new SprintBoardResponse
             {
                 HasActiveSprint = false,
                 Message = "No active sprint found"
-            };
+            });
         }
 
         var tasks = await _taskRepo.ListBySprintAsync(activeSprint.SprintId, ct);
@@ -98,14 +99,14 @@ public class BoardService : IBoardService
             }).ToList()
         }).ToList();
 
-        return new SprintBoardResponse
+        return ServiceResult<object>.Ok(new SprintBoardResponse
         {
             SprintName = activeSprint.SprintName, HasActiveSprint = true,
             ProjectName = project?.ProjectName, Columns = columns
-        };
+        });
     }
 
-    public async Task<object> GetBacklogAsync(Guid organizationId, Guid? projectId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetBacklogAsync(Guid organizationId, Guid? projectId, CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
         var cacheKey = RedisKeys.BoardBacklog(organizationId, projectId);
@@ -113,7 +114,7 @@ public class BoardService : IBoardService
         if (cached.HasValue)
         {
             var cachedBacklog = JsonSerializer.Deserialize<BacklogResponse>(cached!);
-            if (cachedBacklog != null) return cachedBacklog;
+            if (cachedBacklog != null) return ServiceResult<object>.Ok(cachedBacklog);
         }
 
         var (stories, _) = await _storyRepo.ListAsync(organizationId, 1, 1000, projectId,
@@ -146,10 +147,10 @@ public class BoardService : IBoardService
         var json = JsonSerializer.Serialize(response);
         await db.StringSetAsync(cacheKey, json, TimeSpan.FromMinutes(2));
 
-        return response;
+        return ServiceResult<object>.Ok(response);
     }
 
-    public async Task<object> GetDepartmentBoardAsync(Guid organizationId, Guid? projectId, Guid? sprintId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetDepartmentBoardAsync(Guid organizationId, Guid? projectId, Guid? sprintId, CancellationToken ct = default)
     {
         var db = _redis.GetDatabase();
         var cacheKey = RedisKeys.BoardDept(organizationId, projectId, sprintId);
@@ -157,7 +158,7 @@ public class BoardService : IBoardService
         if (cached.HasValue)
         {
             var cachedBoard = JsonSerializer.Deserialize<DepartmentBoardResponse>(cached!);
-            if (cachedBoard != null) return cachedBoard;
+            if (cachedBoard != null) return ServiceResult<object>.Ok(cachedBoard);
         }
 
         var tasks = await _taskRepo.ListByDepartmentAsync(organizationId, sprintId, ct);
@@ -181,6 +182,6 @@ public class BoardService : IBoardService
         var json = JsonSerializer.Serialize(response);
         await db.StringSetAsync(cacheKey, json, TimeSpan.FromMinutes(2));
 
-        return response;
+        return ServiceResult<object>.Ok(response);
     }
 }

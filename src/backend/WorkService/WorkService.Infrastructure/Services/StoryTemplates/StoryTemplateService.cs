@@ -5,6 +5,7 @@ using WorkService.Domain.Entities;
 using WorkService.Domain.Exceptions;
 using WorkService.Domain.Interfaces.Repositories.StoryTemplates;
 using WorkService.Domain.Interfaces.Services.StoryTemplates;
+using WorkService.Domain.Results;
 using WorkService.Infrastructure.Data;
 using Task = System.Threading.Tasks.Task;
 
@@ -24,25 +25,25 @@ public class StoryTemplateService : IStoryTemplateService
         _dbContext = dbContext;
     }
 
-    public async Task<object> ListAsync(Guid organizationId, int page, int pageSize, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> ListAsync(Guid organizationId, int page, int pageSize, CancellationToken ct = default)
     {
         var (items, totalCount) = await _repo.ListByOrganizationAsync(organizationId, page, pageSize, ct);
-        return new PaginatedResponse<StoryTemplateResponse>
+        return ServiceResult<object>.Ok(new PaginatedResponse<StoryTemplateResponse>
         {
             Data = items.Select(MapToResponse).ToList(),
             TotalCount = totalCount, Page = page, PageSize = pageSize,
             TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-        };
+        }, "Story templates retrieved.");
     }
 
-    public async Task<object> GetByIdAsync(Guid templateId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> GetByIdAsync(Guid templateId, CancellationToken ct = default)
     {
         var template = await _repo.GetByIdAsync(templateId, ct)
             ?? throw new NotFoundException("StoryTemplate", templateId);
-        return MapToResponse(template);
+        return ServiceResult<object>.Ok(MapToResponse(template), "Story template retrieved.");
     }
 
-    public async Task<object> CreateAsync(Guid organizationId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> CreateAsync(Guid organizationId, object request, CancellationToken ct = default)
     {
         var req = (CreateStoryTemplateRequest)request;
 
@@ -67,10 +68,10 @@ public class StoryTemplateService : IStoryTemplateService
 
         await _repo.AddAsync(entity, ct);
         await _dbContext.SaveChangesAsync(ct);
-        return MapToResponse(entity);
+        return ServiceResult<object>.Created(MapToResponse(entity), "Story template created.");
     }
 
-    public async Task<object> UpdateAsync(Guid templateId, object request, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> UpdateAsync(Guid templateId, object request, CancellationToken ct = default)
     {
         var req = (UpdateStoryTemplateRequest)request;
         var template = await _repo.GetByIdAsync(templateId, ct)
@@ -90,10 +91,10 @@ public class StoryTemplateService : IStoryTemplateService
 
         await _repo.UpdateAsync(template, ct);
         await _dbContext.SaveChangesAsync(ct);
-        return MapToResponse(template);
+        return ServiceResult<object>.Ok(MapToResponse(template), "Story template updated.");
     }
 
-    public async Task DeleteAsync(Guid templateId, CancellationToken ct = default)
+    public async Task<ServiceResult<object>> DeleteAsync(Guid templateId, CancellationToken ct = default)
     {
         var template = await _repo.GetByIdAsync(templateId, ct)
             ?? throw new NotFoundException("StoryTemplate", templateId);
@@ -102,6 +103,7 @@ public class StoryTemplateService : IStoryTemplateService
         template.DateUpdated = DateTime.UtcNow;
         await _repo.UpdateAsync(template, ct);
         await _dbContext.SaveChangesAsync(ct);
+        return ServiceResult<object>.NoContent("Story template deleted.");
     }
 
     private static StoryTemplateResponse MapToResponse(StoryTemplate t) => new()
