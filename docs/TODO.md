@@ -238,8 +238,8 @@ The DB-driven navigation table (`NavigationItems`) is never seeded. All deployme
 - [x] **ServiceResult pattern (UtilityService)** — Created `ServiceResult<T>` in Domain/Results, `ServiceResultExtensions.ToActionResult()` in Api/Extensions. Converted 5 interfaces (10 methods), 5 service implementations, 5 controllers (14 actions), 4 test assertions. Controllers are now one-liners: `return (await _service.DoAsync(request)).ToActionResult();`
 - [x] **ServiceResult pattern (BillingService)** — 18 service methods, 7 controllers, 112 tests
 - [x] **ServiceResult pattern (ProfileService)** — 25 service methods, 10 controllers, 87 tests
-- [ ] **ServiceResult pattern (WorkService)** — 81 service methods, 18 controllers, 179 tests
-- [ ] **Consistent API response messages** — Resolved by ServiceResult pattern — messages now live in service methods, not controllers. 37 controller actions previously missing messages.
+- [x] **ServiceResult pattern (WorkService)** — 81 service methods, 18 controllers, 179 tests
+- [x] **Consistent API response messages** — Resolved by ServiceResult pattern — messages now live in service methods, not controllers. 37 controller actions previously missing messages.
 - [x] **Error code registry seed (all services)** — Seeded all 154 error codes from all 5 services into UtilityService error_code_entries table. Composite unique index on (Code, ServiceName). Extracted to ErrorCodeSeeds.cs.
 - [x] **Startup error code validation (UtilityService)** — ErrorCodeValidationHostedService validates local ErrorCodes.cs against DB registry on startup. Logs warnings for missing codes.
 - [x] **Startup error code validation (other services)** — Added ErrorCodeValidationHostedService to BillingService, ProfileService, WorkService, SecurityService. These call UtilityService GET /api/v1/error-codes API instead of querying DB directly.
@@ -337,17 +337,25 @@ The DB-driven navigation table (`NavigationItems`) is never seeded. All deployme
 - [x] **ListFilter component tests** — 2 property tests (badge count accuracy, config-to-field rendering) + 11 unit tests (aria-expanded, filter region, clear all, saved filters, FilterField types, async loading, ARIA).
 - [x] **Integration property tests** — 4 property tests (saved filter apply, debounce timing, hasActiveFilters consistency, async-search threshold). 43 total tests passing.
 
+### WorkService ServiceResult Migration (spec: workservice-serviceresult)
+- [x] **ServiceResult<T> class and ToActionResult() extension** — Exact copies of BillingService pattern in WorkService.Domain/Results and WorkService.Api/Extensions.
+- [x] **13 service interfaces migrated** — All `Task<object>` return types changed to `Task<ServiceResult<object>>`. 80+ methods across Project, Story, Task, Sprint, Comment, Label, Search, Board, Report, Workflow, TimeEntry, TimePolicy, CostRate, TimerSession, Analytics, AnalyticsSnapshot, CostSnapshot, RiskRegister, StoryTemplate, Export services.
+- [x] **25+ exception types converted** — Service-level exceptions replaced with `ServiceResult.Fail()`. DomainExceptions from repositories/deep code preserved.
+- [x] **18 controllers migrated** — All use one-liner `.ToActionResult(HttpContext)` pattern. No manual ApiResponse construction, no try/catch blocks.
+- [x] **New SavedFilterService** — Created ISavedFilterService/SavedFilterService, moved logic from SavedFilterController to service layer.
+- [x] **All 179 tests pass** — Test assertions updated from exception-catching to ServiceResult property checks.
+
 ---
 
 ## Next Up — Remaining Spec Work
 
 Prioritized by impact and dependency order. Items marked with `*` are optional test tasks.
 
-### 1. WorkService ServiceResult Migration (spec: work-service) — HIGH PRIORITY
-The biggest remaining alignment gap with the WEP reference architecture. All implementation sub-tasks are complete — parent task checkboxes have been marked done.
+### 1. WorkService ServiceResult Migration — DONE ✅ (spec: workservice-serviceresult)
+Migrated all 13 service interfaces, 80+ methods, and 18 controllers to ServiceResult pattern. 70 files changed, 179 tests passing. Phase 11 items "ServiceResult pattern (WorkService)" and "Consistent API response messages" are now closed.
 
 - [x] **Mark completed parent tasks** — Tasks 2, 3, 6, 7, 8, 9, 10, 13, 14 in work-service spec had all sub-tasks done but parent checkboxes were unchecked. Now fixed.
-- [ ] **ServiceResult pattern (WorkService)** — 81 service methods, 18 controllers, 179 tests. This is the last service without ServiceResult. Completing this closes the "Consistent API response messages" item too.
+- [x] **ServiceResult pattern (WorkService)** — 81 service methods, 18 controllers, 179 tests. Created ISavedFilterService/SavedFilterService. All controllers use one-liner `.ToActionResult(HttpContext)` pattern.
 
 ### 2. SecurityService — DONE ✅ (spec: security-service)
 - [x] **Task 13: Api layer — Controllers** — All sub-tasks were complete. Parent checkbox marked done.

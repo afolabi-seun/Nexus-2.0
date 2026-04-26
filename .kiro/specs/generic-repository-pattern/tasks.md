@@ -93,7 +93,7 @@ Incremental migration of ~43 repositories across 5 services to use `IGenericRepo
 - [x] 4. Checkpoint — BillingService build verification
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 5. UtilityService — Add generic files and migrate repositories
+- [x] 5. UtilityService — Add generic files and migrate repositories
   - [x] 5.1 Create `IGenericRepository<T>` interface and `GenericRepository<T>` implementation for UtilityService
     - Create `src/backend/UtilityService/UtilityService.Domain/Interfaces/Repositories/Generics/IGenericRepository.cs`
     - Create `src/backend/UtilityService/UtilityService.Infrastructure/Repositories/Generics/GenericRepository.cs`
@@ -174,7 +174,7 @@ Incremental migration of ~43 repositories across 5 services to use `IGenericRepo
 - [x] 8. Checkpoint — ProfileService build verification
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 9. WorkService — Add generic files and migrate repositories
+- [x] 9. WorkService — Add generic files and migrate repositories
   - [x] 9.1 Create `IGenericRepository<T>` interface and `GenericRepository<T>` implementation for WorkService
     - Create `src/backend/WorkService/WorkService.Domain/Interfaces/Repositories/Generics/IGenericRepository.cs`
     - Create `src/backend/WorkService/WorkService.Infrastructure/Repositories/Generics/GenericRepository.cs`
@@ -234,7 +234,7 @@ Incremental migration of ~43 repositories across 5 services to use `IGenericRepo
 - [x] 10. Checkpoint — WorkService build verification
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 11. Final verification and DI registration cleanup
+- [x] 11. Final verification and DI registration cleanup
   - [x] 11.1 Verify DI registrations across all 5 services
     - Confirm each service's `DependencyInjection.cs` registers migrated repositories against their service-specific interfaces (not `IGenericRepository<T>` open generic)
     - Confirm no open-generic `IGenericRepository<>` registrations exist
