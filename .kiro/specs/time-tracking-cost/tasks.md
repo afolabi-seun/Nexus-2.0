@@ -161,7 +161,7 @@ Implements time tracking, cost rate management, approval workflows, timer sessio
     - **Validates: Requirements 14.1, 14.2, 14.3**
     - Create `WorkService.Tests/Properties/DailyHoursProperties.cs`
 
-- [ ] 10. Infrastructure layer — CostRateService and TimePolicyService
+- [x] 10. Infrastructure layer — CostRateService and TimePolicyService
   - [x] 10.1 Implement CostRateService
     - Implement `ICostRateService` in `Infrastructure/Services/CostRates/CostRateService.cs`
     - Create: validate no duplicate, enforce OrgAdmin, validate hourly rate > 0
@@ -189,7 +189,7 @@ Implements time tracking, cost rate management, approval workflows, timer sessio
     - Create `WorkService.Tests/Properties/TimePolicyProperties.cs`
     - Create `WorkService.Tests/Generators/TimePolicyGenerators.cs`
 
-- [ ] 11. Infrastructure layer — TimerSessionService (Redis)
+- [x] 11. Infrastructure layer — TimerSessionService (Redis)
   - [x] 11.1 Implement TimerSessionService
     - Implement `ITimerSessionService` in `Infrastructure/Services/TimerSessions/TimerSessionService.cs`
     - Start: check no active timer via Redis SCAN `timer:{userId}:*`, SET with 24h TTL
@@ -205,7 +205,7 @@ Implements time tracking, cost rate management, approval workflows, timer sessio
     - **Validates: Requirements 2.1, 2.2, 2.3, 2.4**
     - Create `WorkService.Tests/Properties/TimerRoundTripProperties.cs`
 
-- [ ] 12. Infrastructure layer — CostSnapshotHostedService
+- [x] 12. Infrastructure layer — CostSnapshotHostedService
   - [x] 12.1 Implement CostSnapshotHostedService
     - Implement as `IHostedService` with periodic timer (default 6 hours) in `Infrastructure/Services/CostSnapshots/CostSnapshotHostedService.cs`
     - On each tick: query active projects, compute cost summary per project, upsert CostSnapshot via `AddOrUpdateAsync`
@@ -222,7 +222,7 @@ Implements time tracking, cost rate management, approval workflows, timer sessio
 - [x] 13. Checkpoint — Ensure all services compile and existing tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 14. API layer — controllers
+- [x] 14. API layer — controllers
   - [x] 14.1 Create TimeEntryController
     - Add `TimeEntryController` at `api/v1/time-entries` in `WorkService.Api/Controllers/`
     - Endpoints: POST `/` (create), GET `/` (list), PUT `/{timeEntryId}` (update), DELETE `/{timeEntryId}` (delete), POST `/{timeEntryId}/approve` (DeptLead), POST `/{timeEntryId}/reject` (DeptLead), POST `/timer/start`, POST `/timer/stop`, GET `/timer/status`

@@ -25,7 +25,7 @@ Implements the analytics and reporting layer (Phase 2) for WorkService, adding f
     - Register mappings in `ErrorCodeResolverService`
     - _Requirements: 11.1, 11.2_
 
-- [ ] 2. Repository interfaces and implementations
+- [x] 2. Repository interfaces and implementations
   - [x] 2.1 Create repository interfaces in Domain layer
     - Create `IRiskRegisterRepository.cs` in `Domain/Interfaces/Repositories/RiskRegisters/`
     - Create `IVelocitySnapshotRepository.cs` in `Domain/Interfaces/Repositories/VelocitySnapshots/`
@@ -70,7 +70,7 @@ Implements the analytics and reporting layer (Phase 2) for WorkService, adding f
     - Validate `Title` required (max 200), `ProjectId` required, `Severity` in [Low, Medium, High, Critical], `Likelihood` in [Low, Medium, High], `MitigationStatus` in [Open, Mitigating, Mitigated, Accepted]
     - _Requirements: 6.5, 6.6, 6.7_
 
-- [ ] 5. Service interfaces and pure calculators
+- [x] 5. Service interfaces and pure calculators
   - [x] 5.1 Create service interfaces in Domain layer
     - Create `IAnalyticsService.cs` in `Domain/Interfaces/Services/Analytics/`
     - Create `IHealthScoreCalculator.cs` in `Domain/Interfaces/Services/Analytics/`
@@ -112,7 +112,7 @@ Implements the analytics and reporting layer (Phase 2) for WorkService, adding f
 - [x] 6. Checkpoint — Pure calculators
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 7. RiskRegisterService implementation
+- [x] 7. RiskRegisterService implementation
   - [x] 7.1 Implement RiskRegisterService
     - Create `RiskRegisterService.cs` in `Infrastructure/Services/RiskRegisters/`
     - Implement CRUD: `CreateAsync` (validate enums, set FlgStatus=A, return 201), `UpdateAsync` (validate enums, update fields), `DeleteAsync` (soft-delete via FlgStatus=D), `ListAsync` (paginated with severity/mitigationStatus/sprintId filters)
@@ -127,7 +127,7 @@ Implements the analytics and reporting layer (Phase 2) for WorkService, adding f
     - **Property 19: Risk enum validation**
     - **Validates: Requirements 6.1, 6.3, 6.4, 6.5, 6.6, 6.7**
 
-- [ ] 8. AnalyticsService implementation
+- [x] 8. AnalyticsService implementation
   - [x] 8.1 Implement velocity analytics methods
     - In `AnalyticsService.cs` (`Infrastructure/Services/Analytics/`), implement `GetVelocityTrendsAsync` (query VelocitySnapshotRepository, validate sprintCount 1–50, throw 4060 if invalid) and `GenerateVelocitySnapshotAsync` (compute committed/completed points, total logged hours, average hours per point, upsert snapshot)
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6_
@@ -195,7 +195,7 @@ Implements the analytics and reporting layer (Phase 2) for WorkService, adding f
 - [x] 9. Checkpoint — Services complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 10. API controllers
+- [x] 10. API controllers
   - [x] 10.1 Create AnalyticsController
     - Create `AnalyticsController.cs` in `Api/Controllers/`
     - Route: `api/v1/analytics`
@@ -216,7 +216,7 @@ Implements the analytics and reporting layer (Phase 2) for WorkService, adding f
     - **Property 20: Risk role-based access control**
     - **Validates: Requirements 6.8**
 
-- [ ] 11. Snapshot integration with SprintService
+- [x] 11. Snapshot integration with SprintService
   - [x] 11.1 Implement AnalyticsSnapshotHostedService
     - Create `AnalyticsSnapshotHostedService.cs` in `Infrastructure/Services/Analytics/`
     - Implement `IAnalyticsSnapshotService` and `IHostedService`
@@ -237,7 +237,7 @@ Implements the analytics and reporting layer (Phase 2) for WorkService, adding f
     - **Property 28: Snapshot idempotence** (full integration)
     - **Validates: Requirements 1.6, 9.4**
 
-- [ ] 12. DI registration and wiring
+- [x] 12. DI registration and wiring
   - [x] 12.1 Update DependencyInjection.cs
     - Register all four new repositories (scoped)
     - Register `IAnalyticsService`, `IHealthScoreCalculator`, `IDependencyAnalyzer`, `IRiskRegisterService`, `IAnalyticsSnapshotService` (scoped)
@@ -247,7 +247,7 @@ Implements the analytics and reporting layer (Phase 2) for WorkService, adding f
 - [x] 13. Checkpoint — Backend complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 14. Frontend — Zustand stores and API layer
+- [x] 14. Frontend — Zustand stores and API layer
   - [x] 14.1 Create analytics Zustand store
     - Create `useAnalyticsStore` with actions for all analytics endpoints: velocity trends, resource management, resource utilization, project cost, project health, bug metrics, dashboard
     - Create `useRiskRegisterStore` with CRUD actions for risk register
@@ -259,7 +259,7 @@ Implements the analytics and reporting layer (Phase 2) for WorkService, adding f
     - Use existing API client pattern with `ApiResponse<T>` unwrapping
     - _Requirements: 1.1, 2.1, 3.1, 4.1, 5.1, 6.1, 7.1, 8.1, 10.1_
 
-- [ ] 15. Frontend — Analytics components
+- [x] 15. Frontend — Analytics components
   - [x] 15.1 Create VelocityTrendChart component
     - Line chart showing committed vs completed points across sprints
     - Sprint count selector (1–50)

@@ -378,3 +378,15 @@ After completing the above, audit the codebase against the WEP reference docs to
 - [ ] **Response code mapping consistency** — Verify `MapErrorToResponseCode` switch expressions match across all services
 - [ ] **Outbox envelope format** — Verify all services publish the same envelope structure (type, payload, timestamp)
 - [ ] **Update docs to reflect Nexus naming** — The reference docs use WEP/CoreService naming; actual code uses Nexus/Service naming. Decide whether to update docs or keep as reference spec.
+
+### 7. Optional Property Tests (all specs)
+All implementation is complete across every spec. Only optional (`*`) property tests remain:
+- [ ]* billing-frontend: 8 property tests (error mapping, formatBytes, UsageMeter, plan cards)
+- [ ]* admin-frontend-features: 7 property tests (audit/error log filters, reference data tabs, sprint edit)
+- [ ]* workservice-serviceresult: 8 property tests (ServiceResult factories, ToActionResult, service-specific validations)
+- [ ]* frontend-missing-ui: 8 property tests (API client, status management, delete/unassign controls)
+- [ ]* generic-repository-pattern: 8 property/unit tests (GenericRepository across services)
+- [ ]* analytics-reporting: remaining tests
+- [ ]* time-tracking-cost: remaining tests
+- [ ]* platform-admin-billing: remaining tests
+- [ ]* frontend-app: 1 unit test (board drag-and-drop)
