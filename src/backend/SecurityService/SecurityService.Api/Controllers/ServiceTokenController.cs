@@ -20,6 +20,7 @@ public class ServiceTokenController : ControllerBase
 
     [HttpPost("issue")]
     [ServiceAuth]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public async Task<IActionResult> IssueToken(
         [FromBody] ServiceTokenIssueRequest request, CancellationToken ct)
     {

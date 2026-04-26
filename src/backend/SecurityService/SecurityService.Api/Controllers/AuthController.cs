@@ -154,6 +154,7 @@ public class AuthController : ControllerBase
     /// </summary>
     [HttpPost("credentials/generate")]
     [ServiceAuth]
+    [ApiExplorerSettings(IgnoreApi = true)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GenerateCredentials(

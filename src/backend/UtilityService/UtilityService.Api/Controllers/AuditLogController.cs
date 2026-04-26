@@ -48,6 +48,7 @@ public class AuditLogController : ControllerBase
     /// </remarks>
     [HttpPost]
     [ServiceAuth]
+    [ApiExplorerSettings(IgnoreApi = true)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Create(

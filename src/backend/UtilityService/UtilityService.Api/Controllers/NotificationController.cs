@@ -19,6 +19,7 @@ public class NotificationController : ControllerBase
 
     [HttpPost("notifications/dispatch")]
     [ServiceAuth]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public async Task<IActionResult> Dispatch(
         [FromBody] DispatchNotificationRequest request, CancellationToken ct)
     {

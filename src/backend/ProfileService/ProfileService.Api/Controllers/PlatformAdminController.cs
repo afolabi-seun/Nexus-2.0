@@ -21,6 +21,7 @@ public class PlatformAdminController : ControllerBase
 
     [HttpGet("by-username/{username}")]
     [ServiceAuth]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public async Task<IActionResult> GetByUsername(
         string username, CancellationToken ct)
     {
@@ -29,6 +30,7 @@ public class PlatformAdminController : ControllerBase
 
     [HttpPatch("{id:guid}/password")]
     [ServiceAuth]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public async Task<IActionResult> UpdatePassword(
         Guid id, [FromBody] PlatformAdminPasswordRequest request, CancellationToken ct)
     {

@@ -30,6 +30,7 @@ public class UsageController : ControllerBase
 
     [HttpPost("increment")]
     [ServiceAuth]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public async Task<IActionResult> Increment(
         [FromBody] IncrementUsageRequest request, CancellationToken ct)
     {
