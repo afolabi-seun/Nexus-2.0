@@ -197,7 +197,7 @@ describe('ListFilter – Property Tests', () => {
 
 // --- Unit Tests for FilterField ---
 
-import { screen, waitFor } from '@testing-library/react';
+import { waitFor } from '@testing-library/react';
 import { FilterField } from '@/components/common/FilterField';
 
 describe('FilterField – Unit Tests', () => {
@@ -598,7 +598,6 @@ describe('ListFilter – Unit Tests', () => {
             );
             const btn = within(container).getByRole('button', { name: /Filters/i });
             fireEvent.click(btn);
-            const clearBtn = container.querySelector('button');
             const allButtons = Array.from(container.querySelectorAll('button'));
             const clearAll = allButtons.find((b) => b.textContent?.includes('Clear all'));
             expect(clearAll).toBeUndefined();
