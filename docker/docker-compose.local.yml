@@ -31,7 +31,7 @@ services:
       DATABASE_CONNECTION_STRING: "Host=host.docker.internal;Port=5432;Database=nexusDb;SearchPath=nexus_security;Username=postgres;Password=pass.123"
       DATABASE_SCHEMA: nexus_security
       REDIS_CONNECTION_STRING: "host.docker.internal:6379"
-      JWT_SECRET_KEY: "OsYa9HtPMJLKRcc6w6UVARVUFh4mW+mwKr9fXg6gB8+QII2s4HyIBunrTtALE0Tx"
+      JWT_SECRET_KEY: "o9AVZw+bZdOPnN9svJl1euvJ3IuMb5Sl2vRTrDtUXnI="
       JWT_ISSUER: SecurityService
       JWT_AUDIENCE: NexusPlatform
       ACCESS_TOKEN_EXPIRY_MINUTES: "15"
@@ -69,7 +69,7 @@ services:
       DATABASE_CONNECTION_STRING: "Host=host.docker.internal;Port=5432;Database=nexusDb;SearchPath=nexus_profile;Username=postgres;Password=pass.123"
       DATABASE_SCHEMA: nexus_profile
       REDIS_CONNECTION_STRING: "host.docker.internal:6379"
-      JWT_SECRET_KEY: "OsYa9HtPMJLKRcc6w6UVARVUFh4mW+mwKr9fXg6gB8+QII2s4HyIBunrTtALE0Tx"
+      JWT_SECRET_KEY: "o9AVZw+bZdOPnN9svJl1euvJ3IuMb5Sl2vRTrDtUXnI="
       JWT_ISSUER: SecurityService
       JWT_AUDIENCE: NexusPlatform
       SECURITY_SERVICE_BASE_URL: "http://security-service:5001"
@@ -99,7 +99,7 @@ services:
       DATABASE_CONNECTION_STRING: "Host=host.docker.internal;Port=5432;Database=nexusDb;SearchPath=nexus_work;Username=postgres;Password=pass.123"
       DATABASE_SCHEMA: nexus_work
       REDIS_CONNECTION_STRING: "host.docker.internal:6379"
-      JWT_SECRET_KEY: "OsYa9HtPMJLKRcc6w6UVARVUFh4mW+mwKr9fXg6gB8+QII2s4HyIBunrTtALE0Tx"
+      JWT_SECRET_KEY: "o9AVZw+bZdOPnN9svJl1euvJ3IuMb5Sl2vRTrDtUXnI="
       JWT_ISSUER: SecurityService
       JWT_AUDIENCE: NexusPlatform
       PROFILE_SERVICE_BASE_URL: "http://profile-service:5002"
@@ -127,7 +127,7 @@ services:
       DATABASE_CONNECTION_STRING: "Host=host.docker.internal;Port=5432;Database=nexusDb;SearchPath=nexus_utility;Username=postgres;Password=pass.123"
       DATABASE_SCHEMA: nexus_utility
       REDIS_CONNECTION_STRING: "host.docker.internal:6379"
-      JWT_SECRET_KEY: "OsYa9HtPMJLKRcc6w6UVARVUFh4mW+mwKr9fXg6gB8+QII2s4HyIBunrTtALE0Tx"
+      JWT_SECRET_KEY: "o9AVZw+bZdOPnN9svJl1euvJ3IuMb5Sl2vRTrDtUXnI="
       JWT_ISSUER: SecurityService
       JWT_AUDIENCE: NexusPlatform
       FRONTEND_URL: "http://localhost:5173"
@@ -153,7 +153,7 @@ services:
       DATABASE_CONNECTION_STRING: "Host=host.docker.internal;Port=5432;Database=nexusDb;SearchPath=nexus_billing;Username=postgres;Password=pass.123"
       DATABASE_SCHEMA: nexus_billing
       REDIS_CONNECTION_STRING: "host.docker.internal:6379"
-      JWT_SECRET_KEY: "OsYa9HtPMJLKRcc6w6UVARVUFh4mW+mwKr9fXg6gB8+QII2s4HyIBunrTtALE0Tx"
+      JWT_SECRET_KEY: "o9AVZw+bZdOPnN9svJl1euvJ3IuMb5Sl2vRTrDtUXnI="
       JWT_ISSUER: SecurityService
       JWT_AUDIENCE: NexusPlatform
       SECURITY_SERVICE_BASE_URL: "http://security-service:5001"
