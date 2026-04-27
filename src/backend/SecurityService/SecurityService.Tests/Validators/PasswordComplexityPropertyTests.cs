@@ -38,7 +38,8 @@ public class PasswordComplexityPropertyTests
     {
         var repo = new Mock<IPasswordHistoryRepository>();
         var dbContext = new Mock<SecurityDbContext>(
-            new Microsoft.EntityFrameworkCore.DbContextOptions<SecurityDbContext>());
+            new Microsoft.EntityFrameworkCore.DbContextOptions<SecurityDbContext>(),
+            (string?)null);
         var otp = new Mock<IOtpService>();
         var outbox = new Mock<IOutboxService>();
         var profileClient = new Mock<IProfileServiceClient>();
