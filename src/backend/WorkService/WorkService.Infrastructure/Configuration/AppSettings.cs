@@ -16,6 +16,7 @@ public class AppSettings
     public string ServiceId { get; set; } = string.Empty;
     public string ServiceName { get; set; } = string.Empty;
     public string ServiceSecret { get; set; } = string.Empty;
+    public string? DatabaseSchema { get; set; }
 
     public static AppSettings FromEnvironment()
     {
@@ -36,6 +37,7 @@ public class AppSettings
             ServiceId = GetRequired("SERVICE_ID"),
             ServiceName = GetRequired("SERVICE_NAME"),
             ServiceSecret = GetRequired("SERVICE_SECRET"),
+            DatabaseSchema = Environment.GetEnvironmentVariable("DATABASE_SCHEMA"),
         };
     }
 

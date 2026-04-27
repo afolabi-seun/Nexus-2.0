@@ -20,6 +20,7 @@ public class ErrorLogController : ControllerBase
 
     [HttpPost]
     [ServiceAuth]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public async Task<IActionResult> Create(
         [FromBody] CreateErrorLogRequest request, CancellationToken ct)
     {

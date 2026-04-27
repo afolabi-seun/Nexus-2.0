@@ -60,9 +60,10 @@ services:
     ports:
       - "5001:5001"
     environment:
-      DATABASE_CONNECTION_STRING: "Host=postgres;Port=5432;Database=nexus_security;Username=postgres;Password=pass.123"
+      DATABASE_CONNECTION_STRING: "Host=postgres;Port=5432;Database=nexusDb;SearchPath=nexus_security;Username=postgres;Password=pass.123"
+      DATABASE_SCHEMA: nexus_security
       REDIS_CONNECTION_STRING: "redis:6379"
-      JWT_SECRET_KEY: "docker-dev-secret-key-must-be-at-least-32-characters!!"
+      JWT_SECRET_KEY: "o9AVZw+bZdOPnN9svJl1euvJ3IuMb5Sl2vRTrDtUXnI="
       JWT_ISSUER: SecurityService
       JWT_AUDIENCE: NexusPlatform
       ACCESS_TOKEN_EXPIRY_MINUTES: "15"
@@ -79,7 +80,7 @@ services:
       PROFILE_SERVICE_BASE_URL: "http://profile-service:5002"
       UTILITY_SERVICE_BASE_URL: "http://utility-service:5200"
       FRONTEND_URL: "http://localhost:5173"
-      ALLOWED_ORIGINS: "http://localhost:5173,http://security-service:5001,http://profile-service:5002,http://work-service:5003,http://utility-service:5200,http://billing-service:5300"
+      ALLOWED_ORIGINS: "http://localhost:5173"
       SEQ_URL: "http://seq:80"
       SERVICE_ID: SecurityService
       SERVICE_NAME: SecurityService
@@ -100,15 +101,16 @@ services:
     ports:
       - "5002:5002"
     environment:
-      DATABASE_CONNECTION_STRING: "Host=postgres;Port=5432;Database=nexus_profile;Username=postgres;Password=pass.123"
+      DATABASE_CONNECTION_STRING: "Host=postgres;Port=5432;Database=nexusDb;SearchPath=nexus_profile;Username=postgres;Password=pass.123"
+      DATABASE_SCHEMA: nexus_profile
       REDIS_CONNECTION_STRING: "redis:6379"
-      JWT_SECRET_KEY: "docker-dev-secret-key-must-be-at-least-32-characters!!"
+      JWT_SECRET_KEY: "o9AVZw+bZdOPnN9svJl1euvJ3IuMb5Sl2vRTrDtUXnI="
       JWT_ISSUER: SecurityService
       JWT_AUDIENCE: NexusPlatform
       SECURITY_SERVICE_BASE_URL: "http://security-service:5001"
       UTILITY_SERVICE_BASE_URL: "http://utility-service:5200"
       FRONTEND_URL: "http://localhost:5173"
-      ALLOWED_ORIGINS: "http://localhost:5173,http://security-service:5001,http://profile-service:5002,http://work-service:5003,http://utility-service:5200,http://billing-service:5300"
+      ALLOWED_ORIGINS: "http://localhost:5173"
       SEQ_URL: "http://seq:80"
       SERVICE_ID: ProfileService
       SERVICE_NAME: ProfileService
@@ -132,16 +134,17 @@ services:
     ports:
       - "5003:5003"
     environment:
-      DATABASE_CONNECTION_STRING: "Host=postgres;Port=5432;Database=nexus_work;Username=postgres;Password=pass.123"
+      DATABASE_CONNECTION_STRING: "Host=postgres;Port=5432;Database=nexusDb;SearchPath=nexus_work;Username=postgres;Password=pass.123"
+      DATABASE_SCHEMA: nexus_work
       REDIS_CONNECTION_STRING: "redis:6379"
-      JWT_SECRET_KEY: "docker-dev-secret-key-must-be-at-least-32-characters!!"
+      JWT_SECRET_KEY: "o9AVZw+bZdOPnN9svJl1euvJ3IuMb5Sl2vRTrDtUXnI="
       JWT_ISSUER: SecurityService
       JWT_AUDIENCE: NexusPlatform
       PROFILE_SERVICE_BASE_URL: "http://profile-service:5002"
       SECURITY_SERVICE_BASE_URL: "http://security-service:5001"
       UTILITY_SERVICE_BASE_URL: "http://utility-service:5200"
       FRONTEND_URL: "http://localhost:5173"
-      ALLOWED_ORIGINS: "http://localhost:5173,http://security-service:5001,http://profile-service:5002,http://work-service:5003,http://utility-service:5200,http://billing-service:5300"
+      ALLOWED_ORIGINS: "http://localhost:5173"
       SEQ_URL: "http://seq:80"
       SERVICE_ID: WorkService
       SERVICE_NAME: WorkService
@@ -162,13 +165,14 @@ services:
     ports:
       - "5200:5200"
     environment:
-      DATABASE_URL: "Host=postgres;Port=5432;Database=nexus_utility;Username=postgres;Password=pass.123"
-      REDIS_URL: "redis:6379"
-      JWT_SECRET: "docker-dev-secret-key-must-be-at-least-32-characters!!"
+      DATABASE_CONNECTION_STRING: "Host=postgres;Port=5432;Database=nexusDb;SearchPath=nexus_utility;Username=postgres;Password=pass.123"
+      DATABASE_SCHEMA: nexus_utility
+      REDIS_CONNECTION_STRING: "redis:6379"
+      JWT_SECRET_KEY: "o9AVZw+bZdOPnN9svJl1euvJ3IuMb5Sl2vRTrDtUXnI="
       JWT_ISSUER: SecurityService
       JWT_AUDIENCE: NexusPlatform
       FRONTEND_URL: "http://localhost:5173"
-      ALLOWED_ORIGINS: "http://localhost:5173,http://security-service:5001,http://profile-service:5002,http://work-service:5003,http://utility-service:5200,http://billing-service:5300"
+      ALLOWED_ORIGINS: "http://localhost:5173"
       SEQ_URL: "http://seq:80"
       OUTBOX_POLL_INTERVAL_SECONDS: "30"
       RETENTION_PERIOD_DAYS: "90"
@@ -190,15 +194,16 @@ services:
     ports:
       - "5300:5300"
     environment:
-      DATABASE_CONNECTION_STRING: "Host=postgres;Port=5432;Database=nexus_billing;Username=postgres;Password=pass.123"
+      DATABASE_CONNECTION_STRING: "Host=postgres;Port=5432;Database=nexusDb;SearchPath=nexus_billing;Username=postgres;Password=pass.123"
+      DATABASE_SCHEMA: nexus_billing
       REDIS_CONNECTION_STRING: "redis:6379"
-      JWT_SECRET_KEY: "docker-dev-secret-key-must-be-at-least-32-characters!!"
+      JWT_SECRET_KEY: "o9AVZw+bZdOPnN9svJl1euvJ3IuMb5Sl2vRTrDtUXnI="
       JWT_ISSUER: SecurityService
       JWT_AUDIENCE: NexusPlatform
       SECURITY_SERVICE_BASE_URL: "http://security-service:5001"
       PROFILE_SERVICE_BASE_URL: "http://profile-service:5002"
       FRONTEND_URL: "http://localhost:5173"
-      ALLOWED_ORIGINS: "http://localhost:5173,http://security-service:5001,http://profile-service:5002,http://work-service:5003,http://utility-service:5200,http://billing-service:5300"
+      ALLOWED_ORIGINS: "http://localhost:5173"
       SEQ_URL: "http://seq:80"
       SERVICE_ID: BillingService
       SERVICE_NAME: BillingService

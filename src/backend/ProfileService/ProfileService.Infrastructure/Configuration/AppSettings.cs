@@ -29,6 +29,9 @@ public class AppSettings
     public string ServiceName { get; set; } = string.Empty;
     public string ServiceSecret { get; set; } = string.Empty;
 
+    // Schema
+    public string? DatabaseSchema { get; set; }
+
     // Invite
     public int InviteExpiryHours { get; set; } = 48;
     public int InviteTokenLength { get; set; } = 128;
@@ -57,6 +60,7 @@ public class AppSettings
             InviteExpiryHours = GetOptionalInt("INVITE_EXPIRY_HOURS", 48),
             InviteTokenLength = GetOptionalInt("INVITE_TOKEN_LENGTH", 128),
             MaxDevicesPerUser = GetOptionalInt("MAX_DEVICES_PER_USER", 5),
+            DatabaseSchema = Environment.GetEnvironmentVariable("DATABASE_SCHEMA"),
         };
     }
 

@@ -6,6 +6,7 @@ namespace UtilityService.Infrastructure.Data;
 
 public class UtilityDbContext : DbContext
 {
+    private readonly string? _databaseSchema;
     public Guid OrganizationId { get; set; }
 
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
@@ -18,10 +19,18 @@ public class UtilityDbContext : DbContext
     public DbSet<TaskTypeRef> TaskTypeRefs => Set<TaskTypeRef>();
     public DbSet<WorkflowState> WorkflowStates => Set<WorkflowState>();
 
-    public UtilityDbContext(DbContextOptions<UtilityDbContext> options) : base(options) { }
+    public UtilityDbContext(DbContextOptions<UtilityDbContext> options, string? databaseSchema = null) : base(options)
+    {
+        _databaseSchema = databaseSchema ?? Environment.GetEnvironmentVariable("DATABASE_SCHEMA");
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        if (!string.IsNullOrEmpty(_databaseSchema) && Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory")
+        {
+            modelBuilder.HasDefaultSchema(_databaseSchema);
+        }
+
         // Organization-scoped global query filters
         modelBuilder.Entity<AuditLog>()
             .HasQueryFilter(e => e.OrganizationId == OrganizationId);

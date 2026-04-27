@@ -7,11 +7,13 @@ namespace BillingService.Infrastructure.Data;
 public class BillingDbContext : DbContext
 {
     private readonly Guid? _organizationId;
+    private readonly string? _databaseSchema;
     private Guid OrganizationIdValue => _organizationId ?? Guid.Empty;
 
-    public BillingDbContext(DbContextOptions<BillingDbContext> options, IHttpContextAccessor? httpContextAccessor = null)
+    public BillingDbContext(DbContextOptions<BillingDbContext> options, IHttpContextAccessor? httpContextAccessor = null, string? databaseSchema = null)
         : base(options)
     {
+        _databaseSchema = databaseSchema ?? Environment.GetEnvironmentVariable("DATABASE_SCHEMA");
         if (httpContextAccessor?.HttpContext?.Items.TryGetValue("organizationId", out var orgId) == true
             && orgId is string orgIdStr && Guid.TryParse(orgIdStr, out var parsed))
         {
@@ -26,6 +28,11 @@ public class BillingDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        if (!string.IsNullOrEmpty(_databaseSchema) && Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory")
+        {
+            modelBuilder.HasDefaultSchema(_databaseSchema);
+        }
+
         base.OnModelCreating(modelBuilder);
         ConfigureSubscription(modelBuilder);
         ConfigurePlan(modelBuilder);

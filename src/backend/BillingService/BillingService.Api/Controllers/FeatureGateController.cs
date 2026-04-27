@@ -11,6 +11,7 @@ namespace BillingService.Api.Controllers;
 [Route("api/v1/feature-gates")]
 [Authorize]
 [ServiceAuth]
+[ApiExplorerSettings(IgnoreApi = true)]
 public class FeatureGateController : ControllerBase
 {
     private readonly IFeatureGateService _featureGateService;

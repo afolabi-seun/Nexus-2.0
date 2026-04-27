@@ -48,8 +48,16 @@ public static class DependencyInjection
         services.AddSingleton(appSettings);
 
         // DbContext
-        services.AddDbContext<UtilityDbContext>(options =>
-            options.UseNpgsql(appSettings.DatabaseConnectionString));
+        services.AddDbContext<UtilityDbContext>((sp, options) =>
+        {
+            options.UseNpgsql(appSettings.DatabaseConnectionString, npgsql =>
+            {
+                if (!string.IsNullOrEmpty(appSettings.DatabaseSchema))
+                {
+                    npgsql.MigrationsHistoryTable("__EFMigrationsHistory", appSettings.DatabaseSchema);
+                }
+            });
+        });
 
         // Redis
         services.AddSingleton<IConnectionMultiplexer>(

@@ -162,6 +162,7 @@ public class TeamMemberController : ControllerBase
     /// </summary>
     [HttpGet("by-email/{email}")]
     [ServiceAuth]
+    [ApiExplorerSettings(IgnoreApi = true)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByEmail(
@@ -175,6 +176,7 @@ public class TeamMemberController : ControllerBase
     /// </summary>
     [HttpPatch("{id:guid}/password")]
     [ServiceAuth]
+    [ApiExplorerSettings(IgnoreApi = true)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     public async Task<IActionResult> UpdatePassword(
         Guid id, [FromBody] PasswordUpdateRequest request, CancellationToken ct)

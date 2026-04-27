@@ -7,6 +7,7 @@ namespace WorkService.Infrastructure.Data;
 public class WorkDbContext : DbContext
 {
     private readonly Guid? _organizationId;
+    private readonly string? _databaseSchema;
 
     public DbSet<Project> Projects => Set<Project>();
     public DbSet<Story> Stories => Set<Story>();
@@ -31,9 +32,10 @@ public class WorkDbContext : DbContext
     public DbSet<RiskRegister> RiskRegisters => Set<RiskRegister>();
     public DbSet<StoryTemplate> StoryTemplates => Set<StoryTemplate>();
 
-    public WorkDbContext(DbContextOptions<WorkDbContext> options, IHttpContextAccessor? httpContextAccessor = null)
+    public WorkDbContext(DbContextOptions<WorkDbContext> options, IHttpContextAccessor? httpContextAccessor = null, string? databaseSchema = null)
         : base(options)
     {
+        _databaseSchema = databaseSchema ?? Environment.GetEnvironmentVariable("DATABASE_SCHEMA");
         if (httpContextAccessor?.HttpContext?.Items.TryGetValue("OrganizationId", out var orgId) == true)
         {
             if (orgId is Guid id) _organizationId = id;
@@ -43,6 +45,11 @@ public class WorkDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        if (!string.IsNullOrEmpty(_databaseSchema) && Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory")
+        {
+            modelBuilder.HasDefaultSchema(_databaseSchema);
+        }
+
         base.OnModelCreating(modelBuilder);
 
         ConfigureProject(modelBuilder);
